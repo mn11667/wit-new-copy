@@ -3,8 +3,8 @@ services:
   - type: static_site
     name: edu-frontend
     rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    buildCommand: npm install && npm run build # Set this as 'Build Command' in Render Dashboard
+    staticPublishPath: dist # Set this as 'Publish Directory' in Render Dashboard
     routes:
       - type: rewrite
         source: /*
