@@ -60,6 +60,9 @@ const buildTree = (folders: any[], files: any[]): { tree: FolderNode[], rootFile
     }
   });
 
+  // Sort root folders by name
+  rootFolders.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
   // Distribute files
   files.forEach(f => {
     // Check locally stored state
@@ -82,6 +85,15 @@ const buildTree = (folders: any[], files: any[]): { tree: FolderNode[], rootFile
     } else {
       rootFiles.push(fileWithState);
     }
+  });
+
+  // Sort root files by name (or order if you prefer)
+  rootFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+  // Sort sub-folders and files within each folder
+  folderMap.forEach(folder => {
+    folder.children.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+    folder.files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
   });
 
   return { tree: rootFolders, rootFiles };
