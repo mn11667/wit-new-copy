@@ -1,38 +1,10 @@
 services:
-  # Backend Web Service
-  - type: web_service
-    name: edu-backend
-    rootDir: backend
-    env: node
-    buildCommand: npm install && npm run build
-    startCommand: npm run start:prod
-    envVars:
-      - key: DATABASE_URL
-        value: postgres://edu_user:edu_password@pg-1a139054-mn11github-96ed.g.aivencloud.com:16012/edu_platform?sslmode=require
-      - key: JWT_ACCESS_SECRET
-        generateValue: true
-      - key: JWT_REFRESH_SECRET
-        generateValue: true
-      - key: CLIENT_ORIGIN
-        fromService:
-          type: static_site
-          name: edu-frontend
-          property: url
-      - key: PORT
-        value: 10000
-
   # Frontend Static Site
   - type: static_site
     name: edu-frontend
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    envVars:
-      - key: VITE_API_BASE_URL
-        fromService:
-          type: web_service
-          name: edu-backend
-          property: url
     routes:
       - type: rewrite
         source: /*

@@ -223,14 +223,20 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
                           onClick={() => handleOpen(file)}
                           disabled={!canOpenFiles || downloadingFileId === file.id}
                           title={!canOpenFiles ? 'Pay your dues to get access to collection point databases.' : undefined}
+                          className="min-w-[80px]"
                         >
-                          {downloadingFileId === file.id ? 'Opening...' : canOpenFiles ? 'Open' : 'Pay to access'}
+                          {downloadingFileId === file.id ? <Spinner size="sm" /> : canOpenFiles ? 'Open' : 'Pay to access'}
                         </Button>
                       </div>
                     </motion.div>
                   ))
                 ) : (
-                  <p className="text-sm text-slate-400">No files in this folder yet.</p>
+                  <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                    <svg className="h-12 w-12 opacity-20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                    </svg>
+                    <p className="text-sm">No files in this folder yet.</p>
+                  </div>
                 )}
               </div>
             </div>

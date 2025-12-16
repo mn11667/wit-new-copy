@@ -254,48 +254,7 @@ const UserDashboardPage: React.FC = () => {
         </div>
 
         <div className="mac-card-grid">
-          <div className="mac-card">
-            <p className="mac-pill">Welcome</p>
-            <h3 className="mt-2 text-xl font-semibold text-white">Hello, {user?.name}</h3>
-            <p className="text-sm text-slate-300">Browse your library and jump into resources quickly.</p>
-            <div className="mt-3 flex items-center gap-3">
-              {user?.avatarUrl && <img src={user.avatarUrl} alt="avatar" className="h-12 w-12 rounded-full object-cover" />}
-              <label className="cursor-pointer text-xs text-primary hover:underline">
-                {uploading ? 'Uploading...' : 'Change photo'}
-                <input type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
-              </label>
-            </div>
-            <div className="mt-4">
-              <div className="h-3 w-full overflow-hidden rounded-full bg-white/10 shadow-inner shadow-black/40">
-                <div className="h-full rounded-full bg-gradient-to-r from-primary to-secondary" style={{ width: `${overallProgress}%` }} />
-              </div>
-              <p className="mt-1 text-xs text-slate-300">{overallProgress}% completed</p>
-            </div>
-          </div>
 
-          <div className="mac-card">
-            <p className="mac-pill">Library health</p>
-            <h3 className="mt-2 text-lg font-semibold text-white">Content snapshot</h3>
-            <p className="text-sm text-slate-300">Stay on top of progress across your folders and bookmarks.</p>
-            <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-200">
-              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/60">Total items</p>
-                <p className="text-lg font-semibold text-white">{totalFiles || '—'}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/60">Completed</p>
-                <p className="text-lg font-semibold text-white">{completedCount}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/60">Bookmarked</p>
-                <p className="text-lg font-semibold text-white">{bookmarks.length}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/60">Videos</p>
-                <p className="text-lg font-semibold text-white">{videoCount}</p>
-              </div>
-            </div>
-          </div>
 
 
 
@@ -337,12 +296,23 @@ const UserDashboardPage: React.FC = () => {
                   allowFullScreen
                   onLoad={() => setPlayerLoading(false)}
                   onError={() => setPlayerLoading(false)}
-                  title="Drive video player"
+                  title="Video player"
                 />
+              </div>
+              <div className="flex justify-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-white/50 hover:text-white"
+                  onClick={() => window.open(playerFile.src.replace('/preview', '/view'), '_blank')}
+                >
+                  Having trouble? Open in new tab ↗
+                </Button>
               </div>
             </div>
           </div>
         )}
+
       </div>
     </DashboardLayout>
   );

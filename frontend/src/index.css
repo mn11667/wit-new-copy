@@ -1289,7 +1289,7 @@ button,
   -webkit-backdrop-filter: blur(18px) saturate(1.6);
   backdrop-filter: blur(18px) saturate(1.6);
   pointer-events: auto;
-  margin-top: 600px;
+  margin-top: 120px;
 }
 
 .video-modal__frame {
