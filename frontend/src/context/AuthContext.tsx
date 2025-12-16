@@ -1,4 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react';
+import { SEEDED_USERS } from '../data/users';
 
 export type User = {
   id: string;
@@ -42,10 +43,11 @@ export const AuthContext = createContext<AuthContextType>({
   dismissCookieMessage: () => { },
 });
 
-const STATIC_USER: User = {
-  id: 'static-user-id',
-  name: 'Loksewa Student',
-  email: 'loksewa@gmail.com',
+// Helper to get user structure
+const getUserData = (email: string, name: string): User => ({
+  id: `user-${email}`,
+  name: name,
+  email: email,
   role: 'USER',
   status: 'ACTIVE',
   subscription: {
@@ -54,7 +56,7 @@ const STATIC_USER: User = {
       tier: 'PREMIUM'
     }
   }
-};
+});
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -66,8 +68,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const stored = localStorage.getItem('static_auth');
     if (stored) {
-      setUser(STATIC_USER);
-      setIsAuthenticated(true);
+      try {
+        const parsedUser = JSON.parse(stored);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } catch (e) {
+        localStorage.removeItem('static_auth');
+      }
     }
     setInitialized(true);
   }, []);
@@ -78,11 +85,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     try {
-      if (email.toLowerCase() === 'loksewa@gmail.com' && password === 'loksewa123') {
-        localStorage.setItem('static_auth', 'true');
-        setUser(STATIC_USER);
+      const foundUser = SEEDED_USERS.find(
+        u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+      );
+
+      if (foundUser) {
+        const userData = getUserData(foundUser.email, foundUser.name);
+        localStorage.setItem('static_auth', JSON.stringify(userData));
+        setUser(userData);
         setIsAuthenticated(true);
-        return STATIC_USER;
+        return userData;
       } else {
         throw new Error('Invalid credentials');
       }
@@ -95,11 +107,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 800));
     // Check credentials even on register for simplicity or just auto-login
-    if (email.toLowerCase() === 'loksewa@gmail.com' && password === 'loksewa123') {
-      localStorage.setItem('static_auth', 'true');
-      setUser(STATIC_USER);
+    // For static site, we only allow logging in with pre-seeded users
+    const foundUser = SEEDED_USERS.find(
+      u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+    );
+
+    if (foundUser) {
+      const userData = getUserData(foundUser.email, foundUser.name);
+      localStorage.setItem('static_auth', JSON.stringify(userData));
+      setUser(userData);
       setIsAuthenticated(true);
-      return STATIC_USER;
+      return userData;
     }
     setLoading(false);
     throw new Error('Registration disabled. Use universal login.');
