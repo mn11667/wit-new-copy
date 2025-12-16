@@ -299,22 +299,13 @@ const UserDashboardPage: React.FC = () => {
                   title="Video player"
                 />
               </div>
-              <div className="flex justify-center">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-white/50 hover:text-white"
-                  onClick={() => window.open(playerFile.src.replace('/preview', '/view'), '_blank')}
-                >
-                  Having trouble? Open in new tab ↗
-                </Button>
-              </div>
+              {/* Button removed as requested */}
             </div>
           </div>
         )}
 
       </div>
-    </DashboardLayout>
+    </DashboardLayout >
   );
 };
 
