@@ -1,0 +1,15 @@
+services:
+  - type: static_site
+    name: frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+  - type: static_site
+    name: loop-frontend
+    rootDir: loop/frontend
+    buildCommand: bash build.sh
+    staticPublishPath: dist

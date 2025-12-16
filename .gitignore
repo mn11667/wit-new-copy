@@ -1,0 +1,11 @@
+node_modules
+.env
+.env.local
+.DS_Store
+dist
+backend/node_modules
+frontend/node_modules
+loop/backend/node_modules
+backend/dist
+frontend/dist
+edu.dump

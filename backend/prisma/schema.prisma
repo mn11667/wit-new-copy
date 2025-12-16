@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  REJECTED
+}
+
+enum SubscriptionTier {
+  FREE
+  BASIC
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  PAST_DUE
+}
+
+enum FileType {
+  VIDEO
+  PDF
+}
+
+enum MCQOption {
+  A
+  B
+  C
+  D
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id                String   @id @default(uuid())
+  name              String
+  email             String   @unique
+  passwordHash      String
+  role              Role     @default(USER)
+  isActive          Boolean  @default(true)
+  status            UserStatus @default(PENDING)
+  lastLoginDate     DateTime?
+  phone             String?
+  school            String?
+  preparingFor      String?
+  avatarUrl         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  subscription      Subscription?
+
+  resetTokens       PasswordResetToken[]
+  files             File[]
+  folders           Folder[] @relation("FolderCreatedBy")
+  bookmarks         Bookmark[]
+  progress          FileProgress[]
+  payments          Payment[]
+  mcqSuggestionsSubmitted MCQSuggestion[] @relation("SubmittedBy")
+  mcqSuggestionsApproved  MCQSuggestion[] @relation("ApprovedBy")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  tokenHash  String
+  expiresAt  DateTime
+  used       Boolean  @default(false)
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  createdAt  DateTime @default(now())
+}
+
+model Folder {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  parentId    String?
+  order       Int       @default(0)
+  parent      Folder?   @relation("FolderToFolder", fields: [parentId], references: [id])
+  children    Folder[]  @relation("FolderToFolder")
+  files       File[]
+  syllabusSections SyllabusSection[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   User?     @relation("FolderCreatedBy", fields: [createdById], references: [id])
+  createdById String?
+}
+
+model File {
+  id             String    @id @default(uuid())
+  name           String
+  description    String?
+  fileType       FileType
+  googleDriveUrl String
+  order          Int       @default(0)
+  folder         Folder?   @relation(fields: [folderId], references: [id])
+  folderId       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  owner          User?     @relation(fields: [ownerId], references: [id])
+  ownerId        String?
+  bookmarks      Bookmark[]
+  progress       FileProgress[]
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  file      File     @relation(fields: [fileId], references: [id])
+  fileId    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, fileId])
+}
+
+model FileProgress {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  file      File     @relation(fields: [fileId], references: [id])
+  fileId    String
+  completed Boolean  @default(false)
+  lastOpenedAt DateTime?
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, fileId])
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  content   String
+  active    Boolean  @default(true)
+  mediaUrl  String?
+  createdAt DateTime @default(now())
+  createdBy String?
+}
+
+model MediaAsset {
+  id        String   @id @default(uuid())
+  url       String
+  label     String?
+  createdAt DateTime @default(now())
+  createdBy String?
+}
+
+model SyllabusSection {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  order     Int      @default(0)
+  parentId  String?
+  parent    SyllabusSection? @relation("SyllabusToSyllabus", fields: [parentId], references: [id])
+  children  SyllabusSection[] @relation("SyllabusToSyllabus")
+  folderId  String?
+  folder    Folder?  @relation(fields: [folderId], references: [id])
+  mcqQuestions MCQQuestion[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MCQQuestion {
+  id            String     @id @default(uuid())
+  question      String
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctOption MCQOption
+  explanation   String?
+  syllabusSections SyllabusSection[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model MCQSuggestion {
+  id            String           @id @default(uuid())
+  question      String
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctOption MCQOption
+  explanation   String?
+  status        SuggestionStatus @default(PENDING)
+  submittedBy   User?            @relation("SubmittedBy", fields: [submittedById], references: [id])
+  submittedById String?
+  createdAt     DateTime         @default(now())
+  approvedAt    DateTime?
+  approvedBy    User?            @relation("ApprovedBy", fields: [approvedById], references: [id])
+  approvedById  String?
+}
+
+model SubscriptionPlan {
+  id            String    @id @default(uuid())
+  name          String
+  tier          SubscriptionTier
+  price         Float
+  durationDays  Int
+  stripePriceId String    @unique
+  features      String[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @unique
+  plan      SubscriptionPlan @relation(fields: [planId], references: [id])
+  planId    String
+  startDate DateTime
+  endDate   DateTime
+  status    SubscriptionStatus
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String
+  amount          Float
+  stripePaymentId String   @unique
+  status          String // e.g., "succeeded", "failed" from Stripe
+  createdAt       DateTime @default(now())
+}

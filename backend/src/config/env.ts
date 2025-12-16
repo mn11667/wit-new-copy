@@ -1,0 +1,36 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export const env = {
+  port: process.env.PORT || '4000',
+  databaseUrl: process.env.DATABASE_URL || '',
+  jwtAccessSecret: process.env.JWT_ACCESS_SECRET || 'accesssecret',
+  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'refreshsecret',
+  accessTokenExpiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || '15m',
+  refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
+  clientOrigin: (process.env.CLIENT_ORIGIN || '').trim(),
+  clientOrigins: (
+    process.env.CLIENT_ORIGINS ||
+    process.env.CLIENT_ORIGIN ||
+    'https://witnea.onrender.com,https://www.witnea.onrender.com'
+  )
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean),
+  cookieSecure:
+    process.env.COOKIE_SECURE === 'true' ||
+    (!process.env.COOKIE_SECURE && process.env.NODE_ENV === 'production'),
+  cookieDomain: (process.env.COOKIE_DOMAIN || '').trim(),
+  bcryptSaltRounds: Number(process.env.BCRYPT_SALT_ROUNDS || 10),
+  googleServiceEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '',
+  googleServicePrivateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+    ? process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.replace(/\\n/g, '\n')
+    : '',
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+  mcqSheetUrl:
+    (process.env.MCQ_SHEET_URL || 'https://docs.google.com/spreadsheets/d/1hi-xQvA_wuggEyxbLyWMvI3u6R5iheUzt90cZBEKFks/edit?usp=drive_link').trim(),
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '882414192670-2epj6i8cm6prnbjbrr0kp4e9ng8bmr7u.apps.googleusercontent.com',
+};

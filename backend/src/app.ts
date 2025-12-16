@@ -1,0 +1,85 @@
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import authRoutes from './auth/auth.routes';
+import folderRoutes from './folders/folder.routes';
+import fileRoutes from './files/file.routes';
+import bookmarkRoutes from './files/bookmark.routes';
+import orderRoutes from './files/order.routes';
+import userRoutes from './users/user.routes';
+import announcementRoutes from './misc/announcement.routes';
+import userStatsRoutes from './users/user.stats.routes';
+import uploadRoutes from './misc/upload.routes';
+import mediaRoutes from './misc/media.routes';
+import { env } from './config/env';
+import { errorHandler } from './middleware/errorHandler';
+
+const app = express();
+// Behind a proxy (Render/NGINX) to honor X-Forwarded-* for rate limiting and IPs
+app.set('trust proxy', 1);
+// Disable etag to avoid 304 caching on dynamic JSON responses
+app.disable('etag');
+
+// Security & CORS
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }),
+);
+const allowedOrigins =
+  env.clientOrigins.length > 0
+    ? env.clientOrigins
+    : [env.clientOrigin, 'https://witnea.onrender.com', 'https://www.witnea.onrender.com'].filter(Boolean);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  }),
+);
+
+// Logging Middleware
+app.use(morgan('dev'));
+
+// Rate Limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', apiLimiter);
+
+// Stripe webhook needs raw body
+app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
+
+app.use(express.json());
+app.use(cookieParser());
+app.use('/uploads', express.static('uploads'));
+
+app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+
+app.use('/api/auth', authRoutes);
+app.use('/api', folderRoutes);
+app.use('/api', fileRoutes);
+app.use('/api', bookmarkRoutes);
+app.use('/api', orderRoutes);
+app.use('/api', userRoutes);
+app.use('/api', announcementRoutes);
+app.use('/api', userStatsRoutes);
+app.use('/api', uploadRoutes);
+app.use('/api', mediaRoutes);
+
+app.use(errorHandler);
+
+export default app;
