@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../UI/Button';
-import { ChangePasswordModal } from '../User/ChangePasswordModal';
+
 import { Badge } from '../UI/Badge';
 import { MacShell } from './MacShell';
 
@@ -82,16 +82,7 @@ export const DashboardLayout: React.FC<Props> = ({ title, children, statusExtra 
             </div>
           </div>
           <div className="space-y-2">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-sm"
-              onClick={() => {
-                setIsModalOpen(true);
-                setIsMenuOpen(false);
-              }}
-            >
-              Change Password
-            </Button>
+
             <Button variant="ghost" className="w-full justify-start text-sm text-red-400 hover:text-red-300" onClick={logout}>
               Logout
             </Button>
@@ -103,17 +94,18 @@ export const DashboardLayout: React.FC<Props> = ({ title, children, statusExtra 
 
   return (
     <div className="min-h-screen">
-      <ChangePasswordModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <MacShell title={title} subtitle="Education Hub" headerActions={accountMenu} statusExtra={statusExtra}>
-        {showCookieMessage && (
-          <div className="mac-banner">
-            <span>Please use your Gmail for cookies to be able to access content properly.</span>
-            <Button onClick={dismissCookieMessage} variant="ghost" className="text-white hover:bg-white/10">
-              Dismiss
-            </Button>
-          </div>
-        )}
-        <div className="space-y-4">{children}</div>
+        <div className="container mx-auto max-w-7xl md:p-6 p-4">
+          {showCookieMessage && (
+            <div className="mac-banner">
+              <span>Please use your Gmail for cookies to be able to access content properly.</span>
+              <Button onClick={dismissCookieMessage} variant="ghost" className="text-white hover:bg-white/10">
+                Dismiss
+              </Button>
+            </div>
+          )}
+          <div className="space-y-4">{children}</div>
+        </div>
       </MacShell>
     </div>
   );

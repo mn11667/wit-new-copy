@@ -1,14 +1,15 @@
-import api from './apiClient';
+import dbData from '../data/db.json';
 
 export type FileItem = {
   id: string;
-  name:string;
+  name: string;
   description?: string | null;
   fileType: 'VIDEO' | 'PDF';
   folderId?: string | null;
   bookmarked?: boolean;
   completed?: boolean;
   lastOpenedAt?: string | null;
+  googleDriveUrl?: string; // Added for internal use
 };
 
 export type FolderNode = {
@@ -27,131 +28,156 @@ export type FolderTreeResponse = {
   progress?: number;
 };
 
+// Helper to build tree from flat data
+const buildTree = (folders: any[], files: any[]): { tree: FolderNode[], rootFiles: FileItem[] } => {
+  const folderMap = new Map<string, FolderNode>();
+
+  // Initialize all folders
+  folders.forEach(f => {
+    folderMap.set(f.id, {
+      ...f,
+      children: [],
+      files: [],
+      syllabusSections: [], // static data doesn't have this structure in export, but we keep the type
+    });
+  });
+
+  const rootFolders: FolderNode[] = [];
+  const rootFiles: FileItem[] = [];
+
+  // Assemble folder structure
+  folders.forEach(f => {
+    const node = folderMap.get(f.id)!;
+    if (f.parentId) {
+      const parent = folderMap.get(f.parentId);
+      if (parent) {
+        parent.children.push(node);
+      } else {
+        rootFolders.push(node); // Orphaned or parent missing
+      }
+    } else {
+      rootFolders.push(node);
+    }
+  });
+
+  // Distribute files
+  files.forEach(f => {
+    // Check locally stored state
+    const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '{}');
+    const progress = JSON.parse(localStorage.getItem('progress') || '{}');
+
+    const fileWithState: FileItem = {
+      ...f,
+      bookmarked: !!bookmarks[f.id],
+      completed: !!progress[f.id]
+    };
+
+    if (f.folderId) {
+      const folder = folderMap.get(f.folderId);
+      if (folder) {
+        folder.files.push(fileWithState);
+      } else {
+        rootFiles.push(fileWithState);
+      }
+    } else {
+      rootFiles.push(fileWithState);
+    }
+  });
+
+  return { tree: rootFolders, rootFiles };
+};
+
 export async function fetchUserTree() {
-  const res = await api.get<FolderTreeResponse>('/api/folders/tree');
-  return res.data;
+  // Simulate network
+  await new Promise(r => setTimeout(r, 200));
+  const { tree, rootFiles } = buildTree(dbData.folders, dbData.files);
+
+  // Calculate total progress ??
+  // For now simple return
+  return {
+    tree,
+    rootFiles,
+    progress: 0
+  };
 }
 
 export async function getDownloadUrl(fileId: string) {
-  const res = await api.get<{ url: string }>(`/api/files/${fileId}/download`);
-  return res.data.url;
+  const file = dbData.files.find((f: any) => f.id === fileId);
+  if (!file) throw new Error('File not found');
+
+  // Return the direct URL or formatted one
+  return file.googleDriveUrl || '#';
 }
 
 export async function fetchAdminTree() {
-  const res = await api.get<FolderTreeResponse>('/api/admin/folders/tree');
-  return res.data;
+  return fetchUserTree();
 }
 
-export async function createFolder(payload: { name: string; description?: string; parentId?: string }) {
-  const res = await api.post('/api/admin/folders', payload);
-  return res.data.folder;
-}
+// Admin Write Operations - Disabled for Static Site
+export async function createFolder(payload: any) { throw new Error('Static Mode: Write disabled'); }
+export async function updateFolder(id: string, payload: any) { throw new Error('Static Mode: Write disabled'); }
+export async function deleteFolder(id: string) { throw new Error('Static Mode: Write disabled'); }
+export async function createFile(payload: any) { throw new Error('Static Mode: Write disabled'); }
+export async function updateFile(id: string, payload: any) { throw new Error('Static Mode: Write disabled'); }
+export async function deleteFile(id: string) { throw new Error('Static Mode: Write disabled'); }
+export async function reorderFiles(parentId: any, orderedIds: any) { return { success: true }; }
+export async function reorderFolders(parentId: any, orderedIds: any) { return { success: true }; }
 
-export async function updateFolder(id: string, payload: { name?: string; description?: string }) {
-  const res = await api.put(`/api/admin/folders/${id}`, payload);
-  return res.data.folder;
-}
 
-export async function deleteFolder(id: string) {
-  const res = await api.delete(`/api/admin/folders/${id}`);
-  return res.data;
-}
-
-export async function createFile(payload: {
-  name: string;
-  description?: string;
-  fileType: 'VIDEO' | 'PDF';
-  googleDriveUrl: string;
-  folderId?: string | null;
-}) {
-  const res = await api.post('/api/admin/files', payload);
-  return res.data.file as FileItem;
-}
-
-export async function updateFile(
-  id: string,
-  payload: Partial<{
-    name: string;
-    description?: string;
-    fileType: 'VIDEO' | 'PDF';
-    googleDriveUrl: string;
-    folderId?: string | null;
-  }>,
-) {
-  const res = await api.put(`/api/admin/files/${id}`, payload);
-  return res.data.file as FileItem;
-}
-
-export async function deleteFile(id: string) {
-  const res = await api.delete(`/api/admin/files/${id}`);
-  return res.data;
-}
-
-// Ordering
-export async function reorderFiles(parentId: string | null, orderedIds: string[]) {
-  const res = await api.post('/api/admin/files/order', { parentId, orderedIds });
-  return res.data;
-}
-
-export async function reorderFolders(parentId: string | null, orderedIds: string[]) {
-  const res = await api.post('/api/admin/folders/order', { parentId, orderedIds });
-  return res.data;
-}
-
-// Bookmarks
+// Bookmarks - LocalStorage
 export async function addBookmark(fileId: string) {
-  const res = await api.post('/api/bookmarks', { fileId });
-  return res.data;
+  const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '{}');
+  bookmarks[fileId] = true;
+  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+  return { success: true };
 }
 
 export async function removeBookmark(fileId: string) {
-  const res = await api.delete(`/api/bookmarks/${fileId}`);
-  return res.data;
+  const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '{}');
+  delete bookmarks[fileId];
+  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+  return { success: true };
 }
 
 export async function listBookmarks() {
-  const res = await api.get('/api/bookmarks');
-  return res.data.bookmarks as { fileId: string; file: FileItem }[];
+  // Not implemented fully as tree view usually handles it, 
+  // but if needed we can filter dbData.files
+  return [];
 }
 
-// Progress
+// Progress - LocalStorage
 export async function setProgress(fileId: string, completed: boolean) {
-  const res = await api.post('/api/progress', { fileId, completed });
-  return res.data;
+  const progress = JSON.parse(localStorage.getItem('progress') || '{}');
+  if (completed) {
+    progress[fileId] = true;
+  } else {
+    delete progress[fileId];
+  }
+  localStorage.setItem('progress', JSON.stringify(progress));
+  return { success: true };
 }
 
 export async function markOpened(fileId: string) {
-  const res = await api.post('/api/progress/open', { fileId });
-  return res.data;
+  return { success: true };
 }
 
 // Announcement
 export async function fetchAnnouncement() {
-  const res = await api.get('/api/announcement');
-  return res.data.message as { content: string } | null;
+  return { content: null };
 }
 
 export async function setAnnouncement(content: string, active = true) {
-  const res = await api.post('/api/admin/announcement', { content, active });
-  return res.data.announcement as { id: string; content: string; active: boolean };
+  return { id: 'static', content, active };
 }
 
 export async function uploadAvatar(file: File) {
-  const form = new FormData();
-  form.append('file', file);
-  const res = await api.post('/api/upload/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } });
-  return res.data as { url: string };
+  return { url: 'https://via.placeholder.com/150' };
 }
 
 export async function uploadMedia(file: File, label?: string) {
-  const form = new FormData();
-  form.append('file', file);
-  if (label) form.append('label', label);
-  const res = await api.post('/api/admin/upload/media', form, { headers: { 'Content-Type': 'multipart/form-data' } });
-  return res.data.asset as { id: string; url: string; label?: string };
+  return { id: 'static', url: '#', label };
 }
 
 export async function fetchAllFiles() {
-  const res = await api.get('/api/admin/files/all');
-  return res.data.files as (FileItem & { folder: { name: string } | null })[];
+  return dbData.files.map((f: any) => ({ ...f, folder: null }));
 }

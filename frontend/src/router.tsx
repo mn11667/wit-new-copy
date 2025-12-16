@@ -2,9 +2,8 @@ import React from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
+
+
 import UserDashboardPage from './pages/UserDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import FeatureLandingPage from './pages/FeatureLandingPage';
@@ -53,16 +52,8 @@ const AppRouter: React.FC = () => (
           </AuthRedirect>
         }
       />
-      <Route
-        path="/register"
-        element={
-          <AuthRedirect>
-            <RegisterPage />
-          </AuthRedirect>
-        }
-      />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+
+
       <Route
         path="/dashboard"
         element={

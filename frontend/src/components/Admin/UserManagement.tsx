@@ -8,13 +8,13 @@ import {
   deleteUser as adminDeleteUser,
   fetchUserProgressSummary,
   fetchUserDetails,
+  AdminUser,
 } from '../../services/adminApi';
-import { changePassword } from '../../services/authApi';
-import { User } from '../../services/authApi';
+import { User } from '../../context/AuthContext';
 import { UserEditModal } from './UserEditModal'; // Import the new modal
 
 export const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [userForm, setUserForm] = useState({ name: '', email: '', password: '', role: 'USER' as 'USER' | 'ADMIN' });
   const [progressSummary, setProgressSummary] = useState<{ id: string; name: string; email: string; completed: number; bookmarks: number; percent: number }[]>([]);
   const [selectedUserStats, setSelectedUserStats] = useState<{ userId: string; bookmarks: number; progress: number; percent: number } | null>(null);
@@ -50,7 +50,7 @@ export const UserManagement: React.FC = () => {
     }
   };
 
-  const removeUser = async (u: User) => {
+  const removeUser = async (u: AdminUser) => {
     if (!confirm('Delete this user?')) return;
     try {
       await adminDeleteUser(u.id);
@@ -60,17 +60,7 @@ export const UserManagement: React.FC = () => {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await changePassword({ oldPassword: pwdOld, newPassword: pwdNew });
-      setPwdOld('');
-      setPwdNew('');
-      alert('Password changed');
-    } catch (err: any) {
-      setError(err.message || 'Password change failed');
-    }
-  };
+
 
   const viewUserStats = async (u: User) => {
     try {
@@ -124,28 +114,7 @@ export const UserManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       {error && <p className="text-sm text-rose-500">{error}</p>}
-      <Card>
-        <p className="text-xs uppercase tracking-[0.22em] text-secondary">Change Password</p>
-        <form className="mt-3 grid gap-3 md:grid-cols-3" onSubmit={handleChangePassword}>
-          <input
-            className="glass w-full rounded-xl border-transparent bg-black/20 px-3 py-2 text-white shadow-inner focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary"
-            placeholder="Old password"
-            type="password"
-            value={pwdOld}
-            onChange={(e) => setPwdOld(e.target.value)}
-            required
-          />
-          <input
-            className="glass w-full rounded-xl border-transparent bg-black/20 px-3 py-2 text-white shadow-inner focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary"
-            placeholder="New password"
-            type="password"
-            value={pwdNew}
-            onChange={(e) => setPwdNew(e.target.value)}
-            required
-          />
-          <Button type="submit">Update password</Button>
-        </form>
-      </Card>
+
       <Card>
         <p className="text-xs uppercase tracking-[0.22em] text-secondary">Add user</p>
         <form className="mt-3 grid gap-3 md:grid-cols-4" onSubmit={handleCreateUser}>

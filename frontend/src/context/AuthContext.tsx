@@ -1,7 +1,14 @@
 import React, { createContext, useEffect, useState } from 'react';
-import * as authApi from '../services/authApi';
-import { User } from '../services/authApi';
-import { loadStoredAccessToken } from '../services/authApi';
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'USER' | 'ADMIN';
+  status: 'ACTIVE';
+  avatarUrl?: string;
+  subscription?: any;
+};
 
 type AuthContextType = {
   user: User | null;
@@ -27,13 +34,27 @@ export const AuthContext = createContext<AuthContextType>({
   register: async () => {
     return {} as User;
   },
-  logout: async () => {},
+  logout: async () => { },
   refresh: async () => {
     return null;
   },
   showCookieMessage: false,
-  dismissCookieMessage: () => {},
+  dismissCookieMessage: () => { },
 });
+
+const STATIC_USER: User = {
+  id: 'static-user-id',
+  name: 'Loksewa Student',
+  email: 'loksewa@gmail.com',
+  role: 'USER',
+  status: 'ACTIVE',
+  subscription: {
+    status: 'ACTIVE',
+    plan: {
+      tier: 'PREMIUM'
+    }
+  }
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -42,100 +63,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [initialized, setInitialized] = useState(false);
   const [showCookieMessage, setShowCookieMessage] = useState(false);
 
-  const COOKIE_MESSAGE_DISMISSED_KEY = 'cookieMessageDismissed';
-  const COOKIE_MESSAGE_TIMEOUT_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
-
-  const dismissCookieMessage = () => {
-    localStorage.setItem(COOKIE_MESSAGE_DISMISSED_KEY, Date.now().toString());
-    setShowCookieMessage(false);
-  };
-
-  const checkCookieMessage = (currentUser: User | null) => {
-    if (!currentUser) {
-      setShowCookieMessage(false);
-      return;
-    }
-
-    const dismissedTimestamp = localStorage.getItem(COOKIE_MESSAGE_DISMISSED_KEY);
-    if (dismissedTimestamp) {
-      const timeSinceDismissed = Date.now() - parseInt(dismissedTimestamp, 10);
-      if (timeSinceDismissed < COOKIE_MESSAGE_TIMEOUT_MS) {
-        setShowCookieMessage(false);
-        return;
-      }
-    }
-
-    // Show if lastLoginDate is null (first login) or if it's been more than a day
-    const oneDay = 1000 * 60 * 60 * 24;
-    const lastLogin = currentUser.lastLoginDate ? new Date(currentUser.lastLoginDate).getTime() : 0;
-    const timeSinceLastLogin = Date.now() - lastLogin;
-
-    if (!currentUser.lastLoginDate || timeSinceLastLogin > oneDay) {
-      setShowCookieMessage(true);
-    } else {
-      setShowCookieMessage(false);
-    }
-  };
-
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      const me = await authApi.refresh();
-      setUser(me);
-      setIsAuthenticated(true);
-      checkCookieMessage(me);
-      return me;
-    } catch {
-      setUser(null);
-      setIsAuthenticated(false);
-      setShowCookieMessage(false);
-      return null;
-    } finally {
-      setLoading(false);
-      setInitialized(true);
-    }
-  };
-
-  const initializeAuth = async () => {
-    setLoading(true);
-    try {
-      loadStoredAccessToken();
-      const me = await authApi.me();
-      setUser(me);
-      setIsAuthenticated(true);
-      checkCookieMessage(me);
-    } catch {
-      // attempt refresh if /me fails (e.g., access token expired)
-      try {
-        const me = await refresh();
-        if (me) {
-          setIsAuthenticated(true);
-          return;
-        }
-      } catch {
-        // ignore
-      }
-      setUser(null);
-      setIsAuthenticated(false);
-      setShowCookieMessage(false);
-    } finally {
-      setInitialized(true);
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    initializeAuth();
+    const stored = localStorage.getItem('static_auth');
+    if (stored) {
+      setUser(STATIC_USER);
+      setIsAuthenticated(true);
+    }
+    setInitialized(true);
   }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     try {
-      const me = await authApi.login({ email, password });
-      setUser(me);
-      setIsAuthenticated(true);
-      checkCookieMessage(me);
-      return me;
+      if (email.toLowerCase() === 'loksewa@gmail.com' && password === 'loksewa123') {
+        localStorage.setItem('static_auth', 'true');
+        setUser(STATIC_USER);
+        setIsAuthenticated(true);
+        return STATIC_USER;
+      } else {
+        throw new Error('Invalid credentials');
+      }
     } finally {
       setLoading(false);
     }
@@ -143,28 +93,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (name: string, email: string, password: string) => {
     setLoading(true);
-    try {
-      const me = await authApi.register({ name, email, password });
-      setUser(me);
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    // Check credentials even on register for simplicity or just auto-login
+    if (email.toLowerCase() === 'loksewa@gmail.com' && password === 'loksewa123') {
+      localStorage.setItem('static_auth', 'true');
+      setUser(STATIC_USER);
       setIsAuthenticated(true);
-      checkCookieMessage(me);
-      return me;
-    } finally {
-      setLoading(false);
+      return STATIC_USER;
     }
+    setLoading(false);
+    throw new Error('Registration disabled. Use universal login.');
   };
 
   const logout = async () => {
     setLoading(true);
-    try {
-      await authApi.logout();
-      setUser(null);
-      setIsAuthenticated(false);
-      setShowCookieMessage(false);
-    } finally {
-      setLoading(false);
-    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    localStorage.removeItem('static_auth');
+    setUser(null);
+    setIsAuthenticated(false);
+    setLoading(false);
   };
+
+  const refresh = async () => {
+    return user;
+  };
+
+  const dismissCookieMessage = () => setShowCookieMessage(false);
 
   return (
     <AuthContext.Provider
