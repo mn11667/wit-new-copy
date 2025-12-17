@@ -161,7 +161,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
             <div className="flex items-center justify-between">
               <p className="text-xs uppercase tracking-[0.22em] text-secondary">Files</p>
               {selectedFolder && (
-                <Button variant="ghost" onClick={() => setSelectedFolder(null)}>
+                <Button variant="ghost" onClick={() => setSelectedFolder(currentFolder?.parentId || null)}>
                   ← Back
                 </Button>
               )}
