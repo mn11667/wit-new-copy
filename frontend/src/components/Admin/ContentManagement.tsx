@@ -21,8 +21,6 @@ import {
   updateFolder,
   setAnnouncement,
 } from '../../services/contentApi';
-import { SyllabusNode, fetchSyllabusTree, updateSyllabusSection } from '../../services/syllabusApi';
-
 const findFolder = (tree: FolderNode[], id: string | null): FolderNode | null => {
   if (!id) return null;
   for (const node of tree) {
@@ -33,16 +31,6 @@ const findFolder = (tree: FolderNode[], id: string | null): FolderNode | null =>
   return null;
 };
 
-const flattenSyllabus = (nodes: SyllabusNode[], prefix = ''): { id: string; label: string }[] => {
-  const list: { id: string; label: string }[] = [];
-  nodes.forEach((n) => {
-    const label = prefix ? `${prefix} › ${n.title}` : n.title;
-    list.push({ id: n.id, label });
-    list.push(...flattenSyllabus(n.children, label));
-  });
-  return list;
-};
-
 export const ContentManagement: React.FC = () => {
   const [tree, setTree] = useState<FolderNode[]>([]);
   const [rootFiles, setRootFiles] = useState<FileItem[]>([]);
@@ -50,9 +38,7 @@ export const ContentManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [announcementText, setAnnouncementText] = useState('');
-  const [syllabusTree, setSyllabusTree] = useState<SyllabusNode[]>([]);
-  const [syllabusLoading, setSyllabusLoading] = useState(false);
-  const [linkingSectionId, setLinkingSectionId] = useState<string>('');
+
 
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [folderForm, setFolderForm] = useState({ name: '', description: '' });
@@ -81,28 +67,15 @@ export const ContentManagement: React.FC = () => {
     }
   };
 
-  const loadSyllabus = async () => {
-    setSyllabusLoading(true);
-    try {
-      const res = await fetchSyllabusTree();
-      setSyllabusTree(res.tree);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load syllabus');
-    } finally {
-      setSyllabusLoading(false);
-    }
-  };
 
   useEffect(() => {
     loadContent();
-    loadSyllabus();
   }, []);
 
   const currentFolder = useMemo(() => findFolder(tree, selectedFolder), [tree, selectedFolder]);
   const filesToShow = selectedFolder ? currentFolder?.files || [] : rootFiles;
   const folderChildren = selectedFolder ? currentFolder?.children || [] : tree;
-  const syllabusOptions = useMemo(() => flattenSyllabus(syllabusTree), [syllabusTree]);
-  const linkedSections = currentFolder?.syllabusSections || [];
+
 
   const openCreateFolder = () => {
     setEditingFolderId(null);
@@ -192,25 +165,7 @@ export const ContentManagement: React.FC = () => {
     }
   };
 
-  const handleLinkSection = async () => {
-    if (!selectedFolder || !linkingSectionId) return;
-    try {
-      await updateSyllabusSection(linkingSectionId, { folderId: selectedFolder });
-      setLinkingSectionId('');
-      await Promise.all([loadSyllabus(), loadContent()]);
-    } catch (err: any) {
-      setError(err.message || 'Failed to link syllabus');
-    }
-  };
 
-  const handleUnlinkSection = async (sectionId: string) => {
-    try {
-      await updateSyllabusSection(sectionId, { folderId: null });
-      await Promise.all([loadSyllabus(), loadContent()]);
-    } catch (err: any) {
-      setError(err.message || 'Failed to unlink syllabus');
-    }
-  };
 
   const onDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
@@ -332,40 +287,6 @@ export const ContentManagement: React.FC = () => {
                     </div>
                   )}
                 </Droppable>
-                <div className="mt-4 space-y-2 rounded-2xl bg-black/20 p-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-slate-300">Syllabus mapping</p>
-                    <Button variant="ghost" onClick={loadSyllabus} disabled={syllabusLoading}>
-                      Refresh
-                    </Button>
-                  </div>
-                  {linkedSections.length === 0 && <p className="text-sm text-slate-400">No syllabus linked to this folder.</p>}
-                  {linkedSections.map((s) => (
-                    <div key={s.id} className="glass flex items-center justify-between rounded-xl px-3 py-2 text-sm">
-                      <span className="text-slate-300">{s.title}</span>
-                      <Button variant="ghost" onClick={() => handleUnlinkSection(s.id)}>
-                        Unlink
-                      </Button>
-                    </div>
-                  ))}
-                  <div className="glass flex flex-col gap-2 rounded-xl p-3">
-                    <select
-                      value={linkingSectionId}
-                      onChange={(e) => setLinkingSectionId(e.target.value)}
-                      className="glass w-full rounded-xl border-transparent bg-black/20 px-3 py-2 text-white shadow-inner focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary"
-                    >
-                      <option value="">Select syllabus section</option>
-                      {syllabusOptions.map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                    <Button onClick={handleLinkSection} disabled={!linkingSectionId || !selectedFolder}>
-                      Link to this folder
-                    </Button>
-                  </div>
-                </div>
                 <Droppable droppableId="files">
                   {(provided) => (
                     <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2 pt-4">

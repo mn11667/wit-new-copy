@@ -39,13 +39,13 @@ const extractDriveId = (url: string): string | null => {
 interface LibraryProps {
   tree: FolderNode[];
   rootFiles: FileItem[];
-  viewSyllabus: (sectionId: string) => void;
+
   setPlayerFile: (file: { id: string; name: string; src: string } | null) => void;
   canOpenFiles: boolean;
   onFileChange: () => void;
 }
 
-export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus, setPlayerFile, canOpenFiles, onFileChange }) => {
+export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile, canOpenFiles, onFileChange }) => {
   const { user } = useAuth();
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -175,21 +175,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
                   Scroll ↓
                 </div>
               )}
-              {currentFolder?.syllabusSections && currentFolder.syllabusSections.length > 0 && (
-                <div className="mt-1 rounded-xl border border-primary/20 bg-primary/10 p-3 text-sm text-primary">
-                  <p className="text-xs uppercase tracking-[0.2em] text-primary/80">Related syllabus</p>
-                  <ul className="mt-1 list-disc space-y-1 pl-4">
-                    {currentFolder.syllabusSections.map((s) => (
-                      <li key={s.id} className="flex items-center justify-between">
-                        <span className="text-slate-300">{s.title}</span>
-                        <Button variant="ghost" onClick={() => viewSyllabus(s.id)}>
-                          View
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+
               <div className="mt-3 space-y-3 pb-8">
                 {filesToShow && filesToShow.length > 0 ? (
                   filesToShow.map((file) => (
