@@ -50,7 +50,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
-  const canInteract = user?.status === 'ACTIVE' && user?.isActive !== false;
+  const canInteract = user?.status === 'ACTIVE';
 
   const currentFolder = useMemo(() => findFolder(tree, selectedFolder), [tree, selectedFolder]);
   const filesToShow = selectedFolder ? currentFolder?.files || [] : rootFiles;
@@ -195,7 +195,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
                         <h4 className="text-lg font-semibold text-white">{file.name}</h4>
                         {file.description && <p className="text-sm text-slate-300">{file.description}</p>}
                         <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
-                          <Badge variant={file.fileType === 'VIDEO' ? 'blue' : 'slate'}>
+                          <Badge status={file.fileType === 'VIDEO' ? 'blue' : 'slate'}>
                             {file.fileType === 'VIDEO' ? 'Video' : 'PDF'}
                           </Badge>
                           {file.completed && <span className="text-emerald-400">Completed</span>}
@@ -211,14 +211,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
                         >
                           {file.bookmarked ? '★' : '☆'}
                         </Button>
-                        <Button
-                          variant="ghost"
-                          onClick={() => toggleCompleted(file)}
-                          disabled={!canInteract}
-                          title={file.completed ? 'Mark as unread' : 'Mark as read'}
-                        >
-                          {file.completed ? '✓' : '○'}
-                        </Button>
+
                         <Button
                           onClick={() => handleOpen(file)}
                           disabled={!canOpenFiles || downloadingFileId === file.id}

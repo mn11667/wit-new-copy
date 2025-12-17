@@ -14,7 +14,7 @@ interface BookmarksProps {
 
 export const Bookmarks: React.FC<BookmarksProps> = ({ bookmarks, toggleBookmark, toggleCompleted, handleOpen, downloadingFileId }) => {
   const { user } = useAuth();
-  const canInteract = user?.status === 'ACTIVE' && user?.isActive !== false;
+  const canInteract = user?.status === 'ACTIVE';
   return (
     <div className="mt-6">
       <Card>
@@ -37,9 +37,7 @@ export const Bookmarks: React.FC<BookmarksProps> = ({ bookmarks, toggleBookmark,
                 {file.lastOpenedAt && <p className="text-xs text-slate-400">Last opened: {new Date(file.lastOpenedAt).toLocaleString()}</p>}
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => toggleCompleted(file)} disabled={!canInteract}>
-                  {file.completed ? '✓' : '○'}
-                </Button>
+
                 <Button variant="ghost" onClick={() => toggleBookmark(file)} disabled={!canInteract}>
                   Remove
                 </Button>

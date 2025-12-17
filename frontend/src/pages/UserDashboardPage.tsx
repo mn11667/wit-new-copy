@@ -16,7 +16,7 @@ import {
 } from '../services/contentApi';
 import { Library } from '../components/User/Library';
 import { Bookmarks } from '../components/User/Bookmarks';
-import { Completed } from '../components/User/Completed';
+
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -40,7 +40,7 @@ const UserDashboardPage: React.FC = () => {
   const [progress, setProgressValue] = useState<number>(0);
   const [now, setNow] = useState<string>(new Date().toLocaleString());
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'read'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks'>('library');
   const [playerFile, setPlayerFile] = useState<{ id: string; name: string; src: string } | null>(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
@@ -200,8 +200,7 @@ const UserDashboardPage: React.FC = () => {
         );
       case 'bookmarks':
         return <Bookmarks bookmarks={bookmarks} toggleBookmark={toggleBookmark} toggleCompleted={toggleCompleted} handleOpen={handleOpen} downloadingFileId={downloadingFileId} />;
-      case 'read':
-        return <Completed allFiles={allFiles} toggleCompleted={toggleCompleted} handleOpen={handleOpen} downloadingFileId={downloadingFileId} />;
+
 
       default:
         return (
@@ -246,9 +245,7 @@ const UserDashboardPage: React.FC = () => {
             <Button variant={activeTab === 'bookmarks' ? 'primary' : 'ghost'} onClick={() => setActiveTab('bookmarks')}>
               Bookmarks
             </Button>
-            <Button variant={activeTab === 'read' ? 'primary' : 'ghost'} onClick={() => setActiveTab('read')}>
-              Completed
-            </Button>
+
           </div>
 
         </div>

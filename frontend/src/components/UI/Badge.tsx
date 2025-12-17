@@ -14,13 +14,14 @@ export const Badge: React.FC<BadgeProps> = ({ children, status }) => {
     INACTIVE: 'bg-red-500/20 text-red-300',
     ADMIN: 'bg-indigo-500/20 text-indigo-300',
     USER: 'bg-slate-500/20 text-slate-300',
+    blue: 'bg-blue-500/20 text-blue-300',
+    slate: 'bg-slate-500/20 text-slate-300',
   };
 
-  const badgeClass = `${baseClasses} ${
-    status && statusClasses[status as keyof typeof statusClasses]
+  const badgeClass = `${baseClasses} ${status && statusClasses[status as keyof typeof statusClasses]
       ? statusClasses[status as keyof typeof statusClasses]
       : 'bg-slate-500/20 text-slate-300'
-  }`;
+    }`;
 
   return <span className={badgeClass}>{children}</span>;
 };

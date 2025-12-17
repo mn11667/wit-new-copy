@@ -6,7 +6,7 @@ export type User = {
   name: string;
   email: string;
   role: 'USER' | 'ADMIN';
-  status: 'ACTIVE';
+  status: 'ACTIVE' | 'PENDING';
   avatarUrl?: string;
   subscription?: any;
 };
