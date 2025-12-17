@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import {
   FileItem,
   FolderNode,
@@ -57,6 +57,14 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
   const folderChildren = selectedFolder ? currentFolder?.children || [] : tree;
   const subfolderScrollable = folderChildren.length > 4;
   const filesScrollable = (filesToShow?.length || 0) > 4;
+
+  const filesContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (filesContainerRef.current) {
+      filesContainerRef.current.scrollTop = 0;
+    }
+  }, [selectedFolder]);
 
   const toggleBookmark = async (file: FileItem) => {
     try {
@@ -137,17 +145,15 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
             <div className="mt-3 grid gap-4 sm:grid-cols-2 pb-8">
               {folderChildren.length === 0 && <p className="text-sm text-slate-400">No folders here.</p>}
               {folderChildren.map((f) => (
-                <motion.div
+                <div
                   key={f.id}
                   className="glass glass-nested rounded-2xl p-4 transition-all hover:bg-white/8 cursor-pointer"
-                  initial={{ opacity: 0.9 }}
-                  animate={{ opacity: 1 }}
                   onClick={() => setSelectedFolder(f.id)}
                 >
                   <h4 className="text-lg font-semibold text-white">{f.name}</h4>
                   {f.description && <p className="text-sm text-slate-300">{f.description}</p>}
                   <p className="text-xs text-slate-400 mt-1">{f.files.length} files · {f.children.length} sub-folders</p>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -160,7 +166,9 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
                 </Button>
               )}
             </div>
-            <div className="relative max-h-[50vh] overflow-auto pr-2 library-scroll"
+            <div
+              ref={filesContainerRef}
+              className="relative max-h-[50vh] overflow-auto pr-2 library-scroll"
               style={{ maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)' }}>
               {filesScrollable && (
                 <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.12em] text-slate-400">
@@ -185,11 +193,9 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
               <div className="mt-3 space-y-3 pb-8">
                 {filesToShow && filesToShow.length > 0 ? (
                   filesToShow.map((file) => (
-                    <motion.div
+                    <div
                       key={file.id}
                       className="glass glass-nested flex items-center justify-between rounded-2xl p-4 transition-all hover:bg-white/6"
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
                     >
                       <div>
                         <h4 className="text-lg font-semibold text-white">{file.name}</h4>
@@ -221,7 +227,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, viewSyllabus,
                           {downloadingFileId === file.id ? <Spinner size="sm" /> : canOpenFiles ? 'Open' : 'Pay to access'}
                         </Button>
                       </div>
-                    </motion.div>
+                    </div>
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-slate-400">
