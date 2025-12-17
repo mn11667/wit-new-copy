@@ -92,7 +92,7 @@ export const ContentManagement: React.FC = () => {
       setSyllabusLoading(false);
     }
   };
-  
+
   useEffect(() => {
     loadContent();
     loadSyllabus();
@@ -156,7 +156,7 @@ export const ContentManagement: React.FC = () => {
       name: file.name,
       description: file.description || '',
       fileType: file.fileType,
-      googleDriveUrl: file.googleDriveUrl,
+      googleDriveUrl: file.googleDriveUrl || '',
     });
     setFileModalOpen(true);
   };
@@ -373,13 +373,11 @@ export const ContentManagement: React.FC = () => {
                       {filesToShow.map((file, idx) => (
                         <Draggable key={file.id} draggableId={file.id} index={idx}>
                           {(drag) => (
-                            <motion.div
+                            <div
                               ref={drag.innerRef}
                               {...drag.draggableProps}
                               {...drag.dragHandleProps}
                               className="glass flex items-center justify-between rounded-2xl p-4"
-                              initial={{ opacity: 0.9 }}
-                              animate={{ opacity: 1 }}
                             >
                               <div>
                                 <h4 className="text-lg font-semibold text-white">{file.name}</h4>
@@ -399,7 +397,7 @@ export const ContentManagement: React.FC = () => {
                                   Delete
                                 </Button>
                               </div>
-                            </motion.div>
+                            </div>
                           )}
                         </Draggable>
                       ))}

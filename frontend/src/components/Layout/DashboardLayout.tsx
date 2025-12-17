@@ -43,7 +43,16 @@ export const DashboardLayout: React.FC<Props> = ({ title, children, statusExtra 
       const target = event.target as HTMLElement | null;
       // If a modal is open, let it handle its own scroll and do not override
       if (document.body.classList.contains('modal-open')) return;
-      if (target?.closest('.library-scroll')) return; // allow native scroll for tree/files
+
+      const libraryScroll = target?.closest('.library-scroll');
+      if (libraryScroll) {
+        event.preventDefault();
+        const scale = 0.4;
+        libraryScroll.scrollTop += event.deltaY * scale;
+        libraryScroll.scrollLeft += event.deltaX * scale;
+        return;
+      }
+
       event.preventDefault();
       const scale = 0.4; // smaller = slower scroll
       window.scrollBy({

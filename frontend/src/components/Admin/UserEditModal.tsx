@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../UI/Modal';
 import { Button } from '../UI/Button';
-import { User } from '../../services/authApi';
-import { listSubscriptionPlans, SubscriptionPlan } from '../../services/adminApi';
+import { AdminUser, listSubscriptionPlans, SubscriptionPlan } from '../../services/adminApi';
 
 interface UserEditModalProps {
-  user: User;
+  user: AdminUser;
   isOpen: boolean;
   onClose: () => void;
   onSave: (
     userId: string,
     data: {
-      status?: User['status'];
-      role?: User['role'];
+      status?: AdminUser['status'];
+      role?: AdminUser['role'];
       isActive?: boolean;
       subscriptionStatus?: 'ACTIVE' | 'INACTIVE' | 'PAST_DUE';
       subscriptionStartDate?: string | null;
@@ -24,8 +23,8 @@ interface UserEditModalProps {
 
 export const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState<{
-    status?: User['status'];
-    role?: User['role'];
+    status?: AdminUser['status'];
+    role?: AdminUser['role'];
     isActive?: boolean;
     subscriptionStatus?: 'ACTIVE' | 'INACTIVE' | 'PAST_DUE';
     subscriptionStartDate?: string | null;
@@ -82,7 +81,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onCl
           }
           if (!prev.subscriptionEndDate) {
             const end = new Date(now);
-            end.setDate(end.getDate() + plan.durationDays);
+            end.setDate(end.getDate() + plan.duration);
             next.subscriptionEndDate = end.toISOString();
           }
         }
@@ -148,7 +147,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onCl
             <option value="">-- Select a plan --</option>
             {plans.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name} ({p.tier}) • {p.durationDays} days • ${p.price}
+                {p.name} ({p.tier}) • {p.duration} days • ${p.price}
               </option>
             ))}
           </select>
@@ -174,17 +173,17 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onCl
           <input
             type="date"
             name="subscriptionStartDate"
-          value={
-            formData.subscriptionStartDate
-              ? new Date(formData.subscriptionStartDate).toISOString().split('T')[0]
-              : ''
-          }
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              subscriptionStartDate: e.target.value ? new Date(e.target.value).toISOString() : undefined,
-            }))
-          }
+            value={
+              formData.subscriptionStartDate
+                ? new Date(formData.subscriptionStartDate).toISOString().split('T')[0]
+                : ''
+            }
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                subscriptionStartDate: e.target.value ? new Date(e.target.value).toISOString() : undefined,
+              }))
+            }
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 bg-black/20 text-white"
           />
         </div>
@@ -193,17 +192,17 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onCl
           <input
             type="date"
             name="subscriptionEndDate"
-          value={
-            formData.subscriptionEndDate
-              ? new Date(formData.subscriptionEndDate).toISOString().split('T')[0]
-              : ''
-          }
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              subscriptionEndDate: e.target.value ? new Date(e.target.value).toISOString() : undefined,
-            }))
-          }
+            value={
+              formData.subscriptionEndDate
+                ? new Date(formData.subscriptionEndDate).toISOString().split('T')[0]
+                : ''
+            }
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                subscriptionEndDate: e.target.value ? new Date(e.target.value).toISOString() : undefined,
+              }))
+            }
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 bg-black/20 text-white"
           />
         </div>

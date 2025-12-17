@@ -21,7 +21,7 @@ export const UserManagement: React.FC = () => {
   const [pwdOld, setPwdOld] = useState('');
   const [pwdNew, setPwdNew] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [editingUser, setEditingUser] = useState<User | null>(null); // State for user being edited
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null); // State for user being edited
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
 
   const loadUsers = async () => {
@@ -76,7 +76,7 @@ export const UserManagement: React.FC = () => {
     }
   };
 
-  const handleManageUser = (user: User) => {
+  const handleManageUser = (user: AdminUser) => {
     setEditingUser(user);
     setIsModalOpen(true);
   };

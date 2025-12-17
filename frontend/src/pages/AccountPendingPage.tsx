@@ -6,7 +6,7 @@ const AccountPendingPage: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <AuthLayout>
+    <AuthLayout title="Account Pending" subtitle="Awaiting Approval">
       <div className="text-center">
         <h1 className="text-2xl font-bold text-white">Account Pending</h1>
         <p className="mt-4 text-slate-300">

@@ -33,9 +33,8 @@ const TreeItem: React.FC<{ node: SyllabusNode; depth: number; selected: string |
   return (
     <div>
       <button
-        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition hover:bg-white/5 ${
-          selected === node.id ? 'bg-primary/20 text-primary' : 'text-slate-300'
-        }`}
+        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition hover:bg-white/5 ${selected === node.id ? 'bg-primary/20 text-primary' : 'text-slate-300'
+          }`}
         style={{ paddingLeft: 12 + depth * 12 }}
         onClick={() => onSelect(node.id)}
       >
@@ -61,7 +60,7 @@ const TreeItem: React.FC<{ node: SyllabusNode; depth: number; selected: string |
             transition={{ duration: 0.2 }}
           >
             <div className="ml-4 border-l border-white/10 pl-3">
-              {node.children.map((child) => (
+              {node.children.map((child: SyllabusNode) => (
                 <TreeItem key={child.id} node={child} depth={depth + 1} selected={selected} onSelect={onSelect} />
               ))}
             </div>
@@ -84,79 +83,79 @@ const renderNodes = (nodes: SyllabusNode[]) =>
 
 
 interface SyllabusViewProps {
-    view: 'tree' | 'full';
+  view: 'tree' | 'full';
 }
 
 export const SyllabusView: React.FC<SyllabusViewProps> = ({ view }) => {
-    const [tree, setTree] = useState<SyllabusNode[]>([]);
-    const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-  
-    useEffect(() => {
-      const load = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-          const res = await fetchSyllabusTree();
-          setTree(res.tree);
-          if (view === 'tree' && res.tree[0]) {
-            setSelectedId(res.tree[0].id);
-          }
-        } catch (err: any) {
-          setError(err.message || 'Failed to load syllabus');
-        } finally {
-          setLoading(false);
+  const [tree, setTree] = useState<SyllabusNode[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetchSyllabusTree();
+        setTree(res.tree);
+        if (view === 'tree' && res.tree.length > 0) {
+          setSelectedId(res.tree[0].id);
         }
-      };
-      load();
-    }, [view]);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load syllabus');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [view]);
 
-    const selected = useMemo(() => {
-        const find = (nodes: SyllabusNode[]): SyllabusNode | null => {
-          for (const n of nodes) {
-            if (n.id === selectedId) return n;
-            const found = find(n.children);
-            if (found) return found;
-          }
-          return null;
-        };
-        return find(tree);
-      }, [tree, selectedId]);
+  const selected = useMemo(() => {
+    const find = (nodes: SyllabusNode[]): SyllabusNode | null => {
+      for (const n of nodes) {
+        if (n.id === selectedId) return n;
+        const found = find(n.children);
+        if (found) return found;
+      }
+      return null;
+    };
+    return find(tree);
+  }, [tree, selectedId]);
 
-    if(loading) {
-        return <Card><Spinner /></Card>
-    }
+  if (loading) {
+    return <Card><Spinner /></Card>
+  }
 
-    if(error) {
-        return <p className="mb-3 text-sm text-rose-400">{error}</p>
-    }
-  
-    if (view === 'tree') {
-        return (
-            <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
-                <Card>
-                <h3 className="mb-3 text-lg font-semibold text-white">Syllabus Outline</h3>
-                <SyllabusTree nodes={tree} selected={selectedId} onSelect={setSelectedId} />
-                </Card>
-                <Card>
-                {selected ? (
-                    <div className="space-y-3">
-                    <p className="text-xs uppercase tracking-[0.22em] text-secondary">Section</p>
-                    <h3 className="text-2xl font-semibold text-white">{selected.title}</h3>
-                    <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">{selected.content}</p>
-                    </div>
-                ) : (
-                    <p className="text-sm text-slate-400">Select a syllabus section to view details.</p>
-                )}
-                </Card>
+  if (error) {
+    return <p className="mb-3 text-sm text-rose-400">{error}</p>
+  }
+
+  if (view === 'tree') {
+    return (
+      <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
+        <Card>
+          <h3 className="mb-3 text-lg font-semibold text-white">Syllabus Outline</h3>
+          <SyllabusTree nodes={tree} selected={selectedId} onSelect={setSelectedId} />
+        </Card>
+        <Card>
+          {selected ? (
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.22em] text-secondary">Section</p>
+              <h3 className="text-2xl font-semibold text-white">{selected.title}</h3>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">{selected.content}</p>
             </div>
-        );
-    }
+          ) : (
+            <p className="text-sm text-slate-400">Select a syllabus section to view details.</p>
+          )}
+        </Card>
+      </div>
+    );
+  }
 
-    if (view === 'full') {
-        return <div className="space-y-4">{renderNodes(tree)}</div>
-    }
+  if (view === 'full') {
+    return <div className="space-y-4">{renderNodes(tree)}</div>
+  }
 
-    return null;
+  return null;
 };

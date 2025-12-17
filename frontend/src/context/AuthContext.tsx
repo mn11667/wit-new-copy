@@ -9,6 +9,7 @@ export type User = {
   status: 'ACTIVE' | 'PENDING';
   avatarUrl?: string;
   subscription?: any;
+  isActive?: boolean;
 };
 
 type AuthContextType = {
