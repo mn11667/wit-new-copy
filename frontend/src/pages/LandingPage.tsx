@@ -34,7 +34,7 @@ const LandingPage: React.FC = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 glass border-b border-white/5 bg-black/10 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 shadow-lg shadow-primary/20" />
-          <span className="text-lg font-semibold tracking-tight">WitNEA</span>
+          <span className="text-lg font-semibold tracking-tight">Loksewa</span>
         </div>
         <div className="flex items-center gap-4">
           <Link to="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
@@ -50,10 +50,7 @@ const LandingPage: React.FC = () => {
 
       {/* Hero Section */}
       <main className="relative z-10 flex flex-col items-center px-4 pt-16 text-center lg:pt-32">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary backdrop-blur-md">
-          <span className="flex h-2 w-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
-          Now with AI Tutoring
-        </div>
+
 
         <h1 className="mt-8 max-w-4xl text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
           <span className="block text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">
@@ -66,7 +63,7 @@ const LandingPage: React.FC = () => {
 
         <p className="mt-6 max-w-2xl text-lg text-slate-300 sm:text-xl">
           A premium, intelligent workspace designed for focused preparation.
-          Access curated notes, video classes, and AI-driven practice exams in a beautiful glass interface.
+          Access curated notes, video classes, and comprehensive practice exams in a beautiful glass interface.
         </p>
 
         <div className="mt-10 flex w-full flex-col justify-center gap-4 sm:flex-row">
@@ -75,11 +72,7 @@ const LandingPage: React.FC = () => {
               Start Learning Free
             </Button>
           </Link>
-          <Link to="/mcq-ai">
-            <Button variant="ghost" className="h-12 w-full rounded-full border border-white/10 bg-white/5 px-8 text-lg backdrop-blur-md hover:bg-white/10 sm:w-auto">
-              Try AI Practice
-            </Button>
-          </Link>
+
         </div>
 
         {/* Feature Grid */}
@@ -91,9 +84,9 @@ const LandingPage: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-white">AI-Powered Practice</h3>
+            <h3 className="text-xl font-semibold text-white">Practice Exams</h3>
             <p className="mt-4 text-slate-400">
-              Generate unlimited questions from any topic. Our AI adapts to your weak spots, giving you instant explanations and feedback.
+              Test your knowledge with our extensive collection of practice questions designed to help you succeed.
             </p>
           </div>
 
@@ -132,7 +125,7 @@ const LandingPage: React.FC = () => {
               <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
               <a href="#" className="hover:text-white transition-colors">Contact Support</a>
             </div>
-            <p className="text-sm">© 2024 WitNEA. All rights reserved.</p>
+            <p className="text-sm">© 2024 Loksewa. All rights reserved.</p>
           </div>
         </footer>
       </main>
