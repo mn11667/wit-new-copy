@@ -86,6 +86,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     try {
+      const userByEmail = SEEDED_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+      if (!userByEmail) {
+        throw new Error('User not found');
+      }
+
       const foundUser = SEEDED_USERS.find(
         u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
       );
@@ -97,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAuthenticated(true);
         return userData;
       } else {
-        throw new Error('Invalid credentials');
+        throw new Error('Incorrect password');
       }
     } finally {
       setLoading(false);
