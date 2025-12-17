@@ -29,7 +29,7 @@ export type FolderTreeResponse = {
 };
 
 // Helper to build tree from flat data
-const buildTree = (folders: any[], files: any[]): { tree: FolderNode[], rootFiles: FileItem[] } => {
+const buildTree = (folders: any[], files: any[], userId?: string): { tree: FolderNode[], rootFiles: FileItem[] } => {
   const folderMap = new Map<string, FolderNode>();
 
   // Initialize all folders
@@ -66,8 +66,10 @@ const buildTree = (folders: any[], files: any[]): { tree: FolderNode[], rootFile
   // Distribute files
   files.forEach(f => {
     // Check locally stored state
-    const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '{}');
-    const progress = JSON.parse(localStorage.getItem('progress') || '{}');
+    const bookmarkKey = userId ? `bookmarks_${userId}` : 'bookmarks';
+    const progressKey = userId ? `progress_${userId}` : 'progress';
+    const bookmarks = JSON.parse(localStorage.getItem(bookmarkKey) || '{}');
+    const progress = JSON.parse(localStorage.getItem(progressKey) || '{}');
 
     const fileWithState: FileItem = {
       ...f,
@@ -99,10 +101,10 @@ const buildTree = (folders: any[], files: any[]): { tree: FolderNode[], rootFile
   return { tree: rootFolders, rootFiles };
 };
 
-export async function fetchUserTree() {
+export async function fetchUserTree(userId?: string) {
   // Simulate network
   await new Promise(r => setTimeout(r, 200));
-  const { tree, rootFiles } = buildTree(dbData.folders, dbData.files);
+  const { tree, rootFiles } = buildTree(dbData.folders, dbData.files, userId);
 
   // Calculate total progress ??
   // For now simple return
@@ -137,17 +139,19 @@ export async function reorderFolders(parentId: any, orderedIds: any) { return { 
 
 
 // Bookmarks - LocalStorage
-export async function addBookmark(fileId: string) {
-  const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '{}');
+export async function addBookmark(fileId: string, userId?: string) {
+  const key = userId ? `bookmarks_${userId}` : 'bookmarks';
+  const bookmarks = JSON.parse(localStorage.getItem(key) || '{}');
   bookmarks[fileId] = true;
-  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+  localStorage.setItem(key, JSON.stringify(bookmarks));
   return { success: true };
 }
 
-export async function removeBookmark(fileId: string) {
-  const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '{}');
+export async function removeBookmark(fileId: string, userId?: string) {
+  const key = userId ? `bookmarks_${userId}` : 'bookmarks';
+  const bookmarks = JSON.parse(localStorage.getItem(key) || '{}');
   delete bookmarks[fileId];
-  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+  localStorage.setItem(key, JSON.stringify(bookmarks));
   return { success: true };
 }
 
@@ -158,14 +162,16 @@ export async function listBookmarks() {
 }
 
 // Progress - LocalStorage
-export async function setProgress(fileId: string, completed: boolean) {
-  const progress = JSON.parse(localStorage.getItem('progress') || '{}');
+// Progress - LocalStorage
+export async function setProgress(fileId: string, completed: boolean, userId?: string) {
+  const key = userId ? `progress_${userId}` : 'progress';
+  const progress = JSON.parse(localStorage.getItem(key) || '{}');
   if (completed) {
     progress[fileId] = true;
   } else {
     delete progress[fileId];
   }
-  localStorage.setItem('progress', JSON.stringify(progress));
+  localStorage.setItem(key, JSON.stringify(progress));
   return { success: true };
 }
 

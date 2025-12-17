@@ -41,6 +41,15 @@ export const Bookmarks: React.FC<BookmarksProps> = ({ bookmarks, toggleBookmark,
                 <Button variant="ghost" onClick={() => toggleBookmark(file)} disabled={!canInteract}>
                   Remove
                 </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => toggleCompleted(file)}
+                  disabled={!canInteract}
+                  title={file.completed ? 'Mark as not done' : 'Mark as done'}
+                  className={file.completed ? 'text-emerald-400' : ''}
+                >
+                  {file.completed ? '✓' : '○'}
+                </Button>
                 <Button onClick={() => handleOpen(file)} disabled={!canInteract || downloadingFileId === file.id}>
                   {downloadingFileId === file.id ? 'Opening...' : 'Open'}
                 </Button>

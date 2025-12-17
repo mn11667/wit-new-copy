@@ -1,5 +1,6 @@
 import clsx from 'clsx';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Clock } from '../UI/Clock';
 
 type MacShellProps = {
   title?: string;
@@ -11,7 +12,7 @@ type MacShellProps = {
   statusExtra?: React.ReactNode;
 };
 
-const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
 
 export const MacShell: React.FC<MacShellProps> = ({
   title,
@@ -22,7 +23,7 @@ export const MacShell: React.FC<MacShellProps> = ({
   children,
   statusExtra,
 }) => {
-  const [now, setNow] = useState(() => new Date());
+  // const [now, setNow] = useState(() => new Date()); // Moved to Clock component
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => (typeof window !== 'undefined' ? window.innerWidth > 900 : true));
   const [lightMode, setLightMode] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -35,14 +36,6 @@ export const MacShell: React.FC<MacShellProps> = ({
   const rafRef = useRef<number>();
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
   const [batteryCharging, setBatteryCharging] = useState<boolean>(false);
-
-  const timeLabel = useMemo(() => formatTime(now), [now]);
-
-  // Clock tick
-  useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Responsive sidebar
   useEffect(() => {
@@ -91,11 +84,11 @@ export const MacShell: React.FC<MacShellProps> = ({
           battery.removeEventListener('chargingchange', handleCharge);
         };
       })
-      .catch(() => {});
+      .catch(() => { });
     return () => {
       if (batteryRef) {
-        batteryRef.removeEventListener('levelchange', () => {});
-        batteryRef.removeEventListener('chargingchange', () => {});
+        batteryRef.removeEventListener('levelchange', () => { });
+        batteryRef.removeEventListener('chargingchange', () => { });
       }
     };
   }, []);
@@ -144,7 +137,9 @@ export const MacShell: React.FC<MacShellProps> = ({
             {batteryLevel !== null ? `${Math.round(batteryLevel * 100)}%${batteryCharging ? ' ⚡' : ''}` : '—'}
           </span>
           {statusExtra ? <span className="mac-menu-item">{statusExtra}</span> : null}
-          <span className="mac-menu-time">{timeLabel}</span>
+          <span className="mac-menu-time">
+            <Clock options={{ hour: '2-digit', minute: '2-digit' }} refreshInterval={30000} />
+          </span>
           <label className="theme-toggle mac-menu-item">
             <input type="checkbox" checked={lightMode} onChange={(e) => applyTheme(e.target.checked)} />
             <span className="theme-toggle-track">

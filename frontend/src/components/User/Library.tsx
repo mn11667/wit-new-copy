@@ -26,15 +26,7 @@ const findFolder = (tree: FolderNode[], id: string | null): FolderNode | null =>
   return null;
 };
 
-const extractDriveId = (url: string): string | null => {
-  const matchPath = url.match(/\/d\/([^/]+)/);
-  if (matchPath && matchPath[1]) return matchPath[1];
-  const query = url.includes('?') ? url.split('?')[1] : '';
-  const params = new URLSearchParams(query);
-  const qId = params.get('id');
-  if (qId) return qId;
-  return null;
-};
+import { extractDriveId } from '../../utils/fileHelpers';
 
 interface LibraryProps {
   tree: FolderNode[];
@@ -69,9 +61,9 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
   const toggleBookmark = async (file: FileItem) => {
     try {
       if (file.bookmarked) {
-        await removeBookmark(file.id);
+        await removeBookmark(file.id, user?.id);
       } else {
-        await addBookmark(file.id);
+        await addBookmark(file.id, user?.id);
       }
       onFileChange();
     } catch (err: any) {
@@ -81,7 +73,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
 
   const toggleCompleted = async (file: FileItem) => {
     try {
-      await setProgress(file.id, !file.completed);
+      await setProgress(file.id, !file.completed, user?.id);
       onFileChange();
     } catch (err: any) {
       setError(err.message || 'Progress update failed');
@@ -202,6 +194,16 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
                           title={file.bookmarked ? 'Remove bookmark' : 'Add to bookmarks'}
                         >
                           {file.bookmarked ? '★' : '☆'}
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          onClick={() => toggleCompleted(file)}
+                          disabled={!canInteract}
+                          title={file.completed ? 'Mark as not done' : 'Mark as done'}
+                          className={file.completed ? 'text-emerald-400' : ''}
+                        >
+                          {file.completed ? '✓' : '○'}
                         </Button>
 
                         <Button

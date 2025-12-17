@@ -16,19 +16,13 @@ import {
 } from '../services/contentApi';
 import { Library } from '../components/User/Library';
 import { Bookmarks } from '../components/User/Bookmarks';
+import { Completed } from '../components/User/Completed';
 
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
-const extractDriveId = (url: string): string | null => {
-  const matchPath = url.match(/\/d\/([^/]+)/);
-  if (matchPath && matchPath[1]) return matchPath[1];
-  const query = url.includes('?') ? url.split('?')[1] : '';
-  const params = new URLSearchParams(query);
-  const qId = params.get('id');
-  if (qId) return qId;
-  return null;
-};
+import { extractDriveId } from '../utils/fileHelpers';
+import { Clock } from '../components/UI/Clock';
 
 const UserDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -38,9 +32,10 @@ const UserDashboardPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState<string | null>(null);
   const [progress, setProgressValue] = useState<number>(0);
-  const [now, setNow] = useState<string>(new Date().toLocaleString());
+
+  // const [now, setNow] = useState<string>(new Date().toLocaleString()); // Moved to Clock component
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed'>('library');
   const [playerFile, setPlayerFile] = useState<{ id: string; name: string; src: string } | null>(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
@@ -53,7 +48,7 @@ const UserDashboardPage: React.FC = () => {
     setError(null);
     setError(null);
     try {
-      const [data, ann] = await Promise.all([fetchUserTree(), fetchAnnouncement()]);
+      const [data, ann] = await Promise.all([fetchUserTree(user?.id), fetchAnnouncement()]);
       setTree(data.tree);
       setRootFiles(data.rootFiles);
       setProgressValue(data.progress || 0);
@@ -71,8 +66,7 @@ const UserDashboardPage: React.FC = () => {
 
   useEffect(() => {
     load();
-    const t = setInterval(() => setNow(new Date().toLocaleString()), 1000);
-    return () => clearInterval(t);
+    // Clock moved to component
   }, [load]);
 
   useEffect(() => {
@@ -117,9 +111,9 @@ const UserDashboardPage: React.FC = () => {
   const toggleBookmark = async (file: FileItem) => {
     try {
       if (file.bookmarked) {
-        await removeBookmark(file.id);
+        await removeBookmark(file.id, user?.id);
       } else {
-        await addBookmark(file.id);
+        await addBookmark(file.id, user?.id);
       }
       load(false);
     } catch (err: any) {
@@ -129,7 +123,7 @@ const UserDashboardPage: React.FC = () => {
 
   const toggleCompleted = async (file: FileItem) => {
     try {
-      await setProgress(file.id, !file.completed);
+      await setProgress(file.id, !file.completed, user?.id);
       load(false);
     } catch (err: any) {
       setError(err.message || 'Progress update failed');
@@ -200,6 +194,8 @@ const UserDashboardPage: React.FC = () => {
         );
       case 'bookmarks':
         return <Bookmarks bookmarks={bookmarks} toggleBookmark={toggleBookmark} toggleCompleted={toggleCompleted} handleOpen={handleOpen} downloadingFileId={downloadingFileId} />;
+      case 'completed':
+        return <Completed allFiles={allFiles} toggleCompleted={toggleCompleted} handleOpen={handleOpen} downloadingFileId={downloadingFileId} />;
 
 
 
@@ -217,11 +213,8 @@ const UserDashboardPage: React.FC = () => {
     }
   };
 
-  const completedCount = useMemo(() => allFiles.filter((f) => f.completed).length, [allFiles]);
-  // Subscription logic removed - all users have access
+  // Subscription logic: all users have access
   const canOpenFiles = true;
-  const totalFiles = allFiles.length;
-  const videoCount = useMemo(() => allFiles.filter((f) => f.fileType === 'VIDEO').length, [allFiles]);
 
   return (
     <DashboardLayout title="Dashboard">
@@ -235,7 +228,7 @@ const UserDashboardPage: React.FC = () => {
         )}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="mac-pill">Your learning workspace</p>
-          <div className="text-sm text-slate-300">Local time: {now}</div>
+          <div className="text-sm text-slate-300">Local time: <Clock className="inline" /></div>
         </div>
 
         <div className="mac-cta-row">
@@ -245,6 +238,9 @@ const UserDashboardPage: React.FC = () => {
             </Button>
             <Button variant={activeTab === 'bookmarks' ? 'primary' : 'ghost'} onClick={() => setActiveTab('bookmarks')}>
               Bookmarks
+            </Button>
+            <Button variant={activeTab === 'completed' ? 'primary' : 'ghost'} onClick={() => setActiveTab('completed')}>
+              Completed
             </Button>
 
 
