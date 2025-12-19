@@ -1,7 +1,7 @@
 export const SEEDED_USERS = [
     { email: 'madhavneupane6789@gmail.com', password: 'madhav8848', name: 'madhav' },
     { email: 'krishna@wit.com', password: 'krishna', name: 'krishna' },
-    { email: 'nares@wit.com', password: 'naresh', name: 'naresh' },
+    { email: 'naresh@wit.com', password: 'naresh', name: 'naresh' },
     { email: 'student4@wit.com', password: 'wit_user_04', name: 'Student Four' },
     { email: 'student5@wit.com', password: 'wit_user_05', name: 'Student Five' },
     { email: 'student6@wit.com', password: 'wit_user_06', name: 'Student Six' },
