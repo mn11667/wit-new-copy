@@ -1,4 +1,4 @@
-const WIT_HEALTH_URL = 'https://witback.onrender.com/health';
+const WIT_HEALTH_URL = import.meta.env.VITE_WIT_HEALTH_URL || 'https://witback.onrender.com/health';
 const KEEPALIVE_INTERVAL_MS = 10 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 5000;
 
