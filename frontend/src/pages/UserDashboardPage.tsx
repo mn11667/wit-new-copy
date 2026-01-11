@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { extractDriveId } from '../utils/fileHelpers';
 import { Clock } from '../components/UI/Clock';
 import { MCQSection } from '../components/MCQ/MCQSection';
+import { getRandomQuote } from '../data/quotes';
 
 const UserDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -33,6 +34,17 @@ const UserDashboardPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState<string | null>(null);
   const [progress, setProgressValue] = useState<number>(0);
+  const [quote, setQuote] = useState('');
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    setQuote(getRandomQuote());
+
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good Morning');
+    else if (hour < 18) setGreeting('Good Afternoon');
+    else setGreeting('Good Evening');
+  }, []);
 
   // const [now, setNow] = useState<string>(new Date().toLocaleString()); // Moved to Clock component
   const [uploading, setUploading] = useState(false);
@@ -227,8 +239,16 @@ const UserDashboardPage: React.FC = () => {
           </div>
         )}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="mac-pill">Your learning workspace</p>
-          <div className="text-sm text-slate-300">Local time: <Clock className="inline" /></div>
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-1">
+              {greeting}, {user?.name?.split(' ')[0] || 'Scholar'}.
+            </h1>
+            <p className="text-slate-400 italic text-sm">"{quote}"</p>
+          </div>
+          <div className="text-right">
+            <div className="mac-pill mb-2 inline-block">Your learning workspace</div>
+            <div className="text-sm text-slate-400">Local time: <Clock className="inline text-slate-200" /></div>
+          </div>
         </div>
 
         <div className="mac-cta-row">
