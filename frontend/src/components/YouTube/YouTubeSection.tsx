@@ -177,7 +177,7 @@ export const YouTubeSection: React.FC = () => {
                     absolute md:relative z-10 right-0 top-0 bottom-0 
                     w-80 md:w-96 bg-[#0f172a]/95 md:bg-white/5 backdrop-blur-xl md:backdrop-blur-none
                     border-l md:border border-white/10 md:rounded-2xl
-                    flex flex-col transition-all duration-300 transform
+                    flex flex-col transition-all duration-300 transform overflow-hidden
                     ${(isSidebarOpen || subTab === 'search') ? 'translate-x-0' : 'translate-x-full md:hidden'} 
                     ${subTab === 'search' ? 'md:block' : ''}
                 `}>
