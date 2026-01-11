@@ -157,7 +157,7 @@ const LandingPage: React.FC = () => {
                   <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
                   <iframe
                     className="h-full w-full object-cover opacity-80 mix-blend-luminosity group-hover/video:mix-blend-normal group-hover/video:opacity-100 transition-all duration-700 pointer-events-none"
-                    src="https://www.youtube.com/embed/bY_gRApfoJk?autoplay=1&mute=1&controls=0&loop=1&playlist=bY_gRApfoJk&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&modestbranding=1"
+                    src={`https://www.youtube.com/embed/videoseries?list=PLztdBcd3--U0Lxzt4LUcYeBqy4iD-2E6n&autoplay=1&mute=1&controls=0&loop=1&index=${Math.floor(Math.random() * 10)}&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&modestbranding=1`}
                     title="Background Video"
                     allow="autoplay; encrypted-media"
                     allowFullScreen
