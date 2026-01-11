@@ -5,7 +5,7 @@ const PLAYLIST_ID = 'PLztdBcd3--U0Lxzt4LUcYeBqy4iD-2E6n';
 const TOTAL_VIDEOS_ESTIMATE = 30; // Estimated count based on user context
 
 export const YouTubeSection: React.FC = () => {
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState(1);
     const [isSidebarOpen, setSidebarOpen] = useState(true);
 
     const playlistItems = Array.from({ length: TOTAL_VIDEOS_ESTIMATE }, (_, i) => ({
@@ -35,10 +35,6 @@ export const YouTubeSection: React.FC = () => {
 
                 {/* Video Player Container */}
                 <div className={`flex-1 flex flex-col min-w-0 bg-black/40 rounded-2xl overflow-hidden border border-white/10 relative transition-all duration-300 ${isSidebarOpen ? 'md:mr-0' : ''}`}>
-                    {/* Debugging/Confirmation Display */}
-                    <div className="p-2 text-sm text-white/70 bg-black/30 absolute top-0 left-0 z-10 rounded-br-lg">
-                        Current Video Index: {currentIndex}
-                    </div>
                     <div className="flex-1 relative bg-black">
                         <iframe
                             key={videoUrl} // Unique key to force iframe remount
@@ -53,7 +49,7 @@ export const YouTubeSection: React.FC = () => {
 
                 {/* Playlist Sidebar */}
                 <div className={`
-                    absolute md:relative z-10 right-0 top-0 bottom-0 
+                    absolute md:relative z-10 right-0 top-0 bottom-0
                     w-80 bg-[#0f172a]/95 md:bg-white/5 backdrop-blur-xl md:backdrop-blur-none
                     border-l md:border border-white/10 md:rounded-2xl
                     flex flex-col transition-all duration-300 transform
@@ -61,16 +57,17 @@ export const YouTubeSection: React.FC = () => {
                 `}>
                     <div className="p-4 border-b border-white/10 flex items-center justify-between">
                         <h3 className="font-semibold text-white">Course Content</h3>
-                        <span className="text-xs text-slate-400">{currentIndex + 1} / {playlistItems.length}</span>
+                        <span className="text-xs text-slate-400">{currentIndex} / {playlistItems.length}</span>
                     </div>
 
                     <div className="flex-1 overflow-y-auto overflow-x-hidden library-scroll p-2 space-y-1">
                         {playlistItems.map((item, idx) => {
-                            const isActive = idx === currentIndex;
+                            const itemIndex = idx + 1;
+                            const isActive = itemIndex === currentIndex;
                             return (
                                 <button
                                     key={item.id}
-                                    onClick={() => setCurrentIndex(idx)}
+                                    onClick={() => setCurrentIndex(itemIndex)}
                                     className={`
                                         w-full flex items-start gap-3 p-3 rounded-xl text-left transition-all group
                                         ${isActive
@@ -82,7 +79,7 @@ export const YouTubeSection: React.FC = () => {
                                         flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-xs font-medium mt-0.5
                                         ${isActive ? 'bg-blue-500 text-white' : 'bg-white/10 text-slate-400 group-hover:bg-white/20'}
                                     `}>
-                                        {isActive ? '▶' : idx + 1}
+                                        {isActive ? '▶' : itemIndex}
                                     </div>
                                     <div className="min-w-0">
                                         <p className={`text-sm font-medium truncate ${isActive ? 'text-blue-200' : 'text-slate-300'}`}>
