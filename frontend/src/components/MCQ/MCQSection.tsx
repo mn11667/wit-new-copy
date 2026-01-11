@@ -234,35 +234,63 @@ export const MCQSection: React.FC = () => {
             Please provide a **concise** explanation (max 3-4 sentences) of why the correct answer is correct. Briefly mention why the selected option was wrong if applicable. Keep the response short and to the point.
         `;
 
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: prompt }]
-                    }]
-                })
-            });
+        // List of models to try in order of preference/availability
+        // Using "gemini-flash-latest" as an alias often points to the current active flash model
+        const availableModels = [
+            'gemini-flash-latest',       // Standard Flash
+            'gemini-flash-lite-latest',  // Lite Flash (Very fast/cheap)
+            'gemini-3-flash-preview',    // Next-gen Flash Preview
+            'gemini-pro-latest'          // Powerful Pro fallback
+        ];
 
-            if (!response.ok) throw new Error("AI request failed");
+        let success = false;
 
-            const data = await response.json();
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        for (const modelName of availableModels) {
+            try {
+                console.log(`Trying AI model: ${modelName}...`);
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }]
+                    })
+                });
 
-            if (text) {
-                setAiExplanation(text);
-            } else {
-                throw new Error("No explanation returned");
+                if (response.status === 429) {
+                    console.warn(`Model ${modelName} rate limited (429). Switching to next model...`);
+                    continue; // Try next model
+                }
+
+                if (!response.ok) {
+                    // If it's another error (like 404 for invalid model name), try next just in case
+                    console.warn(`Model ${modelName} failed with status ${response.status}. Switching to next model...`);
+                    continue;
+                }
+
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (text) {
+                    setAiExplanation(text);
+                    success = true;
+                    break; // Success! Exit loop
+                }
+            } catch (err) {
+                console.warn(`Error connecting to ${modelName}:`, err);
+                // Continue to next model
             }
-        } catch (err) {
-            console.error(err);
-            alert("Failed to get AI explanation. Please try again.");
-        } finally {
-            setIsAiLoading(false);
         }
+
+        if (!success) {
+            console.error("All AI models failed.");
+            alert("Failed to get AI explanation. The system is currently busy. Please try again later.");
+        }
+
+        setIsAiLoading(false);
     };
 
     if (loading) {
