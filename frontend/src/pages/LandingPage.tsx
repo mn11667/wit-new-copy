@@ -88,13 +88,26 @@ const LandingPage: React.FC = () => {
             {/* Mock Content */}
             <div className="absolute top-8 bottom-0 left-0 right-0 p-6 flex gap-6">
               {/* Sidebar */}
-              <div className="hidden md:flex w-48 flex-col gap-3 border-r border-white/5 pr-6 opacity-60">
-                <div className="h-8 w-full rounded-lg bg-white/10 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite] translate-x-[-100%]"></div>
+              <div className="hidden md:flex w-48 flex-col gap-4 border-r border-white/5 pr-6 opacity-80 pt-2">
+                <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                  <div className="h-4 w-4 rounded bg-blue-400/80"></div>
+                  <span className="text-xs font-medium text-blue-200">Dashboard</span>
                 </div>
-                <div className="h-8 w-3/4 rounded-lg bg-white/5"></div>
-                <div className="h-8 w-full rounded-lg bg-white/5"></div>
-                <div className="h-8 w-5/6 rounded-lg bg-white/5"></div>
+                <div className="flex flex-col gap-2">
+                  {['My Courses', 'Practice Exams', 'Question Bank', 'Live Classes'].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors group/item">
+                      <div className="h-3 w-3 rounded-full bg-slate-600 group-hover/item:bg-slate-400 transition-colors"></div>
+                      <span className="text-[11px] font-medium text-slate-400 group-hover/item:text-slate-200 transition-colors">{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-auto mb-2 p-3 rounded-xl bg-gradient-to-br from-purple-500/10 to-transparent border border-white/5">
+                  <div className="text-[10px] font-semibold text-purple-300 mb-1">Weekly Goal</div>
+                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full w-[70%] bg-purple-400 rounded-full"></div>
+                  </div>
+                </div>
               </div>
 
               {/* Main Area */}
@@ -102,31 +115,39 @@ const LandingPage: React.FC = () => {
 
                 {/* Header Stats */}
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="h-24 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/10 p-4 relative overflow-hidden group/stat">
-                    <div className="h-4 w-8 bg-blue-400/20 rounded mb-2"></div>
-                    <div className="h-8 w-16 bg-blue-400/40 rounded"></div>
-                    <div className="absolute right-3 bottom-3 flex gap-1 items-end h-8">
-                      <div className="w-1 bg-blue-400/50 rounded-full animate-equalize delay-75"></div>
-                      <div className="w-1 bg-blue-400/50 rounded-full animate-equalize delay-150"></div>
-                      <div className="w-1 bg-blue-400/50 rounded-full animate-equalize delay-300"></div>
+                  <div className="h-24 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/10 p-4 relative overflow-hidden group/stat flex flex-col justify-between">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-blue-300/60 font-semibold">Daily Streak</div>
+                      <div className="text-2xl font-bold text-white mt-1">12 <span className="text-sm font-normal text-blue-300/50">days</span></div>
+                    </div>
+                    <div className="absolute right-3 bottom-3 flex gap-1 items-end h-6">
+                      <div className="w-1 bg-blue-400/50 rounded-full animate-equalize delay-75 h-[40%]"></div>
+                      <div className="w-1 bg-blue-400/50 rounded-full animate-equalize delay-150 h-[80%]"></div>
+                      <div className="w-1 bg-blue-400/50 rounded-full animate-equalize delay-300 h-[60%]"></div>
                     </div>
                   </div>
-                  <div className="h-24 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/10 p-4 relative overflow-hidden">
-                    <div className="h-4 w-8 bg-purple-400/20 rounded mb-2"></div>
-                    <div className="h-8 w-16 bg-purple-400/40 rounded"></div>
-                    <div className="absolute right-3 bottom-3 flex gap-1 items-end h-8">
-                      <div className="w-1 bg-purple-400/50 rounded-full animate-equalize delay-100"></div>
-                      <div className="w-1 bg-purple-400/50 rounded-full animate-equalize delay-200"></div>
-                      <div className="w-1 bg-purple-400/50 rounded-full animate-equalize delay-75"></div>
+
+                  <div className="h-24 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/10 p-4 relative overflow-hidden flex flex-col justify-between">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-purple-300/60 font-semibold">Questions</div>
+                      <div className="text-2xl font-bold text-white mt-1">843</div>
+                    </div>
+                    <div className="absolute right-3 bottom-3 flex gap-1 items-end h-6">
+                      <div className="w-1 bg-purple-400/50 rounded-full animate-equalize delay-100 h-[30%]"></div>
+                      <div className="w-1 bg-purple-400/50 rounded-full animate-equalize delay-200 h-[90%]"></div>
+                      <div className="w-1 bg-purple-400/50 rounded-full animate-equalize delay-75 h-[50%]"></div>
                     </div>
                   </div>
-                  <div className="h-24 rounded-xl bg-gradient-to-br from-pink-500/10 to-pink-600/5 border border-pink-500/10 p-4 relative overflow-hidden">
-                    <div className="h-4 w-8 bg-pink-400/20 rounded mb-2"></div>
-                    <div className="h-8 w-16 bg-pink-400/40 rounded"></div>
-                    <div className="absolute right-3 bottom-3 flex gap-1 items-end h-8">
-                      <div className="w-1 bg-pink-400/50 rounded-full animate-equalize delay-300"></div>
-                      <div className="w-1 bg-pink-400/50 rounded-full animate-equalize delay-100"></div>
-                      <div className="w-1 bg-pink-400/50 rounded-full animate-equalize delay-200"></div>
+
+                  <div className="h-24 rounded-xl bg-gradient-to-br from-pink-500/10 to-pink-600/5 border border-pink-500/10 p-4 relative overflow-hidden flex flex-col justify-between">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-pink-300/60 font-semibold">Accuracy</div>
+                      <div className="text-2xl font-bold text-white mt-1">92%</div>
+                    </div>
+                    <div className="absolute right-3 bottom-3 flex gap-1 items-end h-6">
+                      <div className="w-1 bg-pink-400/50 rounded-full animate-equalize delay-300 h-[70%]"></div>
+                      <div className="w-1 bg-pink-400/50 rounded-full animate-equalize delay-100 h-[40%]"></div>
+                      <div className="w-1 bg-pink-400/50 rounded-full animate-equalize delay-200 h-[85%]"></div>
                     </div>
                   </div>
                 </div>
