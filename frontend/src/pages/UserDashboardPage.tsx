@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { extractDriveId } from '../utils/fileHelpers';
 import { Clock } from '../components/UI/Clock';
+import { MCQSection } from '../components/MCQ/MCQSection';
 
 const UserDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -35,7 +36,7 @@ const UserDashboardPage: React.FC = () => {
 
   // const [now, setNow] = useState<string>(new Date().toLocaleString()); // Moved to Clock component
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed' | 'practice'>('library');
   const [playerFile, setPlayerFile] = useState<{ id: string; name: string; src: string } | null>(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
@@ -171,7 +172,7 @@ const UserDashboardPage: React.FC = () => {
   };
 
   const renderView = () => {
-    if (!loading && tree.length === 0 && rootFiles.length === 0) {
+    if (activeTab !== 'practice' && !loading && tree.length === 0 && rootFiles.length === 0) {
       return (
         <div className="text-center py-10">
           <p className="text-lg text-slate-400">Your library is currently empty.</p>
@@ -196,9 +197,8 @@ const UserDashboardPage: React.FC = () => {
         return <Bookmarks bookmarks={bookmarks} toggleBookmark={toggleBookmark} toggleCompleted={toggleCompleted} handleOpen={handleOpen} downloadingFileId={downloadingFileId} />;
       case 'completed':
         return <Completed allFiles={allFiles} toggleCompleted={toggleCompleted} handleOpen={handleOpen} downloadingFileId={downloadingFileId} />;
-
-
-
+      case 'practice':
+        return <MCQSection />;
       default:
         return (
           <Library
@@ -241,6 +241,9 @@ const UserDashboardPage: React.FC = () => {
             </Button>
             <Button variant={activeTab === 'completed' ? 'primary' : 'ghost'} onClick={() => setActiveTab('completed')}>
               Completed
+            </Button>
+            <Button variant={activeTab === 'practice' ? 'primary' : 'ghost'} onClick={() => setActiveTab('practice')}>
+              Practice
             </Button>
 
 
