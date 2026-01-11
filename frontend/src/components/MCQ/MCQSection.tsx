@@ -24,7 +24,11 @@ interface UserAnswer {
     remarks: string;
 }
 
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1n-prhxZhz3mEukX9-hFtwqXfvnzzKMqZUUEMtILIF7c/export?format=csv';
+const SHEET_URL = import.meta.env.VITE_MCQ_SHEET_URL || '';
+
+if (!SHEET_URL) {
+    console.warn('VITE_MCQ_SHEET_URL is not defined in environment variables');
+}
 
 export const MCQSection: React.FC = () => {
     const [allQuestions, setAllQuestions] = useState<Question[]>([]);
@@ -351,20 +355,28 @@ export const MCQSection: React.FC = () => {
                                         <div className="mt-1 font-mono text-sm opacity-50">{idx + 1}.</div>
                                         <div className="flex-1">
                                             <p className="text-slate-200 font-medium">{q.question}</p>
-                                            <div className="flex flex-wrap gap-4 mt-2 text-sm">
-                                                {answer && (
-                                                    <div className={`${answer.isCorrect ? 'text-emerald-300' : 'text-red-300'}`}>
-                                                        Your Answer: <span className="font-semibold">{answer.selectedOption?.replace('option ', '').toUpperCase()}</span>
+
+                                            {answer ? (
+                                                <>
+                                                    <div className="flex flex-wrap gap-4 mt-2 text-sm">
+                                                        <div className={`${answer.isCorrect ? 'text-emerald-300' : 'text-red-300'}`}>
+                                                            Your Answer: <span className="font-semibold">{answer.selectedOption?.replace('option ', '').toUpperCase()}</span>
+                                                        </div>
+                                                        <div className="text-emerald-400">
+                                                            Correct: <span className="font-semibold">{q.correctAnswer.replace('option ', '').toUpperCase()}</span>
+                                                        </div>
                                                     </div>
-                                                )}
-                                                <div className="text-emerald-400">
-                                                    Correct: <span className="font-semibold">{q.correctAnswer.replace('option ', '').toUpperCase()}</span>
+                                                    {q.remarks && (
+                                                        <p className="text-xs text-slate-400 mt-2 bg-black/20 p-2 rounded inline-block">
+                                                            💡 {q.remarks}
+                                                        </p>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <div className="mt-2 text-sm text-slate-500 italic flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-slate-600"></span>
+                                                    Not Attempted - Answer Hidden
                                                 </div>
-                                            </div>
-                                            {q.remarks && (
-                                                <p className="text-xs text-slate-400 mt-2 bg-black/20 p-2 rounded inline-block">
-                                                    💡 {q.remarks}
-                                                </p>
                                             )}
                                         </div>
                                         <div className="text-xl">
