@@ -56,6 +56,11 @@ export const MCQSection: React.FC = () => {
     const [initialTime, setInitialTime] = useState(0);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+    // AI State
+    const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+    const [isAiLoading, setIsAiLoading] = useState(false);
+    const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+
     useEffect(() => {
         fetchQuestions();
         return () => stopTimer();
@@ -78,7 +83,7 @@ export const MCQSection: React.FC = () => {
             stopTimer();
         }
         return () => stopTimer();
-    }, [phase]); // Removed timeLeft dependency to prevent re-creation interval on every tick
+    }, [phase]);
 
     const stopTimer = () => {
         if (timerRef.current) {
@@ -186,6 +191,7 @@ export const MCQSection: React.FC = () => {
             setCurrentIndex(c => c + 1);
             setSelectedOption(null);
             setIsAnswered(false);
+            setAiExplanation(null); // Reset AI state
         } else {
             finishQuiz();
         }
@@ -196,12 +202,67 @@ export const MCQSection: React.FC = () => {
         setSelectedOption(null);
         setIsAnswered(false);
         setUserAnswers([]);
+        setAiExplanation(null);
     };
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const fetchGeminiExplanation = async () => {
+        if (!GEMINI_API_KEY) {
+            alert("AI API Key is missing. Please check your .env file.");
+            return;
+        }
+
+        setIsAiLoading(true);
+        const currentQ = questions[currentIndex];
+
+        const prompt = `
+            Question: ${currentQ.question}
+            Options:
+            A: ${currentQ.options['option a']}
+            B: ${currentQ.options['option b']}
+            C: ${currentQ.options['option c']}
+            D: ${currentQ.options['option d']}
+            
+            Correct Answer: ${currentQ.correctAnswer}
+            Context/Remarks from Instructor: ${currentQ.remarks || "None"}
+            
+            Please provide a detailed explanation of why the correct answer is correct, and briefly explain why the other options might be incorrect. Provide a comprehensive review suitable for a student preparing for an exam.
+        `;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }]
+                })
+            });
+
+            if (!response.ok) throw new Error("AI request failed");
+
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (text) {
+                setAiExplanation(text);
+            } else {
+                throw new Error("No explanation returned");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Failed to get AI explanation. Please try again.");
+        } finally {
+            setIsAiLoading(false);
+        }
     };
 
     if (loading) {
@@ -400,10 +461,6 @@ export const MCQSection: React.FC = () => {
 
     // --- PLAYING VIEW ---
     const currentQ = questions[currentIndex];
-    // Calculate current score just for display
-    const currentScore = userAnswers.filter(a => a.isCorrect).length;
-    // Get existing answer state if revisiting (though currently we don't allow going back, logic supports it)
-    // For now, isAnswered tracks current step only
 
     return (
         <div className="w-full max-w-3xl mx-auto space-y-6">
@@ -483,25 +540,54 @@ export const MCQSection: React.FC = () => {
 
                 {/* Feedback / Next */}
                 {isAnswered && (
-                    <div className={`mt-6 p-4 rounded-xl animate-in fade-in slide-in-from-top-2 ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
-                        <div className="flex items-start gap-3">
-                            <div className={`text-2xl ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
-                                {userAnswers[userAnswers.length - 1]?.isCorrect ? '✓' : '✕'}
-                            </div>
-                            <div className="flex-1">
-                                <p className={`font-semibold ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'text-emerald-200' : 'text-red-200'}`}>
-                                    {userAnswers[userAnswers.length - 1]?.isCorrect ? 'Correct!' : 'Incorrect'}
-                                </p>
-                                {currentQ.remarks && (
-                                    <p className="text-slate-300 mt-1 text-sm bg-black/20 p-2 rounded-lg inline-block">
-                                        💡 {currentQ.remarks}
+                    <div className="space-y-4">
+                        <div className={`mt-6 p-4 rounded-xl animate-in fade-in slide-in-from-top-2 ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
+                            <div className="flex items-start gap-3">
+                                <div className={`text-2xl ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {userAnswers[userAnswers.length - 1]?.isCorrect ? '✓' : '✕'}
+                                </div>
+                                <div className="flex-1">
+                                    <p className={`font-semibold ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'text-emerald-200' : 'text-red-200'}`}>
+                                        {userAnswers[userAnswers.length - 1]?.isCorrect ? 'Correct!' : 'Incorrect'}
                                     </p>
-                                )}
+                                    {currentQ.remarks && (
+                                        <p className="text-slate-300 mt-1 text-sm bg-black/20 p-2 rounded-lg inline-block">
+                                            💡 {currentQ.remarks}
+                                        </p>
+                                    )}
+                                </div>
+                                <Button onClick={nextQuestion}>
+                                    {currentIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+                                </Button>
                             </div>
-                            <Button onClick={nextQuestion}>
-                                {currentIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
-                            </Button>
                         </div>
+
+                        {/* AI Explanation Section */}
+                        {!aiExplanation && (
+                            <Button
+                                variant="ghost"
+                                onClick={fetchGeminiExplanation}
+                                disabled={isAiLoading}
+                                className="w-full border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-200 flex items-center justify-center gap-2"
+                            >
+                                {isAiLoading ? (
+                                    <>Processing with AI...</>
+                                ) : (
+                                    <>✨ Ask AI for Detailed Explanation</>
+                                )}
+                            </Button>
+                        )}
+
+                        {aiExplanation && (
+                            <div className="bg-purple-900/20 border border-purple-500/20 p-6 rounded-2xl animate-in fade-in zoom-in-95">
+                                <h4 className="text-purple-300 font-semibold mb-2 flex items-center gap-2">
+                                    <span>✨</span> AI Analysis
+                                </h4>
+                                <div className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">
+                                    {aiExplanation}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
