@@ -14,6 +14,16 @@ export const SEEDED_USERS = [
         password: import.meta.env.VITE_USER_NARESH_PASSWORD,
         name: import.meta.env.VITE_USER_NARESH_NAME
     },
+    {
+        email: import.meta.env.VITE_USER_ANISHA_EMAIL,
+        password: import.meta.env.VITE_USER_ANISHA_PASSWORD,
+        name: import.meta.env.VITE_USER_ANISHA_NAME
+    },
+    {
+        email: import.meta.env.VITE_USER_KHIM_EMAIL,
+        password: import.meta.env.VITE_USER_KHIM_PASSWORD,
+        name: import.meta.env.VITE_USER_KHIM_NAME
+    },
     // { email: 'student4@wit.com', password: 'wit_user_04', name: 'Student Four' },
     // { email: 'student5@wit.com', password: 'wit_user_05', name: 'Student Five' },
     // { email: 'student6@wit.com', password: 'wit_user_06', name: 'Student Six' },
