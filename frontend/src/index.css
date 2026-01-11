@@ -319,7 +319,7 @@ button,
   left: 10%;
   background: radial-gradient(circle, rgba(255, 253, 240, 0.6) 0%, rgba(255, 255, 255, 0.3) 35%, rgba(255, 255, 255, 0) 70%);
   filter: blur(10px);
-  opacity: var(--sky-sun-opacity, 0);
+  opacity: 1;
   animation: sunPulse 16s ease-in-out infinite alternate;
 }
 
@@ -330,7 +330,7 @@ button,
   right: 10%;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.2) 45%, rgba(255, 255, 255, 0) 70%);
   filter: blur(8px);
-  opacity: var(--sky-moon-opacity, 0);
+  opacity: 1;
   animation: moonDrift 18s ease-in-out infinite alternate;
 }
 
