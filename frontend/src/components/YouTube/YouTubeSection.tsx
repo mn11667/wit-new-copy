@@ -35,9 +35,9 @@ export const YouTubeSection: React.FC = () => {
                 <div className={`flex-1 flex flex-col min-w-0 bg-black/40 rounded-2xl overflow-hidden border border-white/10 relative transition-all duration-300 ${isSidebarOpen ? 'md:mr-0' : ''}`}>
                     <div className="flex-1 relative bg-black">
                         <iframe
-                            key={currentIndex} // Force reload on index change to ensure proper start
+                            key={`${currentIndex}-${isSidebarOpen}`} // Add sidebar state to key to handle resize redraws, but primarily index
                             className="absolute inset-0 w-full h-full"
-                            src={`https://www.youtube.com/embed?listType=playlist&list=${PLAYLIST_ID}&index=${currentIndex}&autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`}
+                            src={`https://www.youtube.com/embed/videoseries?list=${PLAYLIST_ID}&index=${currentIndex}&autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`}
                             title="YouTube Playlist"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
