@@ -68,7 +68,8 @@ export const MCQSection: React.FC = () => {
 
     // Timer Logic
     useEffect(() => {
-        if (phase === 'quiz' && timeLeft > 0) {
+        // Pause timer if loading AI or reading AI explanation
+        if (phase === 'quiz' && timeLeft > 0 && !isAiLoading && !aiExplanation) {
             timerRef.current = setInterval(() => {
                 setTimeLeft((prev) => {
                     if (prev <= 1) {
@@ -83,7 +84,7 @@ export const MCQSection: React.FC = () => {
             stopTimer();
         }
         return () => stopTimer();
-    }, [phase]);
+    }, [phase, isAiLoading, aiExplanation]);
 
     const stopTimer = () => {
         if (timerRef.current) {
