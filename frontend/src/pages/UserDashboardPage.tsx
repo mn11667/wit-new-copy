@@ -25,6 +25,7 @@ import { extractDriveId } from '../utils/fileHelpers';
 import { Clock } from '../components/UI/Clock';
 import { MCQSection } from '../components/MCQ/MCQSection';
 import { getRandomQuote } from '../data/quotes';
+import { YouTubeSection } from '../components/YouTube/YouTubeSection';
 
 const UserDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -48,7 +49,7 @@ const UserDashboardPage: React.FC = () => {
 
   // const [now, setNow] = useState<string>(new Date().toLocaleString()); // Moved to Clock component
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed' | 'practice'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed' | 'practice' | 'youtube'>('library');
   const [playerFile, setPlayerFile] = useState<{ id: string; name: string; src: string } | null>(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
@@ -211,6 +212,8 @@ const UserDashboardPage: React.FC = () => {
         return <Completed allFiles={allFiles} toggleCompleted={toggleCompleted} handleOpen={handleOpen} downloadingFileId={downloadingFileId} />;
       case 'practice':
         return <MCQSection />;
+      case 'youtube':
+        return <YouTubeSection />;
       default:
         return (
           <Library
@@ -264,6 +267,9 @@ const UserDashboardPage: React.FC = () => {
             </Button>
             <Button variant={activeTab === 'practice' ? 'primary' : 'ghost'} onClick={() => setActiveTab('practice')}>
               Practice
+            </Button>
+            <Button variant={activeTab === 'youtube' ? 'primary' : 'ghost'} onClick={() => setActiveTab('youtube')}>
+              Classes
             </Button>
 
 
