@@ -163,7 +163,7 @@ const LandingPage: React.FC = () => {
                     className="h-full w-full object-cover opacity-80 mix-blend-luminosity group-hover/video:mix-blend-normal group-hover/video:opacity-100 transition-all duration-700"
                     poster="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"
                   >
-                    <source src="https://assets.mixkit.co/videos/preview/mixkit-software-developer-working-on-code-monitor-close-up-1728-large.mp4" type="video/mp4" />
+                    <source src="https://videos.pexels.com/video-files/5496222/5496222-hd_1920_1080_30fps.mp4" type="video/mp4" />
                   </video>
 
                   {/* Play Interface Overlay */}
