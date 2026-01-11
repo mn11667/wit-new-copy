@@ -8,12 +8,14 @@ export const YouTubeSection: React.FC = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isSidebarOpen, setSidebarOpen] = useState(true);
 
-    // Generate dummy playlist items since we can't fetch real titles without API key
     const playlistItems = Array.from({ length: TOTAL_VIDEOS_ESTIMATE }, (_, i) => ({
         id: i,
         title: `Day ${i + 1}: Class Recording`,
         duration: '45:00' // Placeholder
     }));
+
+    // Standard playlist embed format which typically respects 'index' better than videoseries
+    const videoUrl = `https://www.youtube.com/embed?listType=playlist&list=${PLAYLIST_ID}&index=${currentIndex}&autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`;
 
     return (
         <div className="flex flex-col h-[calc(100vh-140px)] min-h-[600px] gap-4 animate-in fade-in slide-in-from-bottom-4">
@@ -33,11 +35,15 @@ export const YouTubeSection: React.FC = () => {
 
                 {/* Video Player Container */}
                 <div className={`flex-1 flex flex-col min-w-0 bg-black/40 rounded-2xl overflow-hidden border border-white/10 relative transition-all duration-300 ${isSidebarOpen ? 'md:mr-0' : ''}`}>
+                    {/* Debugging/Confirmation Display */}
+                    <div className="p-2 text-sm text-white/70 bg-black/30 absolute top-0 left-0 z-10 rounded-br-lg">
+                        Current Video Index: {currentIndex}
+                    </div>
                     <div className="flex-1 relative bg-black">
                         <iframe
-                            key={`${currentIndex}-${isSidebarOpen}`} // Add sidebar state to key to handle resize redraws, but primarily index
+                            key={videoUrl} // Unique key to force iframe remount
                             className="absolute inset-0 w-full h-full"
-                            src={`https://www.youtube.com/embed/videoseries?list=${PLAYLIST_ID}&index=${currentIndex}&autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`}
+                            src={videoUrl}
                             title="YouTube Playlist"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
