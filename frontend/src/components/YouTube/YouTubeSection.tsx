@@ -37,7 +37,7 @@ export const YouTubeSection: React.FC = () => {
                         <iframe
                             key={currentIndex} // Force reload on index change to ensure proper start
                             className="absolute inset-0 w-full h-full"
-                            src={`https://www.youtube.com/embed/videoseries?list=${PLAYLIST_ID}&index=${currentIndex}&autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`}
+                            src={`https://www.youtube.com/embed?listType=playlist&list=${PLAYLIST_ID}&index=${currentIndex}&autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`}
                             title="YouTube Playlist"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
