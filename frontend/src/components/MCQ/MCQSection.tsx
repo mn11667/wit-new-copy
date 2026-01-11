@@ -231,7 +231,7 @@ export const MCQSection: React.FC = () => {
             Correct Answer: ${currentQ.correctAnswer}
             Context/Remarks from Instructor: ${currentQ.remarks || "None"}
             
-            Please provide a detailed explanation of why the correct answer is correct, and briefly explain why the other options might be incorrect. Provide a comprehensive review suitable for a student preparing for an exam.
+            Please provide a **concise** explanation (max 3-4 sentences) of why the correct answer is correct. Briefly mention why the selected option was wrong if applicable. Keep the response short and to the point.
         `;
 
         try {
