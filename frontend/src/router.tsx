@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 
 import UserDashboardPage from './pages/UserDashboardPage';
@@ -49,6 +50,14 @@ const AppRouter: React.FC = () => (
         element={
           <AuthRedirect>
             <LoginPage />
+          </AuthRedirect>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <AuthRedirect>
+            <RegisterPage />
           </AuthRedirect>
         }
       />
