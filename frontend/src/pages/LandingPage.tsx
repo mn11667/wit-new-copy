@@ -114,13 +114,30 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Big Chart Area */}
-                <div className="flex-1 rounded-xl bg-white/5 border border-white/5 p-4 flex items-end gap-2 relative overflow-hidden">
-                  {/* Abstract Graph/Chart using Tailwind spans */}
-                  <div className="w-full h-full absolute inset-0 bg-gradient-to-t from-blue-500/10 via-transparent to-transparent"></div>
-                  {[40, 65, 45, 80, 55, 90, 70, 85].map((h, i) => (
-                    <div key={i} style={{ height: `${h}%` }} className="flex-1 rounded-t-sm bg-blue-500/20 hover:bg-blue-500/40 transition-all duration-300"></div>
-                  ))}
+                {/* Video Area */}
+                <div className="flex-1 rounded-xl bg-black/40 border border-white/5 overflow-hidden relative group/video">
+                  <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="h-full w-full object-cover opacity-80 mix-blend-luminosity group-hover/video:mix-blend-normal group-hover/video:opacity-100 transition-all duration-700"
+                    poster="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"
+                  >
+                    <source src="https://assets.mixkit.co/videos/preview/mixkit-software-developer-working-on-code-monitor-close-up-1728-large.mp4" type="video/mp4" />
+                  </video>
+
+                  {/* Play Interface Overlay */}
+                  <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
+                      <div className="w-0 h-0 border-t-[4px] border-t-transparent border-l-[8px] border-l-white border-b-[4px] border-b-transparent ml-1"></div>
+                    </div>
+                    <div className="text-xs font-medium text-white/80">
+                      <span className="block text-white">Live Class: IQ & Aptitude</span>
+                      <span className="text-white/50">Instructor: R. Sharma • 245 watching</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
