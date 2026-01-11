@@ -60,7 +60,7 @@ const LandingPage: React.FC = () => {
 
         {/* Typography */}
         {/* Typography */}
-        <h1 className="mt-8 max-w-5xl text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <h1 className="mt-8 max-w-5xl text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
           <span className="block text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 pb-2">
             Master Your
           </span>
@@ -69,12 +69,12 @@ const LandingPage: React.FC = () => {
           </span>
         </h1>
 
-        <p className="mt-6 max-w-2xl text-lg text-slate-300 sm:text-xl font-light leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+        <p className="mt-6 max-w-2xl text-lg text-slate-300 sm:text-xl font-light leading-relaxed">
           A premium, intelligent workspace designed for focused preparation.
           Access curated notes, video classes, and comprehensive practice exams in a beautiful glass interface.
         </p>
 
-        <div className="mt-10 flex w-full flex-col justify-center gap-4 sm:flex-row animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+        <div className="mt-10 flex w-full flex-col justify-center gap-4 sm:flex-row">
           <Link to="/register">
             <Button variant="primary" className="h-12 w-full rounded-full px-8 text-lg font-semibold shadow-xl shadow-blue-500/20 hover:scale-105 hover:shadow-blue-500/30 transition-all duration-300 sm:w-auto">
               Start Learning Free
@@ -83,7 +83,7 @@ const LandingPage: React.FC = () => {
         </div>
 
         {/* 3D Dashboard Mockup - The Visual Anchor */}
-        <div className="relative mt-20 w-full max-w-5xl [perspective:2000px] group animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+        <div className="relative mt-20 w-full max-w-5xl [perspective:2000px] group">
           {/* Main Tilted Window */}
           <div className="relative mx-auto w-full aspect-[16/10] rounded-xl border border-white/10 bg-[#020617]/80 backdrop-blur-xl shadow-2xl transition-all duration-700 ease-out [transform:rotateX(20deg)_scale(0.9)] group-hover:[transform:rotateX(0deg)_scale(1)] overflow-hidden">
             {/* Window Controls */}
@@ -195,7 +195,7 @@ const LandingPage: React.FC = () => {
         </div>
 
         {/* Bento Grid Features */}
-        <div className="mt-32 w-full max-w-6xl px-4 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500">
+        <div className="mt-32 w-full max-w-6xl px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-transparent bg-clip-text bg-gradient-to-r from-slate-200 to-slate-400">Everything you need to excel</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-4 h-auto md:h-[600px]">
