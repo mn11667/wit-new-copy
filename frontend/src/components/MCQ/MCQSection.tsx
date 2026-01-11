@@ -246,14 +246,14 @@ export const MCQSection: React.FC = () => {
                                 <input
                                     type="range"
                                     min="5"
-                                    max={allQuestions.length}
+                                    max={Math.min(100, allQuestions.length)}
                                     value={customCount}
-                                    onChange={(e) => setCustomCount(Number(e.target.value))}
+                                    onChange={(e) => setCustomCount(Math.min(100, Number(e.target.value)))}
                                     className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                                 />
                                 <div className="flex justify-between text-xs text-slate-500">
                                     <span>5</span>
-                                    <span>{allQuestions.length}</span>
+                                    <span>{Math.min(100, allQuestions.length)}</span>
                                 </div>
                             </div>
                         </div>
