@@ -154,17 +154,15 @@ const LandingPage: React.FC = () => {
 
                 {/* Video Area */}
                 <div className="flex-1 rounded-xl bg-black/40 border border-white/5 overflow-hidden relative group/video">
-                  <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                  <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="h-full w-full object-cover opacity-80 mix-blend-luminosity group-hover/video:mix-blend-normal group-hover/video:opacity-100 transition-all duration-700"
-                    poster="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"
-                  >
-                    <source src="https://videos.pexels.com/video-files/5496222/5496222-hd_1920_1080_30fps.mp4" type="video/mp4" />
-                  </video>
+                  <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
+                  <iframe
+                    className="h-full w-full object-cover opacity-80 mix-blend-luminosity group-hover/video:mix-blend-normal group-hover/video:opacity-100 transition-all duration-700 pointer-events-none"
+                    src="https://www.youtube.com/embed/bY_gRApfoJk?autoplay=1&mute=1&controls=0&loop=1&playlist=bY_gRApfoJk&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&modestbranding=1"
+                    title="Background Video"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                    style={{ pointerEvents: 'none' }}
+                  ></iframe>
 
                   {/* Play Interface Overlay */}
                   <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3">
