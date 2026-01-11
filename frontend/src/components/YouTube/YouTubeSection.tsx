@@ -1,17 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../UI/Button';
 
-const PLAYLIST_ID = 'PLztdBcd3--U0Lxzt4LUcYeBqy4iD-2E6n';
-const TOTAL_VIDEOS_ESTIMATE = 30; // Estimated count based on user context
+const PLAYLIST_ID = "PLztdBcd3--U0Lxzt4LUcYeBqy4iD-2E6n";
+// Increased limit to cover more videos in the playlist.
+const TOTAL_VIDEOS_ESTIMATE = 200;
+const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+
+interface PlaylistItem {
+    id: number;
+    title: string;
+    duration?: string;
+    originalIndex: number; // The actual 1-based index in the playlist
+}
 
 export const YouTubeSection: React.FC = () => {
     const [currentIndex, setCurrentIndex] = useState(1);
     const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [playlistData, setPlaylistData] = useState<PlaylistItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const playlistItems = Array.from({ length: TOTAL_VIDEOS_ESTIMATE }, (_, i) => ({
+    useEffect(() => {
+        const fetchPlaylistItems = async () => {
+            if (!API_KEY) {
+                console.warn("YouTube API Key not found. Using generic data.");
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                // Fetch first 50 items (max allowed per page)
+                // To get ALL items, we would need pagination (nextPageToken), taking simplified approach first
+                const response = await fetch(
+                    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${PLAYLIST_ID}&key=${API_KEY}`
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch playlist');
+                }
+
+                const data = await response.json();
+
+                const formattedItems: PlaylistItem[] = data.items.map((item: any, index: number) => ({
+                    id: index,
+                    title: item.snippet.title,
+                    originalIndex: item.snippet.position + 1 // Position is 0-based
+                }));
+
+                setPlaylistData(formattedItems);
+            } catch (error) {
+                console.error("Error fetching playlist:", error);
+                // Fallback is already empty or we can set dummy
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchPlaylistItems();
+    }, []);
+
+    // Fallback generation if API fails or no key
+    const displayItems = playlistData.length > 0 ? playlistData : Array.from({ length: TOTAL_VIDEOS_ESTIMATE }, (_, i) => ({
         id: i,
         title: `Day ${i + 1}: Class Recording`,
-        duration: '45:00' // Placeholder
+        duration: '45:00',
+        originalIndex: i + 1
     }));
 
     // Standard playlist embed format which typically respects 'index' better than videoseries
@@ -49,7 +101,7 @@ export const YouTubeSection: React.FC = () => {
 
                 {/* Playlist Sidebar */}
                 <div className={`
-                    absolute md:relative z-10 right-0 top-0 bottom-0
+                    absolute md:relative z-10 right-0 top-0 bottom-0 
                     w-80 bg-[#0f172a]/95 md:bg-white/5 backdrop-blur-xl md:backdrop-blur-none
                     border-l md:border border-white/10 md:rounded-2xl
                     flex flex-col transition-all duration-300 transform
@@ -57,17 +109,16 @@ export const YouTubeSection: React.FC = () => {
                 `}>
                     <div className="p-4 border-b border-white/10 flex items-center justify-between">
                         <h3 className="font-semibold text-white">Course Content</h3>
-                        <span className="text-xs text-slate-400">{currentIndex} / {playlistItems.length}</span>
+                        <span className="text-xs text-slate-400">{currentIndex} / {displayItems.length}</span>
                     </div>
 
                     <div className="flex-1 overflow-y-auto overflow-x-hidden library-scroll p-2 space-y-1">
-                        {playlistItems.map((item, idx) => {
-                            const itemIndex = idx + 1;
-                            const isActive = itemIndex === currentIndex;
+                        {displayItems.map((item) => {
+                            const isActive = item.originalIndex === currentIndex;
                             return (
                                 <button
                                     key={item.id}
-                                    onClick={() => setCurrentIndex(itemIndex)}
+                                    onClick={() => setCurrentIndex(item.originalIndex)}
                                     className={`
                                         w-full flex items-start gap-3 p-3 rounded-xl text-left transition-all group
                                         ${isActive
@@ -79,7 +130,7 @@ export const YouTubeSection: React.FC = () => {
                                         flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-xs font-medium mt-0.5
                                         ${isActive ? 'bg-blue-500 text-white' : 'bg-white/10 text-slate-400 group-hover:bg-white/20'}
                                     `}>
-                                        {isActive ? '▶' : itemIndex}
+                                        {isActive ? '▶' : item.originalIndex}
                                     </div>
                                     <div className="min-w-0">
                                         <p className={`text-sm font-medium truncate ${isActive ? 'text-blue-200' : 'text-slate-300'}`}>
