@@ -77,7 +77,7 @@ const LandingPage: React.FC = () => {
         {/* 3D Dashboard Mockup - The Visual Anchor */}
         <div className="relative mt-20 w-full max-w-5xl [perspective:2000px] group">
           {/* Main Tilted Window */}
-          <div className="relative mx-auto w-full aspect-[16/10] rounded-xl border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl transition-all duration-700 ease-out [transform:rotateX(20deg)_scale(0.9)] group-hover:[transform:rotateX(0deg)_scale(1)] overflow-hidden">
+          <div className="relative mx-auto w-full aspect-[16/10] rounded-xl border border-white/10 bg-[#020617]/80 backdrop-blur-xl shadow-2xl transition-all duration-700 ease-out [transform:rotateX(20deg)_scale(0.9)] group-hover:[transform:rotateX(0deg)_scale(1)] overflow-hidden">
             {/* Window Controls */}
             <div className="absolute top-0 left-0 right-0 h-8 bg-white/5 border-b border-white/5 flex items-center px-4 gap-2">
               <div className="w-3 h-3 rounded-full bg-red-400/80"></div>

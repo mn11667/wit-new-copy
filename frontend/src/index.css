@@ -1325,3 +1325,16 @@ button,
   .delay-300 { animation-delay: 300ms; }
 }
 
+
+/* More transparent dashboard window */
+.mac-window {
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 26px 64px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Ensure sidebar matches or slightly darker */
+.mac-sidebar {
+  background: rgba(0, 0, 0, 0.2) !important;
+}
