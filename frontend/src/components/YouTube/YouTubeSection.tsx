@@ -28,28 +28,40 @@ export const YouTubeSection: React.FC = () => {
             }
 
             try {
-                // Fetch first 50 items (max allowed per page)
-                // To get ALL items, we would need pagination (nextPageToken), taking simplified approach first
-                const response = await fetch(
-                    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${PLAYLIST_ID}&key=${API_KEY}`
-                );
+                let allItems: PlaylistItem[] = [];
+                let nextPageToken = '';
+                let fetchMore = true;
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch playlist');
+                // Loop to fetch all pages of the playlist
+                while (fetchMore) {
+                    const response = await fetch(
+                        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${PLAYLIST_ID}&key=${API_KEY}&pageToken=${nextPageToken}`
+                    );
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch playlist');
+                    }
+
+                    const data = await response.json();
+
+                    const formattedItems = data.items.map((item: any, index: number) => ({
+                        id: allItems.length + index, // Continuous ID
+                        title: item.snippet.title,
+                        originalIndex: item.snippet.position + 1 // Position is 0-based from API
+                    }));
+
+                    allItems = [...allItems, ...formattedItems];
+
+                    if (data.nextPageToken) {
+                        nextPageToken = data.nextPageToken;
+                    } else {
+                        fetchMore = false;
+                    }
                 }
 
-                const data = await response.json();
-
-                const formattedItems: PlaylistItem[] = data.items.map((item: any, index: number) => ({
-                    id: index,
-                    title: item.snippet.title,
-                    originalIndex: item.snippet.position + 1 // Position is 0-based
-                }));
-
-                setPlaylistData(formattedItems);
+                setPlaylistData(allItems);
             } catch (error) {
                 console.error("Error fetching playlist:", error);
-                // Fallback is already empty or we can set dummy
             } finally {
                 setIsLoading(false);
             }
