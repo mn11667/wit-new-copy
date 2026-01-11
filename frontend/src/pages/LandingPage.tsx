@@ -89,7 +89,9 @@ const LandingPage: React.FC = () => {
             <div className="absolute top-8 bottom-0 left-0 right-0 p-6 flex gap-6">
               {/* Sidebar */}
               <div className="hidden md:flex w-48 flex-col gap-3 border-r border-white/5 pr-6 opacity-60">
-                <div className="h-8 w-full rounded-lg bg-white/10 animate-pulse"></div>
+                <div className="h-8 w-full rounded-lg bg-white/10 overflow-hidden relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite] translate-x-[-100%]"></div>
+                </div>
                 <div className="h-8 w-3/4 rounded-lg bg-white/5"></div>
                 <div className="h-8 w-full rounded-lg bg-white/5"></div>
                 <div className="h-8 w-5/6 rounded-lg bg-white/5"></div>
@@ -100,17 +102,32 @@ const LandingPage: React.FC = () => {
 
                 {/* Header Stats */}
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="h-24 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/10 p-4">
+                  <div className="h-24 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/10 p-4 relative overflow-hidden group/stat">
                     <div className="h-4 w-8 bg-blue-400/20 rounded mb-2"></div>
                     <div className="h-8 w-16 bg-blue-400/40 rounded"></div>
+                    <div className="absolute right-3 bottom-3 flex gap-1 items-end h-8">
+                      <div className="w-1 bg-blue-400/50 rounded-full animate-equalize delay-75"></div>
+                      <div className="w-1 bg-blue-400/50 rounded-full animate-equalize delay-150"></div>
+                      <div className="w-1 bg-blue-400/50 rounded-full animate-equalize delay-300"></div>
+                    </div>
                   </div>
-                  <div className="h-24 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/10 p-4">
+                  <div className="h-24 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/10 p-4 relative overflow-hidden">
                     <div className="h-4 w-8 bg-purple-400/20 rounded mb-2"></div>
                     <div className="h-8 w-16 bg-purple-400/40 rounded"></div>
+                    <div className="absolute right-3 bottom-3 flex gap-1 items-end h-8">
+                      <div className="w-1 bg-purple-400/50 rounded-full animate-equalize delay-100"></div>
+                      <div className="w-1 bg-purple-400/50 rounded-full animate-equalize delay-200"></div>
+                      <div className="w-1 bg-purple-400/50 rounded-full animate-equalize delay-75"></div>
+                    </div>
                   </div>
-                  <div className="h-24 rounded-xl bg-gradient-to-br from-pink-500/10 to-pink-600/5 border border-pink-500/10 p-4">
+                  <div className="h-24 rounded-xl bg-gradient-to-br from-pink-500/10 to-pink-600/5 border border-pink-500/10 p-4 relative overflow-hidden">
                     <div className="h-4 w-8 bg-pink-400/20 rounded mb-2"></div>
                     <div className="h-8 w-16 bg-pink-400/40 rounded"></div>
+                    <div className="absolute right-3 bottom-3 flex gap-1 items-end h-8">
+                      <div className="w-1 bg-pink-400/50 rounded-full animate-equalize delay-300"></div>
+                      <div className="w-1 bg-pink-400/50 rounded-full animate-equalize delay-100"></div>
+                      <div className="w-1 bg-pink-400/50 rounded-full animate-equalize delay-200"></div>
+                    </div>
                   </div>
                 </div>
 
