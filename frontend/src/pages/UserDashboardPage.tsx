@@ -269,7 +269,7 @@ const UserDashboardPage: React.FC = () => {
               Practice
             </Button>
             <Button variant={activeTab === 'youtube' ? 'primary' : 'ghost'} onClick={() => setActiveTab('youtube')}>
-              Classes
+              YouTube
             </Button>
 
 
