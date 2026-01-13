@@ -24,6 +24,10 @@ export const DiscoverSection: React.FC = () => {
 
     const [feedCache, setFeedCache] = useState<{ en: NewsArticle[], np: NewsArticle[] }>({ en: [], np: [] });
 
+    // Reader Mode State
+    const [readingArticle, setReadingArticle] = useState<NewsArticle | null>(null);
+    const [contentLoading, setContentLoading] = useState(false);
+
     const ARTICLES_PER_PAGE = 3;
     const totalPages = news.length > 0 ? Math.ceil(news.length / ARTICLES_PER_PAGE) + 1 : 1;
 
@@ -129,6 +133,83 @@ export const DiscoverSection: React.FC = () => {
         setNews(feedCache[language]);
         setPage(1);
     }, [language, feedCache]);
+
+    // --- Reader Logic ---
+    const handleArticleClick = async (e: React.MouseEvent, article: NewsArticle) => {
+        if (source === 'gorkhapatra') {
+            e.preventDefault();
+            setReadingArticle(article);
+            setContentLoading(true);
+
+            try {
+                // Fetch full content via proxy
+                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(article.link)}`;
+                const res = await fetch(proxyUrl);
+                const html = await res.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                // Extract content from .blog-details
+                const contentEl = doc.querySelector('.blog-details');
+
+                // Remove social shares or ads if present inside
+                contentEl?.querySelectorAll('.share-buttons, .ads').forEach(el => el.remove());
+
+                const fullContent = contentEl?.innerHTML || article.description;
+
+                setReadingArticle(prev => prev ? { ...prev, content: fullContent } : null);
+            } catch (err) {
+                console.error("Failed to load full content:", err);
+            } finally {
+                setContentLoading(false);
+            }
+        }
+    };
+
+    const renderReader = () => {
+        if (!readingArticle) return null;
+
+        return (
+            <div className="animate-in fade-in slide-in-from-right-8">
+                {/* Back Button */}
+                <button
+                    onClick={() => setReadingArticle(null)}
+                    className="mb-6 flex items-center gap-2 text-red-800 font-bold uppercase tracking-widest text-xs hover:underline"
+                >
+                    &larr; Back to {page === 1 ? 'Front Page' : `Page ${page}`}
+                </button>
+
+                {contentLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                        <div className="w-8 h-8 border-4 border-slate-300 border-t-red-700 rounded-full animate-spin"></div>
+                        <p className="font-serif italic text-slate-500">Fetching full article...</p>
+                    </div>
+                ) : (
+                    <article className="prose prose-slate max-w-none font-serif">
+                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 leading-tight">
+                            {readingArticle.title}
+                        </h1>
+                        <div className="flex items-center gap-4 text-xs font-mono text-slate-500 mb-8 border-b border-slate-300 pb-4">
+                            <span>{new Date(readingArticle.pubDate).toDateString()}</span>
+                            <span>•</span>
+                            <span>{readingArticle.author || 'Gorkhapatra'}</span>
+                        </div>
+
+                        {/* Render HTML Content safely */}
+                        <div
+                            className="text-lg leading-relaxed text-justify text-slate-800 space-y-4 article-content"
+                            dangerouslySetInnerHTML={{ __html: readingArticle.content || "" }}
+                        />
+
+                        <div className="mt-8 pt-8 border-t border-slate-300 text-center">
+                            <a href={readingArticle.link} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-red-700 uppercase tracking-widest hover:underline">
+                                Read original on Website &rarr;
+                            </a>
+                        </div>
+                    </article>
+                )}
+            </div>
+        );
+    }
 
     // Helper to clean HTML content
     const cleanContent = (html: string) => {
@@ -299,33 +380,37 @@ export const DiscoverSection: React.FC = () => {
                             <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-900 rounded-full animate-spin"></div>
                             <div className="font-serif italic text-slate-500 animate-pulse text-xl">Hot off the press...</div>
                         </div>
+                    ) : readingArticle ? (
+                        renderReader()
                     ) : (
                         page === 1 ? renderCoverPage() : renderInnerPage()
                     )}
                 </div>
 
                 {/* Pagination Footer */}
-                <div className="flex justify-between items-center border-t-4 border-double border-slate-900 pt-4 mt-12 pb-2">
-                    <button
-                        disabled={page === 1}
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                        className="font-bold font-serif uppercase text-xs disabled:opacity-20 hover:text-red-700 flex items-center gap-2 transition-colors"
-                    >
-                        &larr; Previous Page
-                    </button>
+                {!readingArticle && (
+                    <div className="flex justify-between items-center border-t-4 border-double border-slate-900 pt-4 mt-12 pb-2">
+                        <button
+                            disabled={page === 1}
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            className="font-bold font-serif uppercase text-xs disabled:opacity-20 hover:text-red-700 flex items-center gap-2 transition-colors"
+                        >
+                            &larr; Previous Page
+                        </button>
 
-                    <div className="font-serif italic text-slate-500 text-sm">
-                        Page {page} of {totalPages}
+                        <div className="font-serif italic text-slate-500 text-sm">
+                            Page {page} of {totalPages}
+                        </div>
+
+                        <button
+                            disabled={page === totalPages}
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            className="font-bold font-serif uppercase text-xs disabled:opacity-20 hover:text-red-700 flex items-center gap-2 transition-colors"
+                        >
+                            Next Page &rarr;
+                        </button>
                     </div>
-
-                    <button
-                        disabled={page === totalPages}
-                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                        className="font-bold font-serif uppercase text-xs disabled:opacity-20 hover:text-red-700 flex items-center gap-2 transition-colors"
-                    >
-                        Next Page &rarr;
-                    </button>
-                </div>
+                )}
             </div>
         </div>
     );
