@@ -7,6 +7,7 @@ interface NewsArticle {
     thumbnail: string;
     pubDate: string;
     description: string;
+    content?: string; // Full content
     author: string;
     categories: string[];
 }
@@ -45,10 +46,20 @@ export const DiscoverSection: React.FC = () => {
         }
     };
 
-    const stripHtml = (html: string) => {
-        const tmp = document.createElement("DIV");
-        tmp.innerHTML = html;
-        return tmp.textContent || tmp.innerText || "";
+    const cleanContent = (html: string) => {
+        // manual decode simple spacing and preserve basic breaks
+        let processed = html
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/p>/gi, '\n\n')
+            .replace(/<ul.*?>/gi, '')
+            .replace(/<\/ul>/gi, '\n')
+            .replace(/<li.*?>/gi, '• ')
+            .replace(/<\/li>/gi, '\n');
+
+        const doc = new DOMParser().parseFromString(processed, 'text/html');
+        const text = doc.body.textContent || "";
+        // Clean up excessive newlines (>3 becomes 2)
+        return text.replace(/\n{3,}/g, '\n\n').trim();
     }
 
     return (
@@ -118,8 +129,8 @@ export const DiscoverSection: React.FC = () => {
                                         {news[0].title}
                                     </h2>
                                 </a>
-                                <p className="text-base font-serif leading-relaxed text-justify text-slate-800 first-letter:text-5xl first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-10px]">
-                                    {stripHtml(news[0].description)}
+                                <p className="text-base font-serif leading-relaxed text-justify text-slate-800 whitespace-pre-line first-letter:text-5xl first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-10px]">
+                                    {cleanContent(news[0].content || news[0].description)}
                                 </p>
                             </article>
                         )}
@@ -139,13 +150,14 @@ export const DiscoverSection: React.FC = () => {
                                     <span>{new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                 </div>
 
-                                <p className="text-sm font-serif leading-relaxed text-justify text-slate-700 line-clamp-6">
-                                    {stripHtml(item.description)}
+                                <p className="text-sm font-serif leading-relaxed text-justify text-slate-700 whitespace-pre-line">
+                                    {cleanContent(item.content || item.description)}
                                 </p>
                             </article>
                         ))}
                     </div>
                 )}
+
 
                 {/* Paper Footer */}
                 <footer className="mt-12 pt-8 border-t-4 border-double border-slate-900 text-center">
