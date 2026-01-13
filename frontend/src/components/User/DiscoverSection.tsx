@@ -477,11 +477,10 @@ export const DiscoverSection: React.FC = () => {
         <div className="animate-in fade-in slide-in-from-bottom-4 flex flex-col items-center pb-12 gap-6">
 
             {/* --- External Dashboard Controls --- */}
-            <div className="w-full max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6 px-4 mb-4">
+            <div className="w-full max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6 px-4 mb-4 sticky top-6 z-50 pointer-events-none">
 
                 {/* Source Selector */}
-                {/* Source Selector */}
-                <div className="flex items-center gap-3 bg-slate-800/80 p-1.5 pl-4 pr-3 rounded-full border border-slate-700 backdrop-blur-md shadow-lg relative">
+                <div className="pointer-events-auto flex items-center gap-3 bg-slate-800/80 p-1.5 pl-4 pr-3 rounded-full border border-slate-700 backdrop-blur-md shadow-lg relative">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">News Source</span>
                     <div className="h-4 w-px bg-slate-600 mx-1"></div>
                     <div className="relative flex items-center">
@@ -508,7 +507,7 @@ export const DiscoverSection: React.FC = () => {
                         // User can still toggle manually
                         setLanguage(l => l === 'en' ? 'np' : 'en');
                     }}
-                    className="relative flex items-center w-36 h-8 bg-slate-800/80 rounded-full p-1 border border-slate-700 shadow-lg cursor-pointer overflow-hidden"
+                    className="pointer-events-auto relative flex items-center w-36 h-8 bg-slate-800/80 rounded-full p-1 border border-slate-700 shadow-lg cursor-pointer overflow-hidden"
                 >
                     <div
                         className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-blue-600 rounded-full shadow-md transition-all duration-300 ease-out z-0 ${language === 'np' ? 'translate-x-[100%] left-1' : 'left-1'
@@ -546,9 +545,9 @@ export const DiscoverSection: React.FC = () => {
                     {/* Main Title */}
                     {/* Main Title */}
                     <h1 className={`text-5xl md:text-7xl font-black font-serif uppercase tracking-tight mb-4 leading-none ${source === 'onlinekhabar' ? 'text-[#47bb3f]' :
-                            source === 'ratopati' ? 'text-[#d32f2f]' :
-                                source === 'gorkhapatra' || source === 'epaper' ? 'text-[#00529b]' :
-                                    'text-slate-900'
+                        source === 'ratopati' ? 'text-[#d32f2f]' :
+                            source === 'gorkhapatra' || source === 'epaper' ? 'text-[#00529b]' :
+                                'text-slate-900'
                         }`}>
                         {language === 'en' ? (
                             source === 'onlinekhabar' ? 'OnlineKhabar' :
