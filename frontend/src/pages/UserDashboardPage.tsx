@@ -28,6 +28,7 @@ import { getRandomQuote } from '../data/quotes';
 import { YouTubeSection } from '../components/YouTube/YouTubeSection';
 
 import { DefinitionPopup } from '../components/UI/DefinitionPopup';
+import { DiscoverSection } from '../components/User/DiscoverSection';
 
 const UserDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -108,7 +109,7 @@ const UserDashboardPage: React.FC = () => {
 
   // const [now, setNow] = useState<string>(new Date().toLocaleString()); // Moved to Clock component
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed' | 'practice' | 'youtube'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed' | 'practice' | 'youtube' | 'discover'>('library');
   const [playerFile, setPlayerFile] = useState<{ id: string; name: string; src: string } | null>(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
@@ -273,6 +274,8 @@ const UserDashboardPage: React.FC = () => {
         return <MCQSection />;
       case 'youtube':
         return <YouTubeSection />;
+      case 'discover':
+        return <DiscoverSection />;
       default:
         return (
           <Library
@@ -334,6 +337,9 @@ const UserDashboardPage: React.FC = () => {
             </Button>
             <Button variant={activeTab === 'youtube' ? 'primary' : 'ghost'} onClick={() => setActiveTab('youtube')}>
               YouTube
+            </Button>
+            <Button variant={activeTab === 'discover' ? 'primary' : 'ghost'} onClick={() => setActiveTab('discover')}>
+              Discover 🚀
             </Button>
 
 
