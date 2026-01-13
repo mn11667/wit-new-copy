@@ -95,6 +95,8 @@ export const MCQSection: React.FC = () => {
 
     const fetchQuestions = async () => {
         setLoading(true);
+        const startTime = Date.now(); // Start timer
+
         try {
             const response = await fetch(SHEET_URL);
             const text = await response.text();
@@ -126,6 +128,12 @@ export const MCQSection: React.FC = () => {
             setError('Failed to load questions. Please check your connection.');
             console.error(err);
         } finally {
+            // Force minimum 5 seconds load time for the "hacker" effect
+            const elapsed = Date.now() - startTime;
+            const remaining = 5000 - elapsed;
+            if (remaining > 0) {
+                await new Promise(resolve => setTimeout(resolve, remaining));
+            }
             setLoading(false);
         }
     };
@@ -294,42 +302,96 @@ export const MCQSection: React.FC = () => {
         setIsAiLoading(false);
     };
 
-    // Rotating Loading Text State
-    const [loadingMessage, setLoadingMessage] = useState("Preparing questions for you...");
+    // Terminal Loading Logs State
+    const [logs, setLogs] = useState<string[]>([]);
 
     useEffect(() => {
         if (!loading) return;
 
-        const messages = [
-            "Preparing questions for you...",
-            "Looking over internet for new questions...",
-            "Fetching latest exam questions...",
-            "Optimizing your session...",
-            "Almost ready..."
-        ];
+        let isMounted = true;
+        setLogs([]); // Reset
 
-        let i = 0;
-        const interval = setInterval(() => {
-            i = (i + 1) % messages.length;
-            setLoadingMessage(messages[i]);
-        }, 2000); // Change text every 2s
+        const runSequence = async () => {
+            const addLog = (msg: string) => {
+                if (isMounted) setLogs(prev => [...prev, msg]);
+            };
+            const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-        return () => clearInterval(interval);
+            // Initial Sequence
+            const startupLogs = [
+                "INITIALIZING_SEARCH_MODULE...",
+                "CONNECTING_TO_GLOBAL_ARCHIVES...",
+                "SCANNING_INTERNET_FOR_NEW_QUESTIONS...",
+                "DETECTED_SOURCE: LOKSEWA_2080_SET_A",
+                "DETECTED_SOURCE: NEA_PAST_PAPERS_VOL_3"
+            ];
+
+            for (const log of startupLogs) {
+                if (!isMounted) return;
+                addLog(log);
+                await delay(400);
+            }
+
+            // Rapid Download Sequence (0% to 100%)
+            for (let i = 0; i <= 100; i += 4) { // Step by 4% to fit time
+                if (!isMounted) return;
+                addLog(`DOWNLOADING_QUESTION_PACKETS [${i}%]`);
+                await delay(30); // Very fast
+            }
+
+            // Final Sequence
+            const finalLogs = [
+                "VERIFYING_ANSWER_KEYS...",
+                "OPTIMIZING_DIFFICULTY_CURVE...",
+                "SYNCING_USER_PROFILE...",
+                "GENERATING_UNIQUE_SESSION_ID...",
+                "READY_TO_LAUNCH."
+            ];
+
+            for (const log of finalLogs) {
+                if (!isMounted) return;
+                addLog(log);
+                await delay(400);
+            }
+        };
+
+        runSequence();
+
+        return () => { isMounted = false; };
     }, [loading]);
 
     if (loading) {
         return (
             <div className="flex h-96 w-full items-center justify-center">
-                <div className="glass px-8 py-6 rounded-2xl flex flex-col items-center gap-4 border border-white/10 bg-black/40 backdrop-blur-md animate-in fade-in zoom-in duration-500 shadow-2xl">
-                    <div className="relative">
-                        <div className="w-12 h-12 border-4 border-slate-700 border-t-emerald-500 rounded-full animate-spin" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <div className="glass w-full max-w-lg p-1 rounded-xl border border-emerald-500/30 bg-black/80 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                    {/* Terminal Header */}
+                    <div className="bg-emerald-900/20 px-4 py-2 flex items-center justify-between border-b border-emerald-500/20">
+                        <span className="text-xs font-mono text-emerald-400">REMOTE_ACCESS_TERMINAL</span>
+                        <div className="flex gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-red-500/50" />
+                            <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
+                            <div className="w-2 h-2 rounded-full bg-green-500/50" />
                         </div>
                     </div>
-                    <p className="text-emerald-400 font-mono text-sm tracking-wide animate-pulse text-center min-w-[280px]">
-                        {loadingMessage}
-                    </p>
+
+                    {/* Terminal Body */}
+                    <div className="p-6 font-mono text-xs md:text-sm h-64 overflow-hidden flex flex-col justify-end relative">
+                        {/* Scanline overlay */}
+                        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+
+                        <div className="space-y-1 relative z-10">
+                            {logs.map((log, idx) => (
+                                <div key={idx} className="text-emerald-500/90 truncate">
+                                    <span className="mr-2 opacity-50">{'>'}</span>
+                                    {log}
+                                </div>
+                            ))}
+                            <div className="animate-pulse text-emerald-500">
+                                <span className="mr-2">{'>'}</span>
+                                <span className="bg-emerald-500 text-black px-1">_</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
