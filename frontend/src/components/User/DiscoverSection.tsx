@@ -544,8 +544,25 @@ export const DiscoverSection: React.FC = () => {
                     </div>
 
                     {/* Main Title */}
-                    <h1 className="text-5xl md:text-7xl font-black font-serif uppercase tracking-tight mb-4 text-slate-900 leading-none">
-                        {language === 'en' ? 'The Nepal Chronicle' : 'नेपाल समाचार'}
+                    {/* Main Title */}
+                    <h1 className={`text-5xl md:text-7xl font-black font-serif uppercase tracking-tight mb-4 leading-none ${source === 'onlinekhabar' ? 'text-[#47bb3f]' :
+                            source === 'ratopati' ? 'text-[#d32f2f]' :
+                                source === 'gorkhapatra' || source === 'epaper' ? 'text-[#00529b]' :
+                                    'text-slate-900'
+                        }`}>
+                        {language === 'en' ? (
+                            source === 'onlinekhabar' ? 'OnlineKhabar' :
+                                source === 'setopati' ? 'Setopati' :
+                                    source === 'ratopati' ? 'Ratopati' :
+                                        source === 'gorkhapatra' || source === 'epaper' ? 'Gorkhapatra' :
+                                            'The Nepal Chronicle'
+                        ) : (
+                            source === 'onlinekhabar' ? 'अनलाइनखबर' :
+                                source === 'setopati' ? 'सेतोपाटी' :
+                                    source === 'ratopati' ? 'रातोपाटी' :
+                                        source === 'gorkhapatra' || source === 'epaper' ? 'गोरखापत्र' :
+                                            'नेपाल समाचार'
+                        )}
                     </h1>
 
                     {/* Navbar / Date Line */}
