@@ -214,7 +214,6 @@ export const DiscoverSection: React.FC = () => {
     const handleArticleClick = async (e: React.MouseEvent, article: NewsArticle) => {
         if (source === 'gorkhapatra') {
             e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             setReadingArticle(article);
             setContentLoading(true);
 
@@ -278,7 +277,6 @@ export const DiscoverSection: React.FC = () => {
 
         } else if (source === 'setopati') {
             e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             setReadingArticle(article);
             setContentLoading(true);
 
@@ -310,7 +308,6 @@ export const DiscoverSection: React.FC = () => {
         } else if (source === 'onlinekhabar') {
             // OnlineKhabar Reader
             e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             setReadingArticle(article);
             setContentLoading(true);
 
@@ -343,7 +340,6 @@ export const DiscoverSection: React.FC = () => {
         } else if (source === 'epaper') {
             // ePaper PDF Reader
             e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             setReadingArticle(article);
             setContentLoading(false); // No async loading needed, just iframe
         }
@@ -447,8 +443,8 @@ export const DiscoverSection: React.FC = () => {
     const renderCoverPage = () => (
         <div className="columns-1 md:columns-3 gap-6">
             {news.map((item, i) => {
-                // Modified behavior for ePaper: Direct open
-                const isEPaper = source === 'epaper';
+                // Modified behavior for ePaper & Gorkhapatra Loksewa: Direct open
+                const isDirectRead = source === 'epaper' || source === 'gorkhapatra';
                 const targetPage = 2 + Math.floor(i / ARTICLES_PER_PAGE);
 
                 return (
@@ -456,7 +452,7 @@ export const DiscoverSection: React.FC = () => {
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">{item.categories[0] || 'News'}</span>
                         <h3
                             className="font-bold font-serif text-lg leading-tight mb-2 group-hover:text-red-700 cursor-pointer transition-colors"
-                            onClick={(e) => isEPaper ? handleArticleClick(e, item) : setPage(targetPage)}
+                            onClick={(e) => isDirectRead ? handleArticleClick(e, item) : setPage(targetPage)}
                         >
                             {item.title}
                         </h3>
@@ -464,14 +460,15 @@ export const DiscoverSection: React.FC = () => {
                             {cleanContent(item.description)}
                         </p>
                         <button
-                            onClick={(e) => isEPaper ? handleArticleClick(e, item) : setPage(targetPage)}
+                            onClick={(e) => isDirectRead ? handleArticleClick(e, item) : setPage(targetPage)}
                             className="text-[10px] font-bold text-red-700 uppercase hover:underline flex items-center gap-1"
                         >
-                            {isEPaper ? 'Read ePaper Now' : `Turn to Page ${targetPage}`} <span>&rarr;</span>
+                            {isDirectRead ? 'Read Now' : `Turn to Page ${targetPage}`} <span>&rarr;</span>
                         </button>
                     </div>
                 );
-            })}
+            })
+            }
         </div>
     );
 
@@ -640,8 +637,16 @@ export const DiscoverSection: React.FC = () => {
                             &larr; Previous Page
                         </button>
 
-                        <div className="font-serif italic text-slate-500 text-sm">
-                            Page {page} of {totalPages}
+                        <div className="font-serif italic text-slate-500 text-sm flex items-center gap-4">
+                            <span>Page {page} of {totalPages}</span>
+                            {page > 1 && (
+                                <button
+                                    onClick={() => setPage(1)}
+                                    className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-red-700 hover:underline border-l border-slate-300 pl-4 transition-colors"
+                                >
+                                    Back to Cover
+                                </button>
+                            )}
                         </div>
 
                         <button
