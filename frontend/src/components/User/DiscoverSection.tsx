@@ -84,11 +84,12 @@ export const DiscoverSection: React.FC = () => {
                                     </div>
                                 )}
                                 <img
-                                    src={item.thumbnail || 'https://english.onlinekhabar.com/wp-content/themes/onlinekhabar-2021/img/logo-ok-en.png'}
+                                    src={(item.thumbnail || 'https://english.onlinekhabar.com/wp-content/themes/onlinekhabar-2021/img/logo-ok-en.png').replace(/^http:\/\//i, 'https://')}
                                     alt=""
+                                    referrerPolicy="no-referrer"
                                     className="h-full w-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105"
                                     onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=News';
+                                        (e.target as HTMLImageElement).src = 'https://placehold.co/600x400/1e293b/cbd5e1?text=No+Image'; // Better looking placeholder
                                     }}
                                 />
                             </div>

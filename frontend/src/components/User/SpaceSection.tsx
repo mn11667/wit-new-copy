@@ -94,6 +94,9 @@ export const SpaceSection: React.FC = () => {
                                 alt={data.title}
                                 referrerPolicy="no-referrer"
                                 className="relative z-10 max-h-full w-full object-contain shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1080&auto=format&fit=crop';
+                                }}
                             />
                         </>
                     )}
