@@ -224,19 +224,33 @@ export const DiscoverSection: React.FC = () => {
 
                         {/* Language Toggle Centered */}
                         {/* Language Toggle Centered */}
-                        <button
-                            onClick={() => setLanguage(l => l === 'en' ? 'np' : 'en')}
-                            className="relative flex items-center w-36 h-8 bg-[#e8e6df] rounded-full p-1 shadow-inner border border-[#d0cfc9] isolate hover:border-slate-400 transition-colors"
-                        >
-                            {/* Sliding Background */}
-                            <div
-                                className={`absolute left-1 top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-full shadow-sm border border-slate-200 transition-transform duration-300 ease-out z-0 ${language === 'np' ? 'translate-x-full' : 'translate-x-0'
-                                    }`}
-                            />
-                            {/* Labels */}
-                            <span className={`flex-1 text-center text-[10px] uppercase font-black tracking-widest z-10 transition-colors duration-300 ${language === 'en' ? 'text-red-800' : 'text-slate-400'}`}>English</span>
-                            <span className={`flex-1 text-center text-[10px] uppercase font-black tracking-widest z-10 transition-colors duration-300 ${language === 'np' ? 'text-red-800' : 'text-slate-400'}`}>Nepali</span>
-                        </button>
+                        {/* Center Controls: Language & Source */}
+                        <div className="flex flex-col items-center gap-2">
+                            {/* Language Toggle */}
+                            <button
+                                onClick={() => setLanguage(l => l === 'en' ? 'np' : 'en')}
+                                className="relative flex items-center w-36 h-8 bg-[#e8e6df] rounded-full p-1 shadow-inner border border-[#d0cfc9] isolate hover:border-slate-400 transition-colors"
+                            >
+                                <div
+                                    className={`absolute left-1 top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-full shadow-sm border border-slate-200 transition-transform duration-300 ease-out z-0 ${language === 'np' ? 'translate-x-full' : 'translate-x-0'
+                                        }`}
+                                />
+                                <span className={`flex-1 text-center text-[10px] uppercase font-black tracking-widest z-10 transition-colors duration-300 ${language === 'en' ? 'text-red-800' : 'text-slate-400'}`}>English</span>
+                                <span className={`flex-1 text-center text-[10px] uppercase font-black tracking-widest z-10 transition-colors duration-300 ${language === 'np' ? 'text-red-800' : 'text-slate-400'}`}>Nepali</span>
+                            </button>
+
+                            {/* Source Selector */}
+                            <select
+                                value={source}
+                                onChange={(e) => setSource(e.target.value as any)}
+                                className="bg-transparent text-slate-600 text-[10px] font-bold uppercase tracking-widest py-1 px-2 border-b border-slate-300 focus:outline-none focus:border-slate-900 cursor-pointer hover:text-red-700 transition-colors text-center appearance-none"
+                            >
+                                <option value="onlinekhabar">OnlineKhabar</option>
+                                <option value="setopati">Setopati</option>
+                                <option value="ratopati">Ratopati</option>
+                                <option value="gorkhapatra">Gorkhapatra (Loksewa)</option>
+                            </select>
+                        </div>
 
                         <div className="flex-1 text-center sm:text-right text-red-700">
                             {page === 1 ? 'Cover Page' : `Page ${page}`}
