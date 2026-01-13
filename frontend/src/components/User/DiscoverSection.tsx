@@ -22,98 +22,115 @@ export const DiscoverSection: React.FC = () => {
     const [source, setSource] = useState<'onlinekhabar' | 'setopati' | 'ratopati' | 'gorkhapatra'>('onlinekhabar');
     const [page, setPage] = useState(1);
 
+    const [feedCache, setFeedCache] = useState<{ en: NewsArticle[], np: NewsArticle[] }>({ en: [], np: [] });
+
     const ARTICLES_PER_PAGE = 3;
     const totalPages = news.length > 0 ? Math.ceil(news.length / ARTICLES_PER_PAGE) + 1 : 1;
 
-    // --- Effects ---
+    // --- Data Loading & Availability Logic ---
     useEffect(() => {
-        fetchNews();
-        setPage(1); // Reset to cover page on source/lang change
-    }, [language, source]);
+        const loadSourceData = async () => {
+            setNewsLoading(true);
+            try {
+                let enItems: NewsArticle[] = [];
+                let npItems: NewsArticle[] = [];
 
-    // --- News Logic ---
-    const fetchNews = async () => {
-        setNewsLoading(true);
-        setNews([]); // Clear previous news to show loading state cleanly
-        try {
-            if (source === 'gorkhapatra') {
-                // Scrape Gorkhapatra Loksewa (Proxy required)
-                const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=https://gorkhapatraonline.com/categories/loksewa';
-                const res = await fetch(proxyUrl);
-                const html = await res.text();
-                const doc = new DOMParser().parseFromString(html, 'text/html');
+                if (source === 'gorkhapatra') {
+                    // Gorkhapatra: Only Nepali (Loksewa)
+                    // Scrape Proxy
+                    const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=https://gorkhapatraonline.com/categories/loksewa';
+                    const res = await fetch(proxyUrl);
+                    const html = await res.text();
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
 
-                // Select news items (Adjust selectors based on Gorkhapatra structure)
-                // Observed structure: .item-content contains .item-title
-                const articles: NewsArticle[] = [];
-                const items = doc.querySelectorAll('.item-content, .post-item, .blog-item');
+                    const articles: NewsArticle[] = [];
+                    const items = doc.querySelectorAll('.item-content, .post-item, .blog-item');
 
-                items.forEach((item) => {
-                    const titleEl = item.querySelector('.item-title a') || item.querySelector('h2 a') || item.querySelector('h3 a');
-                    if (titleEl) {
-                        const title = titleEl.textContent?.trim() || "News Item";
-                        const link = titleEl.getAttribute('href') || "#";
+                    items.forEach((item) => {
+                        const titleEl = item.querySelector('.item-title a') || item.querySelector('h2 a') || item.querySelector('h3 a');
+                        if (titleEl) {
+                            const title = titleEl.textContent?.trim() || "News Item";
+                            const link = titleEl.getAttribute('href') || "#";
 
-                        // Try to find image in parent or previous sibling? 
-                        // Often image is in .item-image which is sibling to .item-content
-                        let thumbnail = "https://gorkhapatraonline.com/landing-assets/img/logo.png"; // Default
-                        // Attempt to find an image in the vicinity
-                        const container = item.parentElement || item;
-                        const img = container.querySelector('img');
-                        if (img && img.src) thumbnail = img.src;
+                            let thumbnail = "https://gorkhapatraonline.com/landing-assets/img/logo.png";
+                            const container = item.parentElement || item;
+                            const img = container.querySelector('img');
+                            if (img && img.src) thumbnail = img.src;
 
-                        // Date
-                        const dateEl = item.querySelector('.fa-calendar-alt')?.parentElement;
-                        const pubDate = dateEl?.textContent?.trim() || new Date().toISOString();
+                            const dateEl = item.querySelector('.fa-calendar-alt')?.parentElement;
+                            const pubDate = dateEl?.textContent?.trim() || new Date().toISOString();
 
-                        articles.push({
-                            title,
-                            link,
-                            pubDate,
-                            description: "Loksewa Preparation Material from Gorkhapatra. Click to read the full Q&A.",
-                            content: "Full content available on Gorkhapatra Online.",
-                            thumbnail,
-                            author: "Gorkhapatra",
-                            categories: ['Loksewa', 'Education']
-                        });
-                    }
-                });
+                            articles.push({
+                                title,
+                                link,
+                                thumbnail,
+                                pubDate,
+                                description: "Loksewa Preparation Material from Gorkhapatra. Click to read the full Q&A.",
+                                content: "Full content available on Gorkhapatra Online.",
+                                author: "Gorkhapatra",
+                                categories: ['Loksewa', 'Education']
+                            });
+                        }
+                    });
 
-                // Dedup based on link
-                const uniqueContent = Array.from(new Map(articles.map(item => [item.link, item])).values());
-                setNews(uniqueContent);
-                return;
+                    // Deduplicate
+                    npItems = Array.from(new Map(articles.map(item => [item.link, item])).values());
+                    // enItems remains empty []
+
+                } else {
+                    // RSS feeds for standard portals
+                    const getUrl = (src: string, lang: 'en' | 'np') => {
+                        if (src === 'onlinekhabar') return lang === 'en' ? 'https://english.onlinekhabar.com/feed' : 'https://www.onlinekhabar.com/feed';
+                        if (src === 'setopati') return lang === 'en' ? 'https://en.setopati.com/feed' : 'https://www.setopati.com/feed';
+                        if (src === 'ratopati') return lang === 'en' ? 'https://english.ratopati.com/feed' : 'https://ratopati.com/feed';
+                        return '';
+                    };
+
+                    const fetchFeed = async (lang: 'en' | 'np') => {
+                        try {
+                            const url = getUrl(source, lang);
+                            const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${url}`);
+                            const data = await res.json();
+                            return data.items ? data.items.map((item: any) => ({
+                                ...item,
+                                content: (item.content && item.content.length > (item.description?.length || 0)) ? item.content : item.description
+                            })) : [];
+                        } catch (e) { return []; }
+                    };
+
+                    const [en, np] = await Promise.all([fetchFeed('en'), fetchFeed('np')]);
+                    enItems = en;
+                    npItems = np;
+                }
+
+                // Update Cache
+                setFeedCache({ en: enItems, np: npItems });
+
+                // Auto-Switch Logic: If current language is empty but other has data, switch.
+                // Prioritize checking if we are on 'en' and it's empty.
+                if (language === 'en' && enItems.length === 0 && npItems.length > 0) {
+                    setLanguage('np');
+                } else if (language === 'np' && npItems.length === 0 && enItems.length > 0) {
+                    setLanguage('en');
+                }
+
+            } catch (error) {
+                console.error("Error loading source:", error);
+            } finally {
+                setNewsLoading(false);
             }
+        };
 
-            let feedUrl = '';
-            if (source === 'onlinekhabar') {
-                feedUrl = language === 'en' ? 'https://english.onlinekhabar.com/feed' : 'https://www.onlinekhabar.com/feed';
-            } else if (source === 'setopati') {
-                feedUrl = language === 'en' ? 'https://en.setopati.com/feed' : 'https://www.setopati.com/feed';
-            } else if (source === 'ratopati') {
-                feedUrl = language === 'en' ? 'https://english.ratopati.com/feed' : 'https://ratopati.com/feed';
-            }
+        loadSourceData();
+    }, [source]);
 
-            const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${feedUrl}`);
-            const data = await res.json();
-            if (data.items) {
-                const processed = data.items.map((item: any) => ({
-                    ...item,
-                    // Prioritize full content, fall back to description. 
-                    // Pick the longest one to ensure maximum text is shown.
-                    content: (item.content && item.content.length > (item.description?.length || 0))
-                        ? item.content
-                        : item.description
-                }));
-                setNews(processed);
-            }
-        } catch (err) {
-            console.error("Failed to fetch news", err);
-        } finally {
-            setNewsLoading(false);
-        }
-    };
+    // --- Update View on Change ---
+    useEffect(() => {
+        setNews(feedCache[language]);
+        setPage(1);
+    }, [language, feedCache]);
 
+    // Helper to clean HTML content
     const cleanContent = (html: string) => {
         if (!html) return "";
         // manual decode simple spacing and preserve basic breaks
@@ -219,15 +236,28 @@ export const DiscoverSection: React.FC = () => {
 
                 {/* Language Toggle */}
                 <button
-                    onClick={() => setLanguage(l => l === 'en' ? 'np' : 'en')}
-                    className="relative flex items-center w-32 h-8 bg-slate-800/80 rounded-full p-1 border border-slate-700 shadow-lg cursor-pointer overflow-hidden"
+                    onClick={() => {
+                        // User can still toggle manually
+                        setLanguage(l => l === 'en' ? 'np' : 'en');
+                    }}
+                    className="relative flex items-center w-36 h-8 bg-slate-800/80 rounded-full p-1 border border-slate-700 shadow-lg cursor-pointer overflow-hidden"
                 >
                     <div
                         className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-blue-600 rounded-full shadow-md transition-all duration-300 ease-out z-0 ${language === 'np' ? 'translate-x-[100%] left-1' : 'left-1'
                             }`}
                     />
-                    <span className={`flex-1 text-center text-[10px] uppercase font-bold tracking-widest z-10 transition-colors duration-300 ${language === 'en' ? 'text-white' : 'text-slate-400'}`}>ENG</span>
-                    <span className={`flex-1 text-center text-[10px] uppercase font-bold tracking-widest z-10 transition-colors duration-300 ${language === 'np' ? 'text-white' : 'text-slate-400'}`}>NEP</span>
+
+                    {/* English Label */}
+                    <div className={`flex-1 flex items-center justify-center gap-1.5 z-10 transition-colors duration-300 ${language === 'en' ? 'text-white' : 'text-slate-400'}`}>
+                        <span className="text-[10px] uppercase font-bold tracking-widest">ENG</span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${feedCache.en.length > 0 ? 'bg-green-400 shadow-[0_0_5px_rgba(74,222,128,0.6)]' : 'bg-red-500/50'}`}></span>
+                    </div>
+
+                    {/* Nepali Label */}
+                    <div className={`flex-1 flex items-center justify-center gap-1.5 z-10 transition-colors duration-300 ${language === 'np' ? 'text-white' : 'text-slate-400'}`}>
+                        <span className="text-[10px] uppercase font-bold tracking-widest">NEP</span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${feedCache.np.length > 0 ? 'bg-green-400 shadow-[0_0_5px_rgba(74,222,128,0.6)]' : 'bg-red-500/50'}`}></span>
+                    </div>
                 </button>
             </div>
 
