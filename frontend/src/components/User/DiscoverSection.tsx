@@ -196,7 +196,41 @@ export const DiscoverSection: React.FC = () => {
     };
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 flex justify-center pb-12">
+        <div className="animate-in fade-in slide-in-from-bottom-4 flex flex-col items-center pb-12 gap-6">
+
+            {/* --- External Dashboard Controls --- */}
+            <div className="w-full max-w-6xl flex flex-wrap items-center justify-between gap-4 px-2">
+
+                {/* Source Selector */}
+                <div className="flex items-center gap-3 bg-slate-800/80 p-1.5 pl-4 rounded-full border border-slate-700 backdrop-blur-md shadow-lg">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">News Source</span>
+                    <div className="h-4 w-px bg-slate-600 mx-1"></div>
+                    <select
+                        value={source}
+                        onChange={(e) => setSource(e.target.value as any)}
+                        className="bg-transparent text-white text-xs font-bold uppercase tracking-wider hover:text-blue-400 cursor-pointer focus:outline-none appearance-none pr-4"
+                    >
+                        <option value="onlinekhabar">OnlineKhabar</option>
+                        <option value="setopati">Setopati</option>
+                        <option value="ratopati">Ratopati</option>
+                        <option value="gorkhapatra">Gorkhapatra</option>
+                    </select>
+                </div>
+
+                {/* Language Toggle */}
+                <button
+                    onClick={() => setLanguage(l => l === 'en' ? 'np' : 'en')}
+                    className="relative flex items-center w-32 h-8 bg-slate-800/80 rounded-full p-1 border border-slate-700 shadow-lg cursor-pointer overflow-hidden"
+                >
+                    <div
+                        className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-blue-600 rounded-full shadow-md transition-all duration-300 ease-out z-0 ${language === 'np' ? 'translate-x-[100%] left-1' : 'left-1'
+                            }`}
+                    />
+                    <span className={`flex-1 text-center text-[10px] uppercase font-bold tracking-widest z-10 transition-colors duration-300 ${language === 'en' ? 'text-white' : 'text-slate-400'}`}>ENG</span>
+                    <span className={`flex-1 text-center text-[10px] uppercase font-bold tracking-widest z-10 transition-colors duration-300 ${language === 'np' ? 'text-white' : 'text-slate-400'}`}>NEP</span>
+                </button>
+            </div>
+
             {/* The Paper Container */}
             <div className="w-full max-w-6xl bg-[#f4f1ea] text-slate-900 shadow-2xl p-6 md:p-12 min-h-[800px] relative flex flex-col"
                 style={{ backgroundImage: 'radial-gradient(#d0cfc9 1px, transparent 0)', backgroundSize: '30px 30px' }}>
@@ -220,36 +254,6 @@ export const DiscoverSection: React.FC = () => {
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs md:text-sm font-bold border-t-2 border-b-2 border-slate-900 py-3 mt-4 font-mono uppercase tracking-widest">
                         <div className="flex-1 text-center sm:text-left">
                             {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                        </div>
-
-                        {/* Language Toggle Centered */}
-                        {/* Language Toggle Centered */}
-                        {/* Center Controls: Language & Source */}
-                        <div className="flex flex-col items-center gap-2">
-                            {/* Language Toggle */}
-                            <button
-                                onClick={() => setLanguage(l => l === 'en' ? 'np' : 'en')}
-                                className="relative flex items-center w-36 h-8 bg-[#e8e6df] rounded-full p-1 shadow-inner border border-[#d0cfc9] isolate hover:border-slate-400 transition-colors"
-                            >
-                                <div
-                                    className={`absolute left-1 top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-full shadow-sm border border-slate-200 transition-transform duration-300 ease-out z-0 ${language === 'np' ? 'translate-x-full' : 'translate-x-0'
-                                        }`}
-                                />
-                                <span className={`flex-1 text-center text-[10px] uppercase font-black tracking-widest z-10 transition-colors duration-300 ${language === 'en' ? 'text-red-800' : 'text-slate-400'}`}>English</span>
-                                <span className={`flex-1 text-center text-[10px] uppercase font-black tracking-widest z-10 transition-colors duration-300 ${language === 'np' ? 'text-red-800' : 'text-slate-400'}`}>Nepali</span>
-                            </button>
-
-                            {/* Source Selector */}
-                            <select
-                                value={source}
-                                onChange={(e) => setSource(e.target.value as any)}
-                                className="bg-transparent text-slate-600 text-[10px] font-bold uppercase tracking-widest py-1 px-2 border-b border-slate-300 focus:outline-none focus:border-slate-900 cursor-pointer hover:text-red-700 transition-colors text-center appearance-none"
-                            >
-                                <option value="onlinekhabar">OnlineKhabar</option>
-                                <option value="setopati">Setopati</option>
-                                <option value="ratopati">Ratopati</option>
-                                <option value="gorkhapatra">Gorkhapatra (Loksewa)</option>
-                            </select>
                         </div>
 
                         <div className="flex-1 text-center sm:text-right text-red-700">
