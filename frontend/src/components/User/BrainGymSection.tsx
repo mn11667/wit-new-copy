@@ -12,31 +12,65 @@ interface TriviaQuestion {
 
 export const BrainGymSection: React.FC = () => {
     const [trivia, setTrivia] = useState<TriviaQuestion | null>(null);
+    const [nextTrivia, setNextTrivia] = useState<TriviaQuestion | null>(null); // Buffer for next question
     const [options, setOptions] = useState<string[]>([]);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [triviaLoading, setTriviaLoading] = useState(false);
     const [revealed, setRevealed] = useState(false);
     const [streak, setStreak] = useState(0);
 
-    const fetchTrivia = async () => {
-        setTriviaLoading(true);
-        setRevealed(false);
-        setSelectedAnswer(null);
+    // Initial Load
+    React.useEffect(() => {
+        loadNextQuestion();
+    }, []);
+
+    // Helper to fetch raw data
+    const getTriviaData = async (): Promise<TriviaQuestion | null> => {
         try {
             const res = await fetch('https://opentdb.com/api.php?amount=1&category=17');
             const data = await res.json();
             if (data.results && data.results.length > 0) {
-                const q = data.results[0];
-                setTrivia(q);
-                const allOptions = [...q.incorrect_answers, q.correct_answer]
-                    .sort(() => Math.random() - 0.5);
-                setOptions(allOptions);
+                return data.results[0];
             }
         } catch (err) {
             console.error("Failed to fetch trivia", err);
-        } finally {
-            setTriviaLoading(false);
         }
+        return null;
+    }
+
+    const loadNextQuestion = async () => {
+        // FAST PATH: If we have a buffered question, use it immediately
+        if (nextTrivia) {
+            setTrivia(nextTrivia);
+            const allOptions = [...nextTrivia.incorrect_answers, nextTrivia.correct_answer].sort(() => Math.random() - 0.5);
+            setOptions(allOptions);
+
+            // Reset UI
+            setRevealed(false);
+            setSelectedAnswer(null);
+            setTriviaLoading(false);
+
+            // Clear buffer and fetch the *next* one in background
+            setNextTrivia(null);
+            const buffer = await getTriviaData();
+            setNextTrivia(buffer);
+            return;
+        }
+
+        // SLOW PATH: No buffer (first load or fast clicking), load normally with spinner
+        setTriviaLoading(true);
+        const data = await getTriviaData();
+        if (data) {
+            setTrivia(data);
+            const allOptions = [...data.incorrect_answers, data.correct_answer].sort(() => Math.random() - 0.5);
+            setOptions(allOptions);
+            setRevealed(false);
+            setSelectedAnswer(null);
+
+            // Start buffering the next one immediately
+            getTriviaData().then(buffer => setNextTrivia(buffer));
+        }
+        setTriviaLoading(false);
     };
 
     const handleAnswer = (ans: string) => {
@@ -44,6 +78,7 @@ export const BrainGymSection: React.FC = () => {
         setRevealed(true);
         if (ans === trivia?.correct_answer) {
             setStreak(s => s + 1);
+            // Optional: Could trigger buffer check here if null?
         } else {
             setStreak(0);
         }
@@ -133,8 +168,10 @@ export const BrainGymSection: React.FC = () => {
                     </div>
                 )}
 
+
+
                 <div className="w-full mt-auto pt-4 border-t border-white/5">
-                    <Button variant="primary" className="w-full py-4 text-lg shadow-xl shadow-purple-900/20" onClick={fetchTrivia}>
+                    <Button variant="primary" className="w-full py-4 text-lg shadow-xl shadow-purple-900/20" onClick={loadNextQuestion}>
                         {trivia ? "Next Challenge ➡️" : "Start Training 🚀"}
                     </Button>
                 </div>

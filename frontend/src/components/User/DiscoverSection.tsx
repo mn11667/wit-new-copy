@@ -14,7 +14,6 @@ interface NewsArticle {
 export const DiscoverSection: React.FC = () => {
     // Force refresh check
     // --- News State ---
-    // --- News State ---
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [newsLoading, setNewsLoading] = useState(true);
     const [language, setLanguage] = useState<'en' | 'np'>('en');
@@ -53,91 +52,105 @@ export const DiscoverSection: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                <div className="flex items-center gap-3">
-                    <span className="text-4xl">🇳🇵</span>
-                    <div>
-                        <h2 className="text-2xl font-bold text-white">
-                            {language === 'en' ? 'Nepal Headlines' : 'मुख्य समाचार'}
-                        </h2>
-                        <p className="text-slate-400 text-sm">
-                            {language === 'en' ? 'Latest updates from' : 'ताजा अपडेटहरू:'} <span className="font-semibold text-blue-400">OnlineKhabar</span>
-                        </p>
-                    </div>
-                </div>
+        <div className="animate-in fade-in slide-in-from-bottom-4 flex justify-center pb-12">
+            {/* The Paper Container */}
+            <div className="w-full max-w-6xl bg-[#f4f1ea] text-slate-900 shadow-2xl p-6 md:p-12 min-h-[800px] relative"
+                style={{ backgroundImage: 'radial-gradient(#d0cfc9 1px, transparent 0)', backgroundSize: '30px 30px' }}>
 
-                <div className="flex items-center gap-4 self-end sm:self-auto">
-                    {/* Language Switcher */}
-                    <div className="bg-black/40 border border-white/10 p-1 rounded-lg flex items-center backdrop-blur-sm">
-                        <button
-                            onClick={() => setLanguage('en')}
-                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${language === 'en' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            ENGLISH
-                        </button>
-                        <button
-                            onClick={() => setLanguage('np')}
-                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${language === 'np' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            नेपाली
-                        </button>
+                {/* Paper Header */}
+                <header className="border-b-4 border-slate-900 mb-10 pb-6 text-center relative">
+                    {/* Top Meta Line */}
+                    <div className="flex justify-between items-center text-xs font-serif italic text-slate-600 mb-6 border-b border-slate-300 pb-2">
+                        <span>Vol. 1, Issue 2026</span>
+                        <span>Established 2024</span>
+                        <span className="hidden sm:inline">Price: Free for You</span>
                     </div>
 
-                    <div className="flex gap-2 items-center px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20">
-                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                        <span className="text-[10px] text-red-300 uppercase tracking-widest font-bold">Live</span>
-                    </div>
-                </div>
-            </div>
+                    {/* Main Title */}
+                    <h1 className="text-5xl md:text-7xl font-black font-serif uppercase tracking-tight mb-4 text-slate-900 leading-none">
+                        {language === 'en' ? 'The Nepal Chronicle' : 'नेपाल सन्देश पत्र'}
+                    </h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Navbar / Date Line */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs md:text-sm font-bold border-t-2 border-b-2 border-slate-900 py-3 mt-4 font-mono uppercase tracking-widest">
+                        <div className="flex-1 text-center sm:text-left">
+                            {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </div>
+
+                        {/* Language Toggle Centered */}
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setLanguage('en')}
+                                className={`transition-colors ${language === 'en' ? 'text-red-700 underline decoration-2 underline-offset-4' : 'text-slate-400 hover:text-red-700'}`}
+                            >
+                                ENGLISH EDITION
+                            </button>
+                            <button
+                                onClick={() => setLanguage('np')}
+                                className={`transition-colors ${language === 'np' ? 'text-red-700 underline decoration-2 underline-offset-4' : 'text-slate-400 hover:text-red-700'}`}
+                            >
+                                नेपाली संस्करण
+                            </button>
+                        </div>
+
+                        <div className="flex-1 text-center sm:text-right text-red-700">
+                            Late City Edition
+                        </div>
+                    </div>
+                </header>
+
+                {/* Content Columns */}
                 {newsLoading ? (
-                    // Skeleton Array
-                    Array.from({ length: 9 }).map((_, i) => (
-                        <div key={i} className="h-48 w-full rounded-xl bg-white/5 animate-pulse border border-white/5"></div>
-                    ))
+                    <div className="flex flex-col items-center justify-center py-32 space-y-4">
+                        <div className="w-12 h-12 border-4 border-slate-300 border-t-slate-900 rounded-full animate-spin"></div>
+                        <div className="font-serif italic text-slate-500 animate-pulse text-xl">Hot off the press...</div>
+                    </div>
                 ) : (
-                    news.map((item, idx) => (
-                        <a
-                            key={idx}
-                            href={item.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group relative block p-6 rounded-sm bg-[#f4f1ea] hover:bg-[#eae6df] transition-all duration-300 shadow-xl hover:shadow-2xl flex flex-col h-full transform hover:-translate-y-1"
-                            style={{ backgroundImage: 'radial-gradient(#d0cfc9 1px, transparent 0)', backgroundSize: '20px 20px' }}
-                        >
-                            {/* Decorative Top Border */}
-                            <div className="absolute top-0 left-0 w-full h-1 bg-slate-900/10"></div>
-
-                            <div className="flex items-center justify-between mb-4 border-b border-slate-900/10 pb-2">
-                                <span className="text-[10px] font-bold text-red-700 uppercase tracking-wider font-serif">
-                                    {item.categories.length > 0 ? item.categories[0] : 'NEWS'}
+                    <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+                        {/* Featured First Item (Optional larger styling) */}
+                        {news.length > 0 && (
+                            <article className="break-inside-avoid mb-10 border-b-2 border-slate-900 pb-8">
+                                <span className="inline-block px-3 py-1 bg-slate-900 text-white text-[10px] font-bold uppercase mb-3 tracking-wider">
+                                    {news[0].categories[0] || 'Top Story'}
                                 </span>
-                                <span className="text-[10px] text-slate-500 font-mono">
-                                    {new Date(item.pubDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                                </span>
-                            </div>
+                                <a href={news[0].link} target="_blank" rel="noopener noreferrer">
+                                    <h2 className="text-3xl md:text-4xl font-black font-serif leading-none mb-4 hover:text-red-800 transition-colors">
+                                        {news[0].title}
+                                    </h2>
+                                </a>
+                                <p className="text-base font-serif leading-relaxed text-justify text-slate-800 first-letter:text-5xl first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-10px]">
+                                    {stripHtml(news[0].description)}
+                                </p>
+                            </article>
+                        )}
 
-                            <h3 className="text-xl font-serif font-bold text-slate-900 group-hover:text-red-800 transition-colors leading-snug mb-3">
-                                {item.title}
-                            </h3>
+                        {/* Rest of the items */}
+                        {news.slice(1).map((item, idx) => (
+                            <article key={idx} className="break-inside-avoid mb-8 border-b border-slate-900/10 pb-6 group">
+                                <a href={item.link} target="_blank" rel="noopener noreferrer">
+                                    <h2 className="text-lg md:text-xl font-bold font-serif leading-tight mb-2 group-hover:text-red-700 transition-colors">
+                                        {item.title}
+                                    </h2>
+                                </a>
 
-                            <p className="text-sm text-slate-700 leading-relaxed mb-5 flex-1 line-clamp-4 font-serif">
-                                {stripHtml(item.description)}
-                            </p>
+                                <div className="text-[10px] text-slate-500 font-mono mb-2 flex items-center gap-2">
+                                    <span className="uppercase font-bold text-slate-400">{item.categories[0] || 'NEWS'}</span>
+                                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                    <span>{new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
 
-                            <div className="flex items-center justify-between pt-4 mt-auto border-t border-slate-900/10">
-                                <span className="text-xs text-slate-500 italic truncate max-w-[150px] font-serif">
-                                    — {item.author || 'OnlineKhabar'}
-                                </span>
-                                <span className="text-xs text-red-700 font-bold group-hover:translate-x-1 transition-transform font-serif tracking-widest">
-                                    READ ARTICLE &rarr;
-                                </span>
-                            </div>
-                        </a>
-                    ))
+                                <p className="text-sm font-serif leading-relaxed text-justify text-slate-700 line-clamp-6">
+                                    {stripHtml(item.description)}
+                                </p>
+                            </article>
+                        ))}
+                    </div>
                 )}
+
+                {/* Paper Footer */}
+                <footer className="mt-12 pt-8 border-t-4 border-double border-slate-900 text-center">
+                    <p className="font-serif italic text-slate-500 text-sm">Thank you for reading The Nepal Chronicle. Support unbiased journalism.</p>
+                </footer>
             </div>
         </div>
     );
