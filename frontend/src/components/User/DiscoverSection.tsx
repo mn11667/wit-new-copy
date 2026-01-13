@@ -477,7 +477,7 @@ export const DiscoverSection: React.FC = () => {
         <div className="animate-in fade-in slide-in-from-bottom-4 flex flex-col items-center pb-12 gap-6">
 
             {/* --- External Dashboard Controls --- */}
-            <div className="w-full max-w-6xl flex flex-wrap items-center justify-between gap-4 px-2">
+            <div className="w-full max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6 px-4 mb-4">
 
                 {/* Source Selector */}
                 {/* Source Selector */}
@@ -530,7 +530,7 @@ export const DiscoverSection: React.FC = () => {
             </div>
 
             {/* The Paper Container */}
-            <div className="w-full max-w-6xl bg-[#f4f1ea] text-slate-900 shadow-2xl p-6 md:p-12 min-h-[800px] relative flex flex-col"
+            <div className="w-full max-w-6xl bg-[#f4f1ea] text-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-sm p-6 md:p-12 min-h-[800px] relative flex flex-col"
                 style={{ backgroundImage: 'radial-gradient(#d0cfc9 1px, transparent 0)', backgroundSize: '30px 30px' }}>
 
                 {/* Paper Header */}
