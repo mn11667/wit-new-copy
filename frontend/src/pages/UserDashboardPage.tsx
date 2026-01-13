@@ -386,6 +386,22 @@ const UserDashboardPage: React.FC = () => {
           )}
 
           <>
+            {youtubeVisited && (
+              <div style={{ display: activeTab === 'youtube' ? 'contents' : 'none' }}>
+                <React.Suspense fallback={<div className="flex justify-center p-20"><div className="w-10 h-10 border-4 border-slate-300 border-t-red-600 rounded-full animate-spin"></div></div>}>
+                  <YouTubeSection />
+                </React.Suspense>
+              </div>
+            )}
+
+            {brainGymVisited && (
+              <div style={{ display: activeTab === 'braingym' ? 'contents' : 'none' }}>
+                <React.Suspense fallback={<div className="flex justify-center p-20"><div className="w-10 h-10 border-4 border-slate-300 border-t-purple-600 rounded-full animate-spin"></div></div>}>
+                  <BrainGymSection />
+                </React.Suspense>
+              </div>
+            )}
+
             {discoverVisited && (
               <div style={{ display: activeTab === 'discover' ? 'contents' : 'none' }}>
                 <React.Suspense fallback={<div className="flex justify-center p-20"><div className="w-10 h-10 border-4 border-slate-300 border-t-blue-600 rounded-full animate-spin"></div></div>}>
