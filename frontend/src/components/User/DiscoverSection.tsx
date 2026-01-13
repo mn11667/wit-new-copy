@@ -24,6 +24,8 @@ interface NewsArticle {
 export const DiscoverSection: React.FC = () => {
     // --- Trivia State ---
     const [trivia, setTrivia] = useState<TriviaQuestion | null>(null);
+    const [options, setOptions] = useState<string[]>([]);
+    const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [triviaLoading, setTriviaLoading] = useState(false);
     const [revealed, setRevealed] = useState(false);
 
@@ -40,18 +42,31 @@ export const DiscoverSection: React.FC = () => {
     const fetchTrivia = async () => {
         setTriviaLoading(true);
         setRevealed(false);
+        setSelectedAnswer(null);
         try {
-            // Category 17: Science & Nature, 18: Computers, 19: Math. We'll pick random or default to Science (17)
-            const res = await fetch('https://opentdb.com/api.php?amount=1&category=17&type=multiple');
+            // Category 17: Science & Nature, 18: Computers, 19: Math.
+            // Using type=multiple for explicit 4 options usually, but API can return boolean too.
+            const res = await fetch('https://opentdb.com/api.php?amount=1&category=17');
             const data = await res.json();
             if (data.results && data.results.length > 0) {
-                setTrivia(data.results[0]);
+                const q = data.results[0];
+                setTrivia(q);
+
+                // Shuffle options
+                const allOptions = [...q.incorrect_answers, q.correct_answer]
+                    .sort(() => Math.random() - 0.5);
+                setOptions(allOptions);
             }
         } catch (err) {
             console.error("Failed to fetch trivia", err);
         } finally {
             setTriviaLoading(false);
         }
+    };
+
+    const handleAnswer = (ans: string) => {
+        setSelectedAnswer(ans);
+        setRevealed(true);
     };
 
     const decodeHTML = (html: string) => {
@@ -103,16 +118,33 @@ export const DiscoverSection: React.FC = () => {
                                     </p>
                                 </div>
 
-                                {revealed ? (
-                                    <div className="bg-emerald-500/20 border border-emerald-500/30 p-3 rounded-xl animate-in fade-in zoom-in">
-                                        <p className="text-xs text-emerald-300 uppercase font-bold mb-1">Answer</p>
-                                        <p className="text-white font-bold text-lg">{decodeHTML(trivia.correct_answer)}</p>
-                                    </div>
-                                ) : (
-                                    <Button variant="ghost" className="w-full border-dashed border-white/20 hover:border-white/40 hover:bg-white/5" onClick={() => setRevealed(true)}>
-                                        Show Answer 👁️
-                                    </Button>
-                                )}
+                                <div className="grid gap-2 mb-4 w-full">
+                                    {options.map((opt, idx) => {
+                                        const isSelected = selectedAnswer === opt;
+                                        const isCorrect = opt === trivia.correct_answer;
+
+                                        let btnClass = "border-white/10 bg-white/5 hover:bg-white/10 text-slate-300";
+
+                                        if (revealed) {
+                                            if (isCorrect) btnClass = "bg-emerald-500/20 border-emerald-500 text-emerald-100 ring-1 ring-emerald-500/50";
+                                            else if (isSelected) btnClass = "bg-red-500/20 border-red-500 text-red-100";
+                                            else btnClass = "opacity-50 border-transparent bg-black/20";
+                                        }
+
+                                        return (
+                                            <button
+                                                key={idx}
+                                                onClick={() => !revealed && handleAnswer(opt)}
+                                                disabled={revealed}
+                                                className={`w-full text-left p-3 rounded-lg border text-sm transition-all ${btnClass} ${!revealed && 'hover:scale-[1.02] active:scale-[0.98]'}`}
+                                            >
+                                                <span className="mr-2 opacity-50">{String.fromCharCode(65 + idx)}.</span>
+                                                <span dangerouslySetInnerHTML={{ __html: opt }} />
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+
                             </div>
                         ) : (
                             <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">

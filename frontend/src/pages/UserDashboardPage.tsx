@@ -29,6 +29,7 @@ import { YouTubeSection } from '../components/YouTube/YouTubeSection';
 
 import { DefinitionPopup } from '../components/UI/DefinitionPopup';
 import { DiscoverSection } from '../components/User/DiscoverSection';
+import { SpaceSection } from '../components/User/SpaceSection';
 
 const UserDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -109,7 +110,7 @@ const UserDashboardPage: React.FC = () => {
 
   // const [now, setNow] = useState<string>(new Date().toLocaleString()); // Moved to Clock component
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed' | 'practice' | 'youtube' | 'discover'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed' | 'practice' | 'youtube' | 'discover' | 'space'>('library');
   const [playerFile, setPlayerFile] = useState<{ id: string; name: string; src: string } | null>(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
@@ -276,6 +277,8 @@ const UserDashboardPage: React.FC = () => {
         return <YouTubeSection />;
       case 'discover':
         return <DiscoverSection />;
+      case 'space':
+        return <SpaceSection />;
       default:
         return (
           <Library
@@ -340,6 +343,9 @@ const UserDashboardPage: React.FC = () => {
             </Button>
             <Button variant={activeTab === 'discover' ? 'primary' : 'ghost'} onClick={() => setActiveTab('discover')}>
               Discover 🚀
+            </Button>
+            <Button variant={activeTab === 'space' ? 'primary' : 'ghost'} onClick={() => setActiveTab('space')}>
+              Space 🌌
             </Button>
 
 
