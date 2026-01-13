@@ -27,6 +27,8 @@ import { MCQSection } from '../components/MCQ/MCQSection';
 import { getRandomQuote } from '../data/quotes';
 import { YouTubeSection } from '../components/YouTube/YouTubeSection';
 
+import { DefinitionPopup } from '../components/UI/DefinitionPopup';
+
 const UserDashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [tree, setTree] = useState<FolderNode[]>([]);
@@ -290,6 +292,7 @@ const UserDashboardPage: React.FC = () => {
 
   return (
     <DashboardLayout title="Dashboard">
+      <DefinitionPopup />
       <div className="space-y-4">
         {user?.status === 'PENDING' && (
           <div className="rounded-xl border border-amber-500/50 bg-amber-500/10 p-4 text-center">
