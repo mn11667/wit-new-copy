@@ -25,12 +25,14 @@ import { extractDriveId } from '../utils/fileHelpers';
 import { Clock } from '../components/UI/Clock';
 import { MCQSection } from '../components/MCQ/MCQSection';
 import { getRandomQuote } from '../data/quotes';
-import { YouTubeSection } from '../components/YouTube/YouTubeSection';
+// Lazy load heavy sections
+const YouTubeSection = React.lazy(() => import('../components/YouTube/YouTubeSection').then(module => ({ default: module.YouTubeSection })));
 
 import { DefinitionPopup } from '../components/UI/DefinitionPopup';
-import { DiscoverSection } from '../components/User/DiscoverSection';
-import { SpaceSection } from '../components/User/SpaceSection';
-import { BrainGymSection } from '../components/User/BrainGymSection';
+// Lazy load DiscoverSection for code splitting
+const DiscoverSection = React.lazy(() => import('../components/User/DiscoverSection').then(module => ({ default: module.DiscoverSection })));
+const SpaceSection = React.lazy(() => import('../components/User/SpaceSection').then(module => ({ default: module.SpaceSection })));
+const BrainGymSection = React.lazy(() => import('../components/User/BrainGymSection').then(module => ({ default: module.BrainGymSection })));
 
 const UserDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -246,8 +248,20 @@ const UserDashboardPage: React.FC = () => {
     }
   };
 
+  const [discoverVisited, setDiscoverVisited] = useState(false);
+  const [youtubeVisited, setYoutubeVisited] = useState(false);
+  const [brainGymVisited, setBrainGymVisited] = useState(false);
+  const [spaceVisited, setSpaceVisited] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'discover') setDiscoverVisited(true);
+    if (activeTab === 'youtube') setYoutubeVisited(true);
+    if (activeTab === 'braingym') setBrainGymVisited(true);
+    if (activeTab === 'space') setSpaceVisited(true);
+  }, [activeTab]);
+
   const renderView = () => {
-    if (activeTab !== 'practice' && !loading && tree.length === 0 && rootFiles.length === 0) {
+    if (activeTab !== 'practice' && activeTab !== 'discover' && activeTab !== 'youtube' && activeTab !== 'braingym' && activeTab !== 'space' && !loading && tree.length === 0 && rootFiles.length === 0) {
       return (
         <div className="text-center py-10">
           <p className="text-lg text-slate-400">Your library is currently empty.</p>
@@ -275,13 +289,13 @@ const UserDashboardPage: React.FC = () => {
       case 'practice':
         return <MCQSection />;
       case 'youtube':
-        return <YouTubeSection />;
+        return null; // Handled persistently
       case 'discover':
-        return <DiscoverSection />;
+        return null; // Handled persistently
       case 'space':
-        return <SpaceSection />;
+        return null; // Handled persistently
       case 'braingym':
-        return <BrainGymSection />;
+        return null; // Handled persistently
       default:
         return (
           <Library
@@ -372,6 +386,21 @@ const UserDashboardPage: React.FC = () => {
           )}
 
           <>
+            {discoverVisited && (
+              <div style={{ display: activeTab === 'discover' ? 'contents' : 'none' }}>
+                <React.Suspense fallback={<div className="flex justify-center p-20"><div className="w-10 h-10 border-4 border-slate-300 border-t-blue-600 rounded-full animate-spin"></div></div>}>
+                  <DiscoverSection />
+                </React.Suspense>
+              </div>
+            )}
+
+            {spaceVisited && (
+              <div style={{ display: activeTab === 'space' ? 'contents' : 'none' }}>
+                <React.Suspense fallback={<div className="flex justify-center p-20"><div className="w-10 h-10 border-4 border-slate-300 border-t-indigo-500 rounded-full animate-spin"></div></div>}>
+                  <SpaceSection />
+                </React.Suspense>
+              </div>
+            )}
             {renderView()}
           </>
         </div>

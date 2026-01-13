@@ -159,7 +159,7 @@ export const DiscoverSection: React.FC = () => {
 
                     {/* Main Title */}
                     <h1 className="text-5xl md:text-7xl font-black font-serif uppercase tracking-tight mb-4 text-slate-900 leading-none">
-                        {language === 'en' ? 'The Nepal Chronicle' : 'नेपाल सन्देश पत्र'}
+                        {language === 'en' ? 'The Nepal Chronicle' : 'नेपाल समाचार'}
                     </h1>
 
                     {/* Navbar / Date Line */}
@@ -169,20 +169,20 @@ export const DiscoverSection: React.FC = () => {
                         </div>
 
                         {/* Language Toggle Centered */}
-                        <div className="flex gap-4">
-                            <button
-                                onClick={() => setLanguage('en')}
-                                className={`transition-colors ${language === 'en' ? 'text-red-700 underline decoration-2 underline-offset-4' : 'text-slate-400 hover:text-red-700'}`}
-                            >
-                                ENGLISH EDITION
-                            </button>
-                            <button
-                                onClick={() => setLanguage('np')}
-                                className={`transition-colors ${language === 'np' ? 'text-red-700 underline decoration-2 underline-offset-4' : 'text-slate-400 hover:text-red-700'}`}
-                            >
-                                नेपाली संस्करण
-                            </button>
-                        </div>
+                        {/* Language Toggle Centered */}
+                        <button
+                            onClick={() => setLanguage(l => l === 'en' ? 'np' : 'en')}
+                            className="relative flex items-center w-36 h-8 bg-[#e8e6df] rounded-full p-1 shadow-inner border border-[#d0cfc9] isolate hover:border-slate-400 transition-colors"
+                        >
+                            {/* Sliding Background */}
+                            <div
+                                className={`absolute left-1 top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-full shadow-sm border border-slate-200 transition-transform duration-300 ease-out z-0 ${language === 'np' ? 'translate-x-full' : 'translate-x-0'
+                                    }`}
+                            />
+                            {/* Labels */}
+                            <span className={`flex-1 text-center text-[10px] uppercase font-black tracking-widest z-10 transition-colors duration-300 ${language === 'en' ? 'text-red-800' : 'text-slate-400'}`}>English</span>
+                            <span className={`flex-1 text-center text-[10px] uppercase font-black tracking-widest z-10 transition-colors duration-300 ${language === 'np' ? 'text-red-800' : 'text-slate-400'}`}>Nepali</span>
+                        </button>
 
                         <div className="flex-1 text-center sm:text-right text-red-700">
                             {page === 1 ? 'Cover Page' : `Page ${page}`}
