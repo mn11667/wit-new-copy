@@ -294,10 +294,43 @@ export const MCQSection: React.FC = () => {
         setIsAiLoading(false);
     };
 
+    // Rotating Loading Text State
+    const [loadingMessage, setLoadingMessage] = useState("Preparing questions for you...");
+
+    useEffect(() => {
+        if (!loading) return;
+
+        const messages = [
+            "Preparing questions for you...",
+            "Looking over internet for new questions...",
+            "Fetching latest exam questions...",
+            "Optimizing your session...",
+            "Almost ready..."
+        ];
+
+        let i = 0;
+        const interval = setInterval(() => {
+            i = (i + 1) % messages.length;
+            setLoadingMessage(messages[i]);
+        }, 2000); // Change text every 2s
+
+        return () => clearInterval(interval);
+    }, [loading]);
+
     if (loading) {
         return (
-            <div className="flex h-64 w-full items-center justify-center">
-                <div className="text-white animate-pulse">Loading questions...</div>
+            <div className="flex h-96 w-full items-center justify-center">
+                <div className="glass px-8 py-6 rounded-2xl flex flex-col items-center gap-4 border border-white/10 bg-black/40 backdrop-blur-md animate-in fade-in zoom-in duration-500 shadow-2xl">
+                    <div className="relative">
+                        <div className="w-12 h-12 border-4 border-slate-700 border-t-emerald-500 rounded-full animate-spin" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                        </div>
+                    </div>
+                    <p className="text-emerald-400 font-mono text-sm tracking-wide animate-pulse text-center min-w-[280px]">
+                        {loadingMessage}
+                    </p>
+                </div>
             </div>
         );
     }
