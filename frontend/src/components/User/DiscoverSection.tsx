@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import GoogleAd from '../UI/GoogleAd';
 
 // Types for RSS API
 interface NewsArticle {
@@ -675,35 +676,48 @@ export const DiscoverSection: React.FC = () => {
 
                 {/* Pagination Footer */}
                 {!readingArticle && (
-                    <div className="flex justify-between items-center border-t-4 border-double border-slate-900 pt-4 mt-12 pb-2">
-                        <button
-                            disabled={page === 1}
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
-                            className="font-bold font-serif uppercase text-xs disabled:opacity-20 hover:text-red-700 flex items-center gap-2 transition-colors"
-                        >
-                            &larr; Previous Page
-                        </button>
-
-                        <div className="font-serif italic text-slate-500 text-sm flex items-center gap-4">
-                            <span>Page {page} of {totalPages}</span>
-                            {page > 1 && (
-                                <button
-                                    onClick={() => setPage(1)}
-                                    className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-red-700 hover:underline border-l border-slate-300 pl-4 transition-colors"
-                                >
-                                    Back to Cover
-                                </button>
-                            )}
+                    <>
+                        {/* Advertisement Slot */}
+                        <div className="my-8 border-t-2 border-b-2 border-slate-900/10 py-4 bg-slate-100/50">
+                            <p className="text-[10px] text-center font-mono text-slate-400 uppercase tracking-widest mb-2">Advertisement</p>
+                            <GoogleAd
+                                client="ca-pub-4314993549867732"
+                                slot="8976543210" // REPLACE THIS with your actual Ad Slot ID from Google AdSense
+                                format="auto"
+                                responsive={true}
+                            />
                         </div>
 
-                        <button
-                            disabled={page === totalPages}
-                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                            className="font-bold font-serif uppercase text-xs disabled:opacity-20 hover:text-red-700 flex items-center gap-2 transition-colors"
-                        >
-                            Next Page &rarr;
-                        </button>
-                    </div>
+                        <div className="flex justify-between items-center border-t-4 border-double border-slate-900 pt-4 mt-12 pb-2">
+                            <button
+                                disabled={page === 1}
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                className="font-bold font-serif uppercase text-xs disabled:opacity-20 hover:text-red-700 flex items-center gap-2 transition-colors"
+                            >
+                                &larr; Previous Page
+                            </button>
+
+                            <div className="font-serif italic text-slate-500 text-sm flex items-center gap-4">
+                                <span>Page {page} of {totalPages}</span>
+                                {page > 1 && (
+                                    <button
+                                        onClick={() => setPage(1)}
+                                        className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-red-700 hover:underline border-l border-slate-300 pl-4 transition-colors"
+                                    >
+                                        Back to Cover
+                                    </button>
+                                )}
+                            </div>
+
+                            <button
+                                disabled={page === totalPages}
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                className="font-bold font-serif uppercase text-xs disabled:opacity-20 hover:text-red-700 flex items-center gap-2 transition-colors"
+                            >
+                                Next Page &rarr;
+                            </button>
+                        </div>
+                    </>
                 )}
             </div>
         </div>
