@@ -38,13 +38,70 @@ const UserDashboardPage: React.FC = () => {
   const [quote, setQuote] = useState('');
   const [greeting, setGreeting] = useState('');
 
+  const [streak, setStreak] = useState(0);
+
   useEffect(() => {
+    // Streak Logic
+    const today = new Date().toDateString();
+    const lastVisit = localStorage.getItem('last_visit');
+    const storedStreak = localStorage.getItem('streak_count');
+    let currentStreak = storedStreak ? parseInt(storedStreak, 10) : 0;
+
+    if (lastVisit !== today) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (lastVisit === yesterday.toDateString()) {
+        currentStreak += 1;
+      } else {
+        currentStreak = 1; // Reset if broken or first visit
+      }
+
+      localStorage.setItem('streak_count', currentStreak.toString());
+      localStorage.setItem('last_visit', today);
+    }
+    setStreak(currentStreak);
+
+    // Initial load
     setQuote(getRandomQuote());
 
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good Morning');
-    else if (hour < 18) setGreeting('Good Afternoon');
-    else setGreeting('Good Evening');
+    // Smart Greeting Logic (Time + Weather)
+    const updateGreeting = (temp?: number) => {
+      const hour = new Date().getHours();
+      let timeMsg = 'Good Morning';
+      if (hour >= 12) timeMsg = 'Good Afternoon';
+      if (hour >= 18) timeMsg = 'Good Evening';
+
+      if (temp !== undefined) {
+        let weatherMsg = "Perfect weather to focus.";
+        if (temp < 10) weatherMsg = "Stay warm and study hard ☕";
+        else if (temp > 28) weatherMsg = "Stay cool and keep learning 🍦";
+
+        setGreeting(`${timeMsg}. It's ${temp}°C. ${weatherMsg}`);
+      } else {
+        setGreeting(timeMsg);
+      }
+    };
+
+    updateGreeting(); // Default time-based first
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+          const data = await res.json();
+
+          if (data.current_weather) {
+            updateGreeting(data.current_weather.temperature);
+          }
+        } catch (e) {
+          console.warn("Weather fetch failed, keeping default greeting.");
+        }
+      }, (err) => {
+        console.warn("Geolocation denied, keeping default greeting.");
+      });
+    }
   }, []);
 
   // const [now, setNow] = useState<string>(new Date().toLocaleString()); // Moved to Clock component
@@ -248,8 +305,12 @@ const UserDashboardPage: React.FC = () => {
             </h1>
             <p className="text-slate-400 italic text-sm">"{quote}"</p>
           </div>
-          <div className="text-right">
-            <div className="mac-pill mb-2 inline-block">Your learning workspace</div>
+          <div className="text-right flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full animate-in fade-in slide-in-from-right-4 shadow-lg shadow-orange-900/10">
+              <span className="text-orange-500 text-lg drop-shadow-md animate-pulse">🔥</span>
+              <span className="text-orange-200 font-bold text-sm tracking-wide">{streak} Day Streak</span>
+            </div>
+            <div className="mac-pill inline-block">Your learning workspace</div>
             <div className="text-sm text-slate-400">Local time: <Clock className="inline text-slate-200" /></div>
           </div>
         </div>
