@@ -346,6 +346,44 @@ export const DiscoverSection: React.FC = () => {
                 setContentLoading(false);
             }
 
+        } else if (source === 'ratopati') {
+            // Ratopati Reader
+            e.preventDefault();
+            setReadingArticle(article);
+            setContentLoading(true);
+
+            try {
+                // Ratopati Proxy
+                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${article.link}`;
+                const res = await fetch(proxyUrl);
+                const html = await res.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                // Selector: .the-content
+                const contentEl = doc.querySelector('.the-content');
+
+                // Cleanup
+                if (contentEl) {
+                    contentEl.querySelectorAll(
+                        '.comment, .social-share, .share-buttons, .social-icons, .advertising, ins, script, style'
+                    ).forEach(el => el.remove());
+
+                    // Remove embedded banner links (often ads)
+                    contentEl.querySelectorAll('a').forEach(a => {
+                        if (a.querySelector('img')) a.remove();
+                    });
+                }
+
+                const fetchedContent = contentEl?.innerHTML || "";
+                const fullContent = fetchedContent.length > 50 ? fetchedContent : article.description;
+
+                setReadingArticle(prev => prev ? { ...prev, content: fullContent } : null);
+            } catch (err) {
+                console.error("Ratopati fetch error:", err);
+            } finally {
+                setContentLoading(false);
+            }
+
         } else if (source === 'epaper') {
             // ePaper PDF Reader
             e.preventDefault();
