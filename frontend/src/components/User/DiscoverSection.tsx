@@ -273,6 +273,37 @@ export const DiscoverSection: React.FC = () => {
                 setContentLoading(false);
             }
 
+        } else if (source === 'setopati') {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setReadingArticle(article);
+            setContentLoading(true);
+
+            try {
+                // Setopati proxy fetch
+                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${article.link}`;
+                const res = await fetch(proxyUrl);
+                const html = await res.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                // Selector: .editor-box
+                const contentEl = doc.querySelector('.editor-box');
+
+                // Cleanup
+                if (contentEl) {
+                    contentEl.querySelectorAll('.insert-ad, .media, .ad-item, script, style').forEach(el => el.remove());
+                }
+
+                const fetchedContent = contentEl?.innerHTML || "";
+                const fullContent = fetchedContent.length > 50 ? fetchedContent : article.description;
+
+                setReadingArticle(prev => prev ? { ...prev, content: fullContent } : null);
+            } catch (err) {
+                console.error("Setopati fetch error:", err);
+            } finally {
+                setContentLoading(false);
+            }
+
         } else if (source === 'epaper') {
             // ePaper PDF Reader
             e.preventDefault();
@@ -416,7 +447,7 @@ export const DiscoverSection: React.FC = () => {
                 </div>
                 {pageItems.map((item, idx) => (
                     <article key={idx} className="break-inside-avoid mb-8 border-b border-slate-900/10 pb-6 group">
-                        <a href={item.link} target="_blank" rel="noopener noreferrer">
+                        <a href={item.link} onClick={(e) => handleArticleClick(e, item)} target="_blank" rel="noopener noreferrer">
                             <h2 className="text-xl md:text-2xl font-bold font-serif leading-tight mb-2 group-hover:text-red-700 transition-colors">
                                 {item.title}
                             </h2>
@@ -432,8 +463,8 @@ export const DiscoverSection: React.FC = () => {
                             {cleanContent(item.content || item.description)}
                         </p>
                         <div className="mt-3">
-                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-red-700 hover:underline transition-colors">
-                                Read Full Story <span className="text-sm leading-none">&raquo;</span>
+                            <a href={item.link} onClick={(e) => handleArticleClick(e, item)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-red-700 hover:underline transition-colors">
+                                {source === 'epaper' ? 'Click here to read' : 'Read Full Story'} <span className="text-sm leading-none">&raquo;</span>
                             </a>
                         </div>
                     </article>
@@ -449,20 +480,26 @@ export const DiscoverSection: React.FC = () => {
             <div className="w-full max-w-6xl flex flex-wrap items-center justify-between gap-4 px-2">
 
                 {/* Source Selector */}
-                <div className="flex items-center gap-3 bg-slate-800/80 p-1.5 pl-4 rounded-full border border-slate-700 backdrop-blur-md shadow-lg">
+                {/* Source Selector */}
+                <div className="flex items-center gap-3 bg-slate-800/80 p-1.5 pl-4 pr-3 rounded-full border border-slate-700 backdrop-blur-md shadow-lg relative">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">News Source</span>
                     <div className="h-4 w-px bg-slate-600 mx-1"></div>
-                    <select
-                        value={source}
-                        onChange={(e) => setSource(e.target.value as any)}
-                        className="bg-transparent text-white text-xs font-bold uppercase tracking-wider hover:text-blue-400 cursor-pointer focus:outline-none appearance-none pr-4"
-                    >
-                        <option value="onlinekhabar">OnlineKhabar</option>
-                        <option value="setopati">Setopati</option>
-                        <option value="ratopati">Ratopati</option>
-                        <option value="gorkhapatra">Gorkhaparta (Loksewa)</option>
-                        <option value="epaper">Gorkhapatra ePaper (PDF)</option>
-                    </select>
+                    <div className="relative flex items-center">
+                        <select
+                            value={source}
+                            onChange={(e) => setSource(e.target.value as any)}
+                            className="bg-transparent text-white text-xs font-bold uppercase tracking-wider hover:text-blue-400 cursor-pointer focus:outline-none appearance-none pr-6 z-10"
+                        >
+                            <option value="onlinekhabar">OnlineKhabar</option>
+                            <option value="setopati">Setopati</option>
+                            <option value="ratopati">Ratopati</option>
+                            <option value="gorkhapatra">Gorkhaparta (Loksewa)</option>
+                            <option value="epaper">Gorkhapatra ePaper (PDF)</option>
+                        </select>
+                        <svg className="w-3 h-3 text-slate-400 absolute right-0 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                 </div>
 
                 {/* Language Toggle */}
