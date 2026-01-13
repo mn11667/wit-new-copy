@@ -12,6 +12,7 @@ interface NewsArticle {
 }
 
 export const DiscoverSection: React.FC = () => {
+    // Force refresh check
     // --- News State ---
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [newsLoading, setNewsLoading] = useState(true);

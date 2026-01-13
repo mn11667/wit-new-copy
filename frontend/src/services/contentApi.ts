@@ -189,7 +189,7 @@ export async function setAnnouncement(content: string, active = true) {
 }
 
 export async function uploadAvatar(file: File) {
-  return { url: 'https://via.placeholder.com/150' };
+  return { url: 'https://placehold.co/150' };
 }
 
 export async function uploadMedia(file: File, label?: string) {
