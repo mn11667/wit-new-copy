@@ -320,15 +320,33 @@ const SkyBackground: React.FC = () => {
   }, []);
 
   return (
-    <div id="sky-background" style={{
-      '--sun-x': `${celestialPos.sunX}%`,
-      '--sun-y': `${celestialPos.sunY}%`,
-      '--moon-x': `${celestialPos.moonX}%`,
-      '--moon-y': `${celestialPos.moonY}%`,
-    } as any}>
+    <div id="sky-background">
       <div className="sky-gradient" />
-      <div className="sun" style={{ left: 'var(--sun-x)', top: 'var(--sun-y)' }} />
-      <div className="moon" style={{ left: 'var(--moon-x)', top: 'var(--moon-y)' }} />
+
+      {/* Sun with Corona/Glow layers for 3D feel */}
+      <div
+        className="sun"
+        style={{
+          left: `${celestialPos.sunX}%`,
+          top: `${celestialPos.sunY}%`,
+          display: theme.includes('day') || theme.includes('dusk') ? 'block' : 'none'
+        }}
+      >
+        <div className="sun-core" />
+      </div>
+
+      {/* Moon with 3D sphere effect */}
+      <div
+        className="moon"
+        style={{
+          left: `${celestialPos.moonX}%`,
+          top: `${celestialPos.moonY}%`,
+          display: theme.includes('night') || theme.includes('snow-night') || theme.includes('fog') ? 'block' : 'none'
+        }}
+      >
+        <div className="moon-craters" />
+      </div>
+
       <div className="stars" />
       <div className="cloud-layer slow" />
       <div className="cloud-layer fast" />
