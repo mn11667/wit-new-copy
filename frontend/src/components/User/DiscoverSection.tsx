@@ -65,7 +65,7 @@ export const DiscoverSection: React.FC = () => {
                 {newsLoading ? (
                     // Skeleton Array
                     Array.from({ length: 9 }).map((_, i) => (
-                        <div key={i} className="h-64 w-full rounded-xl bg-white/5 animate-pulse border border-white/5"></div>
+                        <div key={i} className="h-48 w-full rounded-xl bg-white/5 animate-pulse border border-white/5"></div>
                     ))
                 ) : (
                     news.map((item, idx) => (
@@ -74,40 +74,32 @@ export const DiscoverSection: React.FC = () => {
                             href={item.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group relative block overflow-hidden rounded-2xl border border-white/10 bg-black/40 hover:bg-white/5 hover:scale-[1.02] transition-all duration-300 shadow-lg flex flex-col h-full"
+                            className="group relative block p-6 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 shadow-sm hover:shadow-md flex flex-col h-full"
                         >
-                            <div className="h-48 w-full overflow-hidden bg-slate-900 relative">
-                                {item.categories.length > 0 && (
-                                    <div className="absolute top-2 left-2 z-10">
-                                        <span className="text-[10px] font-bold text-white uppercase tracking-wider bg-black/60 backdrop-blur px-2 py-1 rounded border border-white/10">
-                                            {item.categories[0]}
-                                        </span>
-                                    </div>
-                                )}
-                                <img
-                                    src={(item.thumbnail || 'https://english.onlinekhabar.com/wp-content/themes/onlinekhabar-2021/img/logo-ok-en.png').replace(/^http:\/\//i, 'https://')}
-                                    alt=""
-                                    referrerPolicy="no-referrer"
-                                    className="h-full w-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://placehold.co/600x400/1e293b/cbd5e1?text=No+Image'; // Better looking placeholder
-                                    }}
-                                />
+                            <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
+                                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">
+                                    {item.categories.length > 0 ? item.categories[0] : 'News'}
+                                </span>
+                                <span className="text-[10px] text-slate-500 font-mono">
+                                    {new Date(item.pubDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                </span>
                             </div>
-                            <div className="p-5 flex-1 flex flex-col">
-                                <div className="text-[10px] text-slate-500 mb-2 font-mono flex justify-between">
-                                    <span>{new Date(item.pubDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                                    <span className="truncate max-w-[100px]">{item.author}</span>
-                                </div>
-                                <h3 className="text-lg font-bold text-slate-100 group-hover:text-blue-300 transition-colors line-clamp-2 mb-3 leading-snug">
-                                    {item.title}
-                                </h3>
-                                <p className="text-sm text-slate-400 line-clamp-3 mb-4 flex-1">
-                                    {stripHtml(item.description)}
-                                </p>
-                                <div className="flex items-center text-xs text-blue-400 font-medium group-hover:translate-x-1 transition-transform w-fit">
-                                    Read Article <span className="ml-1">→</span>
-                                </div>
+
+                            <h3 className="text-xl font-serif font-medium text-slate-100 group-hover:text-blue-300 transition-colors leading-snug mb-3">
+                                {item.title}
+                            </h3>
+
+                            <p className="text-sm text-slate-400 leading-relaxed mb-4 flex-1 line-clamp-4">
+                                {stripHtml(item.description)}
+                            </p>
+
+                            <div className="flex items-center justify-between pt-4 mt-auto border-t border-white/5">
+                                <span className="text-xs text-slate-500 italic truncate max-w-[150px]">
+                                    By {item.author || 'OnlineKhabar'}
+                                </span>
+                                <span className="text-xs text-blue-400 font-medium group-hover:translate-x-1 transition-transform">
+                                    Read &rarr;
+                                </span>
                             </div>
                         </a>
                     ))

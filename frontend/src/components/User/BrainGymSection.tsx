@@ -112,6 +112,17 @@ export const BrainGymSection: React.FC = () => {
                                 )
                             })}
                         </div>
+
+                        {revealed && (
+                            <div className={`p-4 rounded-xl mb-6 text-center animate-in fade-in slide-in-from-top-2 border ${selectedAnswer === trivia.correct_answer ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200' : 'bg-red-500/10 border-red-500/30 text-red-200'}`}>
+                                <p className="text-lg font-bold">
+                                    {selectedAnswer === trivia.correct_answer ? "Correct! 🎉" : "Incorrect ❌"}
+                                </p>
+                                {selectedAnswer !== trivia.correct_answer && (
+                                    <p className="text-sm mt-1 opacity-80">The correct answer was: <span className="font-bold">{decodeHTML(trivia.correct_answer)}</span></p>
+                                )}
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-12 space-y-4">

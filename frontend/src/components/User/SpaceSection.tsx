@@ -26,13 +26,22 @@ export const SpaceSection: React.FC = () => {
         try {
             const res = await fetch('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY');
             if (!res.ok) {
-                throw new Error('Failed to fetch APOD data');
+                throw new Error(`NASA API Error: ${res.status}`);
             }
             const json = await res.json();
             setData(json);
         } catch (err) {
-            console.error(err);
-            setError('Could not establish link with NASA satellites.');
+            console.warn("NASA API limit reached or failed, using fallback.", err);
+            // Graceful Fallback - Never show error state to user
+            const fallbackData: ApodData = {
+                date: new Date().toISOString().split('T')[0],
+                explanation: "The universe is vast and full of mysteries. Today, limits on the public comms channel have been reached, but the cosmos remains beautiful. Enjoy this stunning view from deep space while we re-establish the link.",
+                media_type: "image",
+                service_version: "v1",
+                title: "Cosmic View (Offline Mode)",
+                url: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=2048&auto=format&fit=crop"
+            };
+            setData(fallbackData);
         } finally {
             setLoading(false);
         }
