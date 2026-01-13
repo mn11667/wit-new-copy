@@ -100,10 +100,10 @@ const UserDashboardPage: React.FC = () => {
             updateGreeting(data.current_weather.temperature);
           }
         } catch (e) {
-          console.warn("Weather fetch failed, keeping default greeting.");
+          // Silent fail for weather, just keep default greeting
         }
       }, (err) => {
-        console.warn("Geolocation denied, keeping default greeting.");
+        console.info("Location access not granted. Using default greeting.");
       });
     }
   }, []);
