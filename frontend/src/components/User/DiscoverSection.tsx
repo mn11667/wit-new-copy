@@ -172,7 +172,11 @@ export const DiscoverSection: React.FC = () => {
                 const doc = new DOMParser().parseFromString(html, 'text/html');
 
                 // Extract content from .blog-details
-                const contentEl = doc.querySelector('.blog-details');
+                // There are multiple .blog-details (some are metadata), so pick the one with the most content
+                const contentEls = Array.from(doc.querySelectorAll('.blog-details'));
+                const contentEl = contentEls.reduce((max, el) => {
+                    return (el.textContent?.length || 0) > (max?.textContent?.length || 0) ? el : max;
+                }, null as Element | null);
 
                 // Remove social shares or ads if present inside
                 contentEl?.querySelectorAll('.share-buttons, .ads').forEach(el => el.remove());
