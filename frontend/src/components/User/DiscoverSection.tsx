@@ -328,7 +328,7 @@ export const DiscoverSection: React.FC = () => {
                 const html = await res.text();
                 const doc = new DOMParser().parseFromString(html, 'text/html');
 
-                const contentEl = doc.querySelector('.ok18-single-post-content-wrap'); // Main content wrapper
+                const contentEl = doc.querySelector('.ok18-single-post-content-wrap') || doc.querySelector('.post-content-wrap') || doc.querySelector('.entry-content');
 
                 if (contentEl) {
                     // Remove ads, social bars, and unrelated meta
@@ -360,8 +360,8 @@ export const DiscoverSection: React.FC = () => {
                 const html = await res.text();
                 const doc = new DOMParser().parseFromString(html, 'text/html');
 
-                // Selector: .the-content
-                const contentEl = doc.querySelector('.the-content');
+                // Ratopati uses different selectors for English (.content-area) and Nepali (.the-content)
+                const contentEl = doc.querySelector('.the-content') || doc.querySelector('.content-area') || doc.querySelector('.ratopati-table-content-detail');
 
                 // Cleanup
                 if (contentEl) {
