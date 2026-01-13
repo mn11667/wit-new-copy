@@ -86,11 +86,14 @@ export const SpaceSection: React.FC = () => {
                         />
                     ) : (
                         <>
+                            {/* Blurred background for ambiance */}
                             <div className="absolute inset-0 bg-cover bg-center blur-2xl opacity-30 scale-110" style={{ backgroundImage: `url(${data.url})` }} />
+                            {/* Main Image - Use standard URL for better loading/reliability */}
                             <img
-                                src={data.hdurl || data.url}
+                                src={data.url}
                                 alt={data.title}
-                                className="relative z-10 max-h-full w-auto object-contain shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]"
+                                referrerPolicy="no-referrer"
+                                className="relative z-10 max-h-full w-full object-contain shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]"
                             />
                         </>
                     )}
