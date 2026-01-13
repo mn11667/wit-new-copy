@@ -57,7 +57,7 @@ export const BrainGymSection: React.FC = () => {
 
     return (
         <div className="flex items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
-            <div className="relative overflow-hidden rounded-3xl border border-purple-500/20 bg-black/60 backdrop-blur-xl p-8 flex flex-col items-center text-center w-full max-w-2xl shadow-2xl">
+            <div className="relative overflow-hidden rounded-3xl border border-purple-500/20 bg-black/60 backdrop-blur-xl p-8 flex flex-col items-center text-center w-full max-w-2xl shadow-2xl min-h-[600px]">
                 {/* Background Glow */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50"></div>
 
@@ -68,12 +68,14 @@ export const BrainGymSection: React.FC = () => {
                     </div>
                 </div>
 
-                {triviaLoading ? (
-                    <div className="flex-1 flex flex-col items-center justify-center space-y-4 py-12">
-                        <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
-                        <p className="text-purple-300 animate-pulse tracking-widest text-sm">LOADING SYNAPSES...</p>
+                {triviaLoading && (
+                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
+                        <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4"></div>
+                        <p className="text-purple-300 animate-pulse tracking-widest text-sm font-bold">LOADING SYNAPSES...</p>
                     </div>
-                ) : trivia ? (
+                )}
+
+                {trivia ? (
                     <div className="w-full z-10 text-left">
                         <div className="mb-6">
                             <span className="inline-block px-3 py-1 rounded-full bg-purple-500/20 text-xs font-bold text-purple-200 border border-purple-500/30 mb-4">
