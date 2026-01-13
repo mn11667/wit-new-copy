@@ -165,24 +165,33 @@ export const DiscoverSection: React.FC = () => {
             setContentLoading(true);
 
             try {
-                // Fetch full content via proxy, handle potential "Moved Permanently" loops
-                // Gorkhapatra often redirects or requires cookies; adding a timestamp might help bust cache
-                const targetLink = article.link.includes('?') ? article.link : `${article.link}?t=${Date.now()}`;
-                let proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${targetLink}`;
+                // Fetch full content via proxy
+                // Gorkhapatra enforces trailing slashes. Adding it upfront prevents 301 redirects.
+                let cleanLink = article.link.split('?')[0];
+                if (!cleanLink.endsWith('/')) cleanLink += '/';
+
+                let proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${cleanLink}`;
 
                 let res = await fetch(proxyUrl);
                 let html = await res.text();
 
-                // Retry if "Moved Permanently" (Proxy 301 behavior)
-                // Sometimes fetch follows, sometimes it stops if it detects a loop or proxy returns 200 with body
+                // Retry if "Moved Permanently" (Proxy 301 behavior detection)
                 let retries = 3;
                 while (html.includes('Moved Permanently') && retries > 0) {
                     const tempDoc = new DOMParser().parseFromString(html, 'text/html');
-                    const newLink = tempDoc.querySelector('a')?.getAttribute('href');
-                    if (newLink) {
-                        // Parse the user-facing link or proxy path
-                        // newLink might be "/v1/proxy/..." or absolute
-                        proxyUrl = newLink.startsWith('http') ? newLink : `https://api.codetabs.com${newLink}`;
+                    const newAnchor = tempDoc.querySelector('a');
+                    const newRef = newAnchor?.getAttribute('href');
+
+                    if (newRef) {
+                        // newRef might be relative "/v1/proxy?quest=..." or absolute
+                        if (newRef.startsWith('http')) {
+                            proxyUrl = newRef;
+                        } else if (newRef.startsWith('/')) {
+                            proxyUrl = `https://api.codetabs.com${newRef}`;
+                        } else {
+                            proxyUrl = `https://api.codetabs.com/${newRef}`;
+                        }
+
                         res = await fetch(proxyUrl);
                         html = await res.text();
                     }
@@ -199,9 +208,12 @@ export const DiscoverSection: React.FC = () => {
                 }, null as Element | null);
 
                 // Remove social shares or ads if present inside
-                contentEl?.querySelectorAll('.share-buttons, .ads').forEach(el => el.remove());
+                // Also remove 'meta' class divs if they got selected by mistake
+                contentEl?.querySelectorAll('.share-buttons, .ads, .meta').forEach(el => el.remove());
 
-                const fullContent = contentEl?.innerHTML || article.description;
+                // Value Check
+                const fetchedContent = contentEl?.innerHTML || "";
+                const fullContent = fetchedContent.length > 50 ? fetchedContent : article.description;
 
                 setReadingArticle(prev => prev ? { ...prev, content: fullContent } : null);
             } catch (err) {
