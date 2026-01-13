@@ -3,15 +3,15 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { LoadingScreen } from './components/UI/LoadingScreen';
 
-// Lazy load pages for performance code splitting
-const LandingPage = React.lazy(() => import('./pages/LandingPage'));
-const LoginPage = React.lazy(() => import('./pages/LoginPage'));
-const RegisterPage = React.lazy(() => import('./pages/RegisterPage'));
-const UserDashboardPage = React.lazy(() => import('./pages/UserDashboardPage'));
-const AdminDashboardPage = React.lazy(() => import('./pages/AdminDashboardPage'));
-const FeatureLandingPage = React.lazy(() => import('./pages/FeatureLandingPage'));
+// Eager load public pages (Non-lazy for instant initial interaction)
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import FeatureLandingPage from './pages/FeatureLandingPage';
 
-const RequireAuth: React.FC<{ children: React.ReactElement; adminOnly?: boolean }> = ({ children, adminOnly }) => {
+// Lazy load Dashboard (Loads only after login)
+const UserDashboardPage = React.lazy(() => import('./pages/UserDashboardPage'));
+
+const RequireAuth: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const { user, isAuthenticated, initialized, loading } = useAuth();
 
   if (!initialized || loading) {
@@ -22,10 +22,6 @@ const RequireAuth: React.FC<{ children: React.ReactElement; adminOnly?: boolean 
     return <Navigate to="/login" replace />;
   }
 
-  if (adminOnly && user.role !== 'ADMIN') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return children;
 };
 
@@ -34,16 +30,16 @@ const AuthRedirect: React.FC<{ children: React.ReactElement }> = ({ children }) 
   if (!initialized || loading) {
     return <LoadingScreen />;
   }
-  // Only redirect if authenticated and not ADMIN, and status is not PENDING
+  // Only redirect if authenticated
   if (isAuthenticated && user) {
-    return <Navigate to={user.role === 'ADMIN' ? '/admin' : '/dashboard'} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return children;
 };
 
 const AppRouter: React.FC = () => (
   <BrowserRouter>
-    <Suspense fallback={<LoadingScreen message="Loading..." enableGame={false} />}>
+    <Suspense fallback={<LoadingScreen message="SYSTEM LOADING..." />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route
@@ -51,14 +47,6 @@ const AppRouter: React.FC = () => (
           element={
             <AuthRedirect>
               <LoginPage />
-            </AuthRedirect>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <AuthRedirect>
-              <RegisterPage />
             </AuthRedirect>
           }
         />
@@ -71,14 +59,8 @@ const AppRouter: React.FC = () => (
             </RequireAuth>
           }
         />
-        <Route
-          path="/admin"
-          element={
-            <RequireAuth adminOnly>
-              <AdminDashboardPage />
-            </RequireAuth>
-          }
-        />
+
+        {/* Admin route removed as per request for static site */}
 
         <Route path="/landing/:feature" element={<FeatureLandingPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
