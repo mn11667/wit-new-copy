@@ -41,19 +41,23 @@ export const DiscoverSection: React.FC = () => {
 
                 if (source === 'gorkhapatra') {
                     // Gorkhapatra: Only Nepali (Loksewa)
-                    // Scrape Proxy
                     const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=https://gorkhapatraonline.com/categories/loksewa';
                     const res = await fetch(proxyUrl);
                     const html = await res.text();
                     const doc = new DOMParser().parseFromString(html, 'text/html');
 
                     const articles: NewsArticle[] = [];
-                    const items = doc.querySelectorAll('.item-content, .post-item, .blog-item');
+                    // .blog-box-layout11 seems to be the container in recent HTML check
+                    const items = doc.querySelectorAll('.blog-box-layout11, .item-content, .post-item');
+
+                    const nepaliDigits = '०१२३४५६७८९';
+                    const convertDigits = (str: string) => str.replace(/[०-९]/g, d => String(nepaliDigits.indexOf(d)));
+                    const nepaliMonths = ['बैशाख', 'जेठ', 'असार', 'साउन', 'भदौ', 'असोज', 'कात्तिक', 'मंसिर', 'पुस', 'माघ', 'फागुन', 'चैत'];
 
                     items.forEach((item) => {
                         const titleEl = item.querySelector('.item-title a') || item.querySelector('h2 a') || item.querySelector('h3 a');
                         if (titleEl) {
-                            const title = titleEl.textContent?.trim() || "News Item";
+                            const title = titleEl.textContent?.trim() || "Questions & Answers";
                             const link = titleEl.getAttribute('href') || "#";
 
                             let thumbnail = "https://gorkhapatraonline.com/landing-assets/img/logo.png";
@@ -61,25 +65,43 @@ export const DiscoverSection: React.FC = () => {
                             const img = container.querySelector('img');
                             if (img && img.src) thumbnail = img.src;
 
-                            const dateEl = item.querySelector('.fa-calendar-alt')?.parentElement;
-                            const pubDate = dateEl?.textContent?.trim() || new Date().toISOString();
+                            // Date Parsing
+                            let pubDate = new Date().toISOString();
+                            const rawDate = item.querySelector('.fa-calendar-alt')?.parentElement?.textContent?.trim().replace(/,/g, '') || "";
+                            // E.g. "१६ पुस २०८२ बुधबार"
+                            const parts = rawDate.split(/\s+/);
+                            if (parts.length >= 3) {
+                                const day = parseInt(convertDigits(parts[0]));
+                                const monthName = parts[1]; // Nepali text
+                                const year = parseInt(convertDigits(parts[2]));
+                                const monthIdx = nepaliMonths.indexOf(monthName);
+
+                                if (!isNaN(day) && !isNaN(year) && monthIdx !== -1) {
+                                    // Approx BS to AD : Year - 57
+                                    const adYear = year - 57;
+                                    const d = new Date(adYear, monthIdx, day, 12, 0, 0);
+                                    if (!isNaN(d.getTime())) pubDate = d.toISOString();
+                                }
+                            }
+
+                            // Description
+                            // Gorkhapatra puts summary in a <p> tag
+                            const desc = item.querySelector('p')?.textContent?.trim() || "Click to read the full Q&A content.";
 
                             articles.push({
                                 title,
                                 link,
                                 thumbnail,
                                 pubDate,
-                                description: "Loksewa Preparation Material from Gorkhapatra. Click to read the full Q&A.",
-                                content: "Full content available on Gorkhapatra Online.",
+                                description: desc,
+                                content: "", // Loaded via Reader
                                 author: "Gorkhapatra",
-                                categories: ['Loksewa', 'Education']
+                                categories: ['Loksewa']
                             });
                         }
                     });
 
-                    // Deduplicate
                     npItems = Array.from(new Map(articles.map(item => [item.link, item])).values());
-                    // enItems remains empty []
 
                 } else {
                     // RSS feeds for standard portals
@@ -138,6 +160,7 @@ export const DiscoverSection: React.FC = () => {
     const handleArticleClick = async (e: React.MouseEvent, article: NewsArticle) => {
         if (source === 'gorkhapatra') {
             e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             setReadingArticle(article);
             setContentLoading(true);
 
