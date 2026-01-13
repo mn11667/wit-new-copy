@@ -19,6 +19,7 @@ export const DiscoverSection: React.FC = () => {
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [newsLoading, setNewsLoading] = useState(true);
     const [language, setLanguage] = useState<'en' | 'np'>('en');
+    const [source, setSource] = useState<'onlinekhabar' | 'setopati' | 'ratopati'>('onlinekhabar');
     const [page, setPage] = useState(1);
 
     const ARTICLES_PER_PAGE = 3;
@@ -26,19 +27,23 @@ export const DiscoverSection: React.FC = () => {
 
     // --- Effects ---
     useEffect(() => {
-        setPage(1);
         fetchNews();
-    }, [language]);
+        setPage(1); // Reset to cover page on source/lang change
+    }, [language, source]);
 
     // --- News Logic ---
     const fetchNews = async () => {
         setNewsLoading(true);
         setNews([]); // Clear previous news to show loading state cleanly
         try {
-            // Toggle URL based on language
-            const feedUrl = language === 'en'
-                ? 'https://english.onlinekhabar.com/feed'
-                : 'https://www.onlinekhabar.com/feed';
+            let feedUrl = '';
+            if (source === 'onlinekhabar') {
+                feedUrl = language === 'en' ? 'https://english.onlinekhabar.com/feed' : 'https://www.onlinekhabar.com/feed';
+            } else if (source === 'setopati') {
+                feedUrl = language === 'en' ? 'https://en.setopati.com/feed' : 'https://www.setopati.com/feed';
+            } else if (source === 'ratopati') {
+                feedUrl = language === 'en' ? 'https://english.ratopati.com/feed' : 'https://ratopati.com/feed';
+            }
 
             const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${feedUrl}`);
             const data = await res.json();
