@@ -165,10 +165,30 @@ export const DiscoverSection: React.FC = () => {
             setContentLoading(true);
 
             try {
-                // Fetch full content via proxy
-                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(article.link)}`;
-                const res = await fetch(proxyUrl);
-                const html = await res.text();
+                // Fetch full content via proxy, handle potential "Moved Permanently" loops
+                // Gorkhapatra often redirects or requires cookies; adding a timestamp might help bust cache
+                const targetLink = article.link.includes('?') ? article.link : `${article.link}?t=${Date.now()}`;
+                let proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${targetLink}`;
+
+                let res = await fetch(proxyUrl);
+                let html = await res.text();
+
+                // Retry if "Moved Permanently" (Proxy 301 behavior)
+                // Sometimes fetch follows, sometimes it stops if it detects a loop or proxy returns 200 with body
+                let retries = 3;
+                while (html.includes('Moved Permanently') && retries > 0) {
+                    const tempDoc = new DOMParser().parseFromString(html, 'text/html');
+                    const newLink = tempDoc.querySelector('a')?.getAttribute('href');
+                    if (newLink) {
+                        // Parse the user-facing link or proxy path
+                        // newLink might be "/v1/proxy/..." or absolute
+                        proxyUrl = newLink.startsWith('http') ? newLink : `https://api.codetabs.com${newLink}`;
+                        res = await fetch(proxyUrl);
+                        html = await res.text();
+                    }
+                    retries--;
+                }
+
                 const doc = new DOMParser().parseFromString(html, 'text/html');
 
                 // Extract content from .blog-details
