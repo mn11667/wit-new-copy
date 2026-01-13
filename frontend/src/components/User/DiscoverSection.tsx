@@ -35,6 +35,9 @@ export const DiscoverSection: React.FC = () => {
     useEffect(() => {
         const loadSourceData = async () => {
             setNewsLoading(true);
+            setReadingArticle(null);
+            setFeedCache({ en: [], np: [] }); // Clear previous data immediately
+
             try {
                 let enItems: NewsArticle[] = [];
                 let npItems: NewsArticle[] = [];
@@ -411,13 +414,16 @@ export const DiscoverSection: React.FC = () => {
     const renderCoverPage = () => (
         <div className="columns-1 md:columns-3 gap-6">
             {news.map((item, i) => {
+                // Modified behavior for ePaper: Direct open
+                const isEPaper = source === 'epaper';
                 const targetPage = 2 + Math.floor(i / ARTICLES_PER_PAGE);
+
                 return (
                     <div key={i} className="break-inside-avoid mb-6 border-b border-slate-900/10 pb-4 group">
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">{item.categories[0] || 'News'}</span>
                         <h3
                             className="font-bold font-serif text-lg leading-tight mb-2 group-hover:text-red-700 cursor-pointer transition-colors"
-                            onClick={() => setPage(targetPage)}
+                            onClick={(e) => isEPaper ? handleArticleClick(e, item) : setPage(targetPage)}
                         >
                             {item.title}
                         </h3>
@@ -425,10 +431,10 @@ export const DiscoverSection: React.FC = () => {
                             {cleanContent(item.description)}
                         </p>
                         <button
-                            onClick={() => setPage(targetPage)}
+                            onClick={(e) => isEPaper ? handleArticleClick(e, item) : setPage(targetPage)}
                             className="text-[10px] font-bold text-red-700 uppercase hover:underline flex items-center gap-1"
                         >
-                            Turn to Page {targetPage} <span>&rarr;</span>
+                            {isEPaper ? 'Read ePaper Now' : `Turn to Page ${targetPage}`} <span>&rarr;</span>
                         </button>
                     </div>
                 );
