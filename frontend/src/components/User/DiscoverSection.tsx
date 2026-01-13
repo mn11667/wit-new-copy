@@ -103,6 +103,57 @@ export const DiscoverSection: React.FC = () => {
 
                     npItems = Array.from(new Map(articles.map(item => [item.link, item])).values());
 
+                } else if (source === 'epaper') {
+                    // Gorkhapatra ePaper (PDFs)
+                    const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=https://epaper.gorkhapatraonline.com/single/gorkhapatra/';
+                    const res = await fetch(proxyUrl);
+                    const html = await res.text();
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                    const articles: NewsArticle[] = [];
+                    // Select links that go to /pdf/
+                    const links = doc.querySelectorAll('a[href*="/pdf/"]');
+
+                    links.forEach((a) => {
+                        const href = a.getAttribute('href') || "";
+                        // Href format: https://epaper.gorkhapatraonline.com/pdf/3908?file=/uploads/file/2026/1/gorkhapatra/2026-01-13...pdf
+                        if (href.includes('?file=')) {
+                            const urlParams = new URLSearchParams(href.split('?')[1]);
+                            const filePath = urlParams.get('file');
+
+                            if (filePath) {
+                                const pdfLink = `https://epaper.gorkhapatraonline.com${filePath}`;
+
+                                // Extract Date
+                                const dateEl = a.querySelector('.date');
+                                const dateText = dateEl?.textContent?.trim() || "Daily Edition";
+
+                                // Extract Thumbnail
+                                const img = a.querySelector('img');
+                                let thumbnail = "https://gorkhapatraonline.com/landing-assets/img/logo.png";
+                                if (img && img.getAttribute('src')) {
+                                    const imgSrc = img.getAttribute('src') || "";
+                                    thumbnail = imgSrc.startsWith('http') ? imgSrc : `https://epaper.gorkhapatraonline.com${imgSrc}`;
+                                }
+
+                                articles.push({
+                                    title: `Gorkhapatra ePaper - ${dateText}`,
+                                    link: pdfLink, // Direct PDF link
+                                    thumbnail,
+                                    pubDate: new Date().toISOString(),
+                                    description: "Click to view the full PDF edition of Gorkhapatra.",
+                                    content: pdfLink, // Treat content as the PDF URL
+                                    author: "Gorkhapatra",
+                                    categories: ['ePaper']
+                                });
+                            }
+                        }
+                    });
+
+                    npItems = articles;
+                    // Deduplicate
+                    npItems = Array.from(new Map(npItems.map(item => [item.link, item])).values());
+
                 } else {
                     // RSS feeds for standard portals
                     const getUrl = (src: string, lang: 'en' | 'np') => {
@@ -221,11 +272,50 @@ export const DiscoverSection: React.FC = () => {
             } finally {
                 setContentLoading(false);
             }
+
+        } else if (source === 'epaper') {
+            // ePaper PDF Reader
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setReadingArticle(article);
+            setContentLoading(false); // No async loading needed, just iframe
         }
     };
 
     const renderReader = () => {
         if (!readingArticle) return null;
+
+        // PDF Viewer for ePaper
+        if (source === 'epaper' || readingArticle.link.endsWith('.pdf')) {
+            return (
+                <div className="animate-in fade-in slide-in-from-right-8 h-full flex flex-col">
+                    <button
+                        onClick={() => setReadingArticle(null)}
+                        className="mb-4 flex items-center gap-2 text-red-800 font-bold uppercase tracking-widest text-xs hover:underline"
+                    >
+                        &larr; Back to ePapers
+                    </button>
+
+                    <div className="flex-1 bg-slate-200 min-h-[800px] border-2 border-slate-900 rounded-sm relative shadow-inner">
+                        <iframe
+                            src={readingArticle.link}
+                            className="w-full h-full absolute inset-0"
+                            title="ePaper PDF"
+                        />
+                        <div className="absolute top-4 right-4 z-10">
+                            <a
+                                href={readingArticle.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-red-700 text-white px-4 py-2 rounded shadow hover:bg-red-800 text-xs font-bold uppercase tracking-widest"
+                            >
+                                Open in New Tab
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
 
         return (
             <div className="animate-in fade-in slide-in-from-right-8">
@@ -370,7 +460,8 @@ export const DiscoverSection: React.FC = () => {
                         <option value="onlinekhabar">OnlineKhabar</option>
                         <option value="setopati">Setopati</option>
                         <option value="ratopati">Ratopati</option>
-                        <option value="gorkhapatra">Gorkhapatra</option>
+                        <option value="gorkhapatra">Gorkhaparta (Loksewa)</option>
+                        <option value="epaper">Gorkhapatra ePaper (PDF)</option>
                     </select>
                 </div>
 
