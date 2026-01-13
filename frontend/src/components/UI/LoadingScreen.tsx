@@ -1,73 +1,104 @@
-import React, { useEffect, useState } from 'react';
-import { getRandomQuote } from '../../data/quotes';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface LoadingScreenProps {
   message?: string;
-  enableGame?: boolean; // Kept for prop compatibility, but we are switching to "Zen Mode"
+  enableGame?: boolean;
 }
 
+const BOOT_SEQUENCE = [
+  "INITIALIZING KERNEL...",
+  "LOADING VIRTUAL MEMORY...",
+  "MOUNTING FILE SYSTEM...",
+  "BYPASSING SECURITY PROTOCOLS...",
+  "ESTABLISHING SECURE CONNECTION...",
+  "DECRYPTING USER DATA...",
+  "OPTIMIZING NEURAL NETWORK...",
+  "COMPILING ASSETS...",
+  "EXECUTING STARTUP SCRIPTS...",
+  "ACCESS GRANTED."
+];
+
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({
-  message = "Loading..."
+  message = "SYSTEM LOADING..."
 }) => {
-  const [quote, setQuote] = useState("");
-  const [displayedQuote, setDisplayedQuote] = useState("");
-  const [charIndex, setCharIndex] = useState(0);
+  const [logs, setLogs] = useState<string[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setQuote(getRandomQuote());
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+      // Create a timestamp
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }) + `.${now.getMilliseconds().toString().padStart(3, '0')}`;
+
+      if (currentIndex < BOOT_SEQUENCE.length) {
+        setLogs(prev => [...prev, `[${timeString}] ${BOOT_SEQUENCE[currentIndex]}`]);
+        currentIndex++;
+      } else {
+        // Generate random "hacking" hex dumps continuously after boot
+        const randomHex = Array.from({ length: 4 }, () => Math.floor(Math.random() * 16).toString(16)).join('').toUpperCase();
+        const segments = Array.from({ length: 4 }, () => `0x${randomHex}`);
+        setLogs(prev => {
+          const newLogs = [...prev, `[${timeString}] MEM_ALLOC: ${segments.join(' ')}`];
+          // Keep the DOM light by only keeping the last 20 lines
+          if (newLogs.length > 20) return newLogs.slice(newLogs.length - 20);
+          return newLogs;
+        });
+      }
+    }, 100); // 100ms update speed
+
+    return () => clearInterval(interval);
   }, []);
 
+  // Auto-scroll to bottom of the terminal
   useEffect(() => {
-    if (!quote) return;
-    if (charIndex < quote.length) {
-      const timeout = setTimeout(() => {
-        setDisplayedQuote((prev) => prev + quote[charIndex]);
-        setCharIndex((prev) => prev + 1);
-      }, 15); // Faster typing speed (15ms)
-      return () => clearTimeout(timeout);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [quote, charIndex]);
+  }, [logs]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-slate-950/90 backdrop-blur-md transition-all duration-500">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black font-mono text-green-500 overflow-hidden font-bold">
 
-      {/* Background Ambience */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-secondary/20 rounded-full blur-[80px]" />
-      </div>
+      {/* CRT Scanline Effect Overlay */}
+      <div className="absolute inset-0 pointer-events-none z-20 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
 
-      <div className="relative z-10 flex flex-col items-center max-w-2xl px-6 text-center">
-        {/* Animated Loader Graphic */}
-        <div className="mb-8 relative">
-          <div className="w-16 h-16 border-4 border-slate-700/50 border-t-primary rounded-full animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 bg-secondary/20 rounded-full animate-ping" />
+      {/* Moving Scanline Bar */}
+      <div className="absolute inset-0 pointer-events-none z-10 animate-scanline bg-gradient-to-b from-transparent via-green-500/10 to-transparent opacity-20" />
+
+      {/* Main Terminal Container */}
+      <div className="w-full max-w-3xl p-8 relative z-30 border border-green-500/30 bg-black/80 shadow-[0_0_50px_rgba(34,197,94,0.1)] rounded-sm">
+
+        {/* Header */}
+        <div className="mb-6 border-b border-green-500/30 pb-2 flex justify-between items-end">
+          <h1 className="text-xl tracking-[0.2em] animate-pulse">{message.toUpperCase()}</h1>
+          <span className="text-xs text-green-700">PID: {Math.floor(Math.random() * 9000) + 1000}</span>
+        </div>
+
+        {/* Console Output */}
+        <div
+          ref={scrollRef}
+          className="h-64 overflow-hidden text-sm md:text-base font-medium space-y-1"
+        >
+          {logs.map((log, i) => (
+            <div key={i} className="break-all">
+              <span className="text-green-700 mr-2 opacity-50">{'>'}</span>
+              <span style={{ textShadow: '0 0 5px rgba(34, 197, 94, 0.5)' }}>{log}</span>
+            </div>
+          ))}
+
+          {/* Active Cursor Line */}
+          <div className="mt-2 flex items-center">
+            <span className="text-green-500 mr-2">{'>'}</span>
+            <span className="animate-pulse bg-green-500 w-3 h-5 block shadow-[0_0_10px_#22c55e]"></span>
           </div>
         </div>
 
-        {/* Message */}
-        <p className="text-secondary text-sm font-medium tracking-[0.2em] uppercase mb-6 animate-fade-in-up">
-          {message}
-        </p>
-
-        {/* Quote Card */}
-        <div className="glass p-8 rounded-2xl border border-white/10 shadow-2xl bg-black/40 min-h-[200px] w-full flex flex-col justify-center items-center transform transition-all hover:scale-[1.02]">
-          <span className="text-4xl text-white/10 mb-2 font-serif self-start">"</span>
-          <p className="text-xl md:text-2xl font-light text-slate-100 leading-relaxed font-serif relative z-10">
-            {displayedQuote}
-            <span className="animate-pulse text-primary font-bold ml-1">|</span>
-          </p>
-          <span className="text-4xl text-white/10 mt-2 font-serif self-end">"</span>
-
-          <div className="mt-8 h-1 w-32 bg-slate-800/50 rounded-full overflow-hidden">
-            <div className="h-full w-full bg-gradient-to-r from-transparent via-primary to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
-          </div>
+        {/* Footer info */}
+        <div className="mt-4 pt-4 border-t border-green-500/20 text-[10px] flex justify-between opacity-50">
+          <span>SECURE_CONNECTION: ENCRYPTED</span>
+          <span>MEMORY_USAGE: 4096MB</span>
         </div>
-
-        <p className="mt-8 text-[10px] text-slate-500 font-mono tracking-widest opacity-60">
-          PROVISIONED BY WIT NEA
-        </p>
       </div>
     </div>
   );

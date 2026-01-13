@@ -41,10 +41,15 @@ module.exports = {
           '0%': { backgroundPosition: '200% 0' },
           '100%': { backgroundPosition: '-200% 0' },
         },
+        scanline: {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(100%)' },
+        },
       },
       animation: {
         'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
         'shimmer': 'shimmer 8s linear infinite',
+        'scanline': 'scanline 4s linear infinite',
       },
     },
   },
