@@ -307,6 +307,39 @@ export const DiscoverSection: React.FC = () => {
                 setContentLoading(false);
             }
 
+        } else if (source === 'onlinekhabar') {
+            // OnlineKhabar Reader
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setReadingArticle(article);
+            setContentLoading(true);
+
+            try {
+                // OnlineKhabar link might be http or https
+                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${article.link}`;
+                const res = await fetch(proxyUrl);
+                const html = await res.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                const contentEl = doc.querySelector('.ok18-single-post-content-wrap'); // Main content wrapper
+
+                if (contentEl) {
+                    // Remove ads, social bars, and unrelated meta
+                    contentEl.querySelectorAll(
+                        '.okam-ad-position-wrap, .okam-each-ad, .ok-post-ads, .advertising, .ok-post-share-bar, .ok-comment-number, .post-bottom-meta, script, style'
+                    ).forEach(el => el.remove());
+                }
+
+                const fetchedContent = contentEl?.innerHTML || "";
+                const fullContent = fetchedContent.length > 50 ? fetchedContent : article.description;
+
+                setReadingArticle(prev => prev ? { ...prev, content: fullContent } : null);
+            } catch (err) {
+                console.error("OnlineKhabar fetch error:", err);
+            } finally {
+                setContentLoading(false);
+            }
+
         } else if (source === 'epaper') {
             // ePaper PDF Reader
             e.preventDefault();
