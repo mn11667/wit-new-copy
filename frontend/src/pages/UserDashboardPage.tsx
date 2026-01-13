@@ -30,6 +30,7 @@ import { YouTubeSection } from '../components/YouTube/YouTubeSection';
 import { DefinitionPopup } from '../components/UI/DefinitionPopup';
 import { DiscoverSection } from '../components/User/DiscoverSection';
 import { SpaceSection } from '../components/User/SpaceSection';
+import { BrainGymSection } from '../components/User/BrainGymSection';
 
 const UserDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -110,7 +111,7 @@ const UserDashboardPage: React.FC = () => {
 
   // const [now, setNow] = useState<string>(new Date().toLocaleString()); // Moved to Clock component
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed' | 'practice' | 'youtube' | 'discover' | 'space'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'bookmarks' | 'completed' | 'practice' | 'youtube' | 'discover' | 'space' | 'braingym'>('library');
   const [playerFile, setPlayerFile] = useState<{ id: string; name: string; src: string } | null>(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
@@ -279,6 +280,8 @@ const UserDashboardPage: React.FC = () => {
         return <DiscoverSection />;
       case 'space':
         return <SpaceSection />;
+      case 'braingym':
+        return <BrainGymSection />;
       default:
         return (
           <Library
@@ -346,6 +349,9 @@ const UserDashboardPage: React.FC = () => {
             </Button>
             <Button variant={activeTab === 'space' ? 'primary' : 'ghost'} onClick={() => setActiveTab('space')}>
               Space 🌌
+            </Button>
+            <Button variant={activeTab === 'braingym' ? 'primary' : 'ghost'} onClick={() => setActiveTab('braingym')}>
+              Brain Gym 🧠
             </Button>
 
 
