@@ -19,7 +19,7 @@ export const DiscoverSection: React.FC = () => {
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [newsLoading, setNewsLoading] = useState(true);
     const [language, setLanguage] = useState<'en' | 'np'>('en');
-    const [source, setSource] = useState<'onlinekhabar' | 'setopati' | 'ratopati' | 'gorkhapatra'>('onlinekhabar');
+    const [source, setSource] = useState<'onlinekhabar' | 'setopati' | 'ratopati' | 'gorkhapatra' | 'epaper'>('onlinekhabar');
     const [page, setPage] = useState(1);
 
     const [feedCache, setFeedCache] = useState<{ en: NewsArticle[], np: NewsArticle[] }>({ en: [], np: [] });
