@@ -91,18 +91,27 @@ export const DiscoverSection: React.FC = () => {
                             // Gorkhapatra puts summary in a <p> tag
                             const desc = item.querySelector('p')?.textContent?.trim() || "Click to read the full Q&A content.";
 
+                            // Categorize based on title keywords
+                            let category = 'Loksewa';
+                            if (title.includes('वस्तुगत')) category = 'Objective (वस्तुगत)';
+                            else if (title.includes('विषयगत')) category = 'Subjective (विषयगत)';
+                            else category = 'General (विविध)';
+
                             articles.push({
                                 title,
                                 link,
                                 thumbnail,
                                 pubDate,
                                 description: desc,
-                                content: "", // Loaded via Reader
+                                content: "",
                                 author: "Gorkhapatra",
-                                categories: ['Loksewa']
+                                categories: [category]
                             });
                         }
                     });
+
+                    // Sort to group similar categories together
+                    articles.sort((a, b) => a.categories[0].localeCompare(b.categories[0]));
 
                     npItems = Array.from(new Map(articles.map(item => [item.link, item])).values());
 
