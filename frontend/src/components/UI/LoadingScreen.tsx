@@ -23,7 +23,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
       const timeout = setTimeout(() => {
         setDisplayedQuote((prev) => prev + quote[charIndex]);
         setCharIndex((prev) => prev + 1);
-      }, 35); // Typing speed
+      }, 15); // Faster typing speed (15ms)
       return () => clearTimeout(timeout);
     }
   }, [quote, charIndex]);
