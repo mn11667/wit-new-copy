@@ -80,11 +80,7 @@ const UserDashboardPage: React.FC = () => {
       if (hour >= 18) timeMsg = 'Good Evening';
 
       if (temp !== undefined) {
-        let weatherMsg = "Perfect weather to focus.";
-        if (temp < 10) weatherMsg = "Stay warm and study hard ☕";
-        else if (temp > 28) weatherMsg = "Stay cool and keep learning 🍦";
-
-        setGreeting(`${timeMsg}. It's ${temp}°C. ${weatherMsg}`);
+        setGreeting(`${timeMsg} (${temp}°C)`);
       } else {
         setGreeting(timeMsg);
       }
@@ -326,7 +322,7 @@ const UserDashboardPage: React.FC = () => {
         )}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-1">
+            <h1 className="text-xl font-bold text-white mb-0.5">
               {greeting}, {user?.name?.split(' ')[0] || 'Scholar'}.
             </h1>
             <p className="text-slate-400 italic text-sm">"{quote}"</p>
