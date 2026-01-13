@@ -7,19 +7,43 @@ interface LoadingScreenProps {
 
 const BOOT_SEQUENCE = [
   "INITIALIZING KERNEL...",
+  "CHECKING SYSTEM INTEGRITY...",
   "LOADING VIRTUAL MEMORY...",
-  "MOUNTING FILE SYSTEM...",
   "BYPASSING SECURITY PROTOCOLS...",
   "ESTABLISHING SECURE CONNECTION...",
-  "DECRYPTING USER DATA...",
-  "OPTIMIZING NEURAL NETWORK...",
-  "COMPILING ASSETS...",
+  "ACCESSING NETWORK INTERFACE...",
+  "RESOLVING DNS PROXY...",
+  "TARGET_ID FOUND: [192.168.X.X]",
+  "INITIATING DATA MINING SEQUENCE...",
+  "SCANNING LOCAL PORTS...",
+  "PORT 8080: OPEN",
+  "PORT 3000: OPEN",
+  "INJECTING PAYLOAD...",
+  "ROOT ACCESS: GRANTED",
+  "MOUNTING FILE SYSTEM...",
+  "READING LOCAL_STORAGE...",
+  "EXTRACTING COOKIES...",
+  "DECRYPTING SAVED PASSWORDS...",
+  "COPYING USER PREFERENCES...",
+  "COMPRESSING DATA PACKETS...",
+  "ESTABLISHING UPLINK TO SERVER...",
+  "UPLOADING DATA_CHUNK_01 [23%]",
+  "UPLOADING DATA_CHUNK_01 [56%]",
+  "UPLOADING DATA_CHUNK_01 [89%]",
+  "UPLOADING DATA_CHUNK_01 [100%]",
+  "UPLOADING DATA_CHUNK_02 [15%]",
+  "UPLOADING DATA_CHUNK_02 [67%]",
+  "UPLOADING DATA_CHUNK_02 [100%]",
+  "SYNCING WITH CLOUD MAINFRAME...",
+  "OPTIMIZING NEURAL NETWORK WEIGTHS...",
+  "ALLOCATING GPU RESOURCES...",
+  "RENDERING ASSETS...",
   "EXECUTING STARTUP SCRIPTS...",
-  "ACCESS GRANTED."
+  "WELCOME TO THE MATRIX."
 ];
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({
-  message = "SYSTEM LOADING..."
+  message = "SYSTEM INITIALIZING..."
 }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -32,7 +56,11 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
       const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }) + `.${now.getMilliseconds().toString().padStart(3, '0')}`;
 
       if (currentIndex < BOOT_SEQUENCE.length) {
-        setLogs(prev => [...prev, `[${timeString}] ${BOOT_SEQUENCE[currentIndex]}`]);
+        setLogs(prev => {
+          const newLogs = [...prev, `[${timeString}] ${BOOT_SEQUENCE[currentIndex]}`];
+          if (newLogs.length > 25) return newLogs.slice(newLogs.length - 25);
+          return newLogs;
+        });
         currentIndex++;
       } else {
         // Generate random "hacking" hex dumps continuously after boot
@@ -40,12 +68,12 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
         const segments = Array.from({ length: 4 }, () => `0x${randomHex}`);
         setLogs(prev => {
           const newLogs = [...prev, `[${timeString}] MEM_ALLOC: ${segments.join(' ')}`];
-          // Keep the DOM light by only keeping the last 20 lines
-          if (newLogs.length > 20) return newLogs.slice(newLogs.length - 20);
+          // Keep the DOM light by only keeping the last 25 lines
+          if (newLogs.length > 25) return newLogs.slice(newLogs.length - 25);
           return newLogs;
         });
       }
-    }, 100); // 100ms update speed
+    }, 45); // VERY FAST scrolling (45ms)
 
     return () => clearInterval(interval);
   }, []);
