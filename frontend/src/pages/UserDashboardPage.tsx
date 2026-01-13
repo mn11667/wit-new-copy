@@ -73,14 +73,19 @@ const UserDashboardPage: React.FC = () => {
     setQuote(getRandomQuote());
 
     // Smart Greeting Logic (Time + Weather)
-    const updateGreeting = (temp?: number) => {
+    const updateGreeting = (temp?: number, isFallback = false) => {
       const hour = new Date().getHours();
       let timeMsg = 'Good Morning';
       if (hour >= 12) timeMsg = 'Good Afternoon';
       if (hour >= 18) timeMsg = 'Good Evening';
 
       if (temp !== undefined) {
-        setGreeting(`${timeMsg} (${temp}°C)`);
+        let weatherMsg = "Perfect weather to focus.";
+        if (temp < 10) weatherMsg = "Stay warm and study hard ☕";
+        else if (temp > 28) weatherMsg = "Stay cool and keep learning 🍦";
+
+        const locSuffix = isFallback ? " (Kathmandu)" : "";
+        setGreeting(`${timeMsg}. It's ${temp}°C${locSuffix}. ${weatherMsg}`);
       } else {
         setGreeting(timeMsg);
       }
@@ -88,22 +93,30 @@ const UserDashboardPage: React.FC = () => {
 
     updateGreeting(); // Default time-based first
 
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
-          const data = await res.json();
-
-          if (data.current_weather) {
-            updateGreeting(data.current_weather.temperature);
-          }
-        } catch (e) {
-          // Silent fail for weather, just keep default greeting
+    const getWeatherData = async (lat: number, lon: number, fallback = false) => {
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+        const data = await res.json();
+        if (data.current_weather) {
+          updateGreeting(data.current_weather.temperature, fallback);
         }
-      }, (err) => {
-        console.info("Location access not granted. Using default greeting.");
-      });
+      } catch (e) {
+        if (!fallback) getWeatherData(27.7172, 85.3240, true);
+      }
+    };
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          getWeatherData(position.coords.latitude, position.coords.longitude);
+        },
+        () => {
+          // Fallback to Kathmandu
+          getWeatherData(27.7172, 85.3240, true);
+        }
+      );
+    } else {
+      getWeatherData(27.7172, 85.3240, true);
     }
   }, []);
 
