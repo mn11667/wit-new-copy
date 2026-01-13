@@ -19,7 +19,7 @@ export const DiscoverSection: React.FC = () => {
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [newsLoading, setNewsLoading] = useState(true);
     const [language, setLanguage] = useState<'en' | 'np'>('en');
-    const [source, setSource] = useState<'onlinekhabar' | 'setopati' | 'ratopati'>('onlinekhabar');
+    const [source, setSource] = useState<'onlinekhabar' | 'setopati' | 'ratopati' | 'gorkhapatra'>('onlinekhabar');
     const [page, setPage] = useState(1);
 
     const ARTICLES_PER_PAGE = 3;
@@ -36,6 +36,55 @@ export const DiscoverSection: React.FC = () => {
         setNewsLoading(true);
         setNews([]); // Clear previous news to show loading state cleanly
         try {
+            if (source === 'gorkhapatra') {
+                // Scrape Gorkhapatra Loksewa (Proxy required)
+                const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=https://gorkhapatraonline.com/categories/loksewa';
+                const res = await fetch(proxyUrl);
+                const html = await res.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                // Select news items (Adjust selectors based on Gorkhapatra structure)
+                // Observed structure: .item-content contains .item-title
+                const articles: NewsArticle[] = [];
+                const items = doc.querySelectorAll('.item-content, .post-item, .blog-item');
+
+                items.forEach((item) => {
+                    const titleEl = item.querySelector('.item-title a') || item.querySelector('h2 a') || item.querySelector('h3 a');
+                    if (titleEl) {
+                        const title = titleEl.textContent?.trim() || "News Item";
+                        const link = titleEl.getAttribute('href') || "#";
+
+                        // Try to find image in parent or previous sibling? 
+                        // Often image is in .item-image which is sibling to .item-content
+                        let thumbnail = "https://gorkhapatraonline.com/landing-assets/img/logo.png"; // Default
+                        // Attempt to find an image in the vicinity
+                        const container = item.parentElement || item;
+                        const img = container.querySelector('img');
+                        if (img && img.src) thumbnail = img.src;
+
+                        // Date
+                        const dateEl = item.querySelector('.fa-calendar-alt')?.parentElement;
+                        const pubDate = dateEl?.textContent?.trim() || new Date().toISOString();
+
+                        articles.push({
+                            title,
+                            link,
+                            pubDate,
+                            description: "Loksewa Preparation Material from Gorkhapatra. Click to read the full Q&A.",
+                            content: "Full content available on Gorkhapatra Online.",
+                            thumbnail,
+                            author: "Gorkhapatra",
+                            categories: ['Loksewa', 'Education']
+                        });
+                    }
+                });
+
+                // Dedup based on link
+                const uniqueContent = Array.from(new Map(articles.map(item => [item.link, item])).values());
+                setNews(uniqueContent);
+                return;
+            }
+
             let feedUrl = '';
             if (source === 'onlinekhabar') {
                 feedUrl = language === 'en' ? 'https://english.onlinekhabar.com/feed' : 'https://www.onlinekhabar.com/feed';
