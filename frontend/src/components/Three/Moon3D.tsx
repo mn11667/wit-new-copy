@@ -1,10 +1,10 @@
 import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import { TextureLoader, Vector3, MathUtils } from 'three';
+import { TextureLoader, Vector3, MathUtils, Mesh } from 'three';
 import { OrbitControls } from '@react-three/drei';
 
 function MoonSphere({ phase }: { phase: number }) {
-    const meshRef = useRef<THREE.Mesh>(null);
+    const meshRef = useRef<Mesh>(null);
 
     // High-res texture for realism
     const texture = useLoader(TextureLoader, 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
@@ -103,14 +103,32 @@ const getMoonPhaseValue = (date: Date = new Date()) => {
     return phase < 0 ? phase + 1 : phase;
 };
 
+import { Sparkles } from '@react-three/drei';
+
 export const BackgroundMoon: React.FC = () => {
     const phase = useMemo(() => getMoonPhaseValue(new Date()), []);
 
     return (
         <div className="absolute inset-0 z-0 pointer-events-none" style={{ mixBlendMode: 'screen' }}>
             <Canvas camera={{ position: [0, 0, 7], fov: 45 }} gl={{ alpha: true, antialias: true }}>
+                <ambientLight intensity={0.1} />
+                <Stars />
                 <MoonSphere phase={phase} />
             </Canvas>
         </div>
     );
 };
+
+function Stars() {
+    return (
+        <Sparkles
+            count={2000}
+            scale={25}
+            size={2}
+            speed={0.4}
+            opacity={0.8}
+            noise={0.2}
+            color="#ffffff"
+        />
+    );
+}
