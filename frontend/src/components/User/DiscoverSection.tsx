@@ -348,43 +348,11 @@ export const DiscoverSection: React.FC = () => {
             }
 
         } else if (source === 'ratopati') {
-            // Ratopati Reader
+            // Ratopati is protected by Cloudflare WAF which blocks simple proxies.
+            // It also sets X-Frame-Options: SAMEORIGIN.
+            // Best UX is to open in new tab directly.
             e.preventDefault();
-            setReadingArticle(article);
-            setContentLoading(true);
-
-            try {
-                // Ratopati Proxy
-                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${article.link}`;
-                const res = await fetch(proxyUrl);
-                const html = await res.text();
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-
-                // Ratopati uses different selectors for English (.content-area) and Nepali (.the-content)
-                const contentEl = doc.querySelector('.the-content') || doc.querySelector('.content-area') || doc.querySelector('.ratopati-table-content-detail');
-
-                // Cleanup
-                if (contentEl) {
-                    contentEl.querySelectorAll(
-                        '.comment, .social-share, .share-buttons, .social-icons, .advertising, ins, script, style'
-                    ).forEach(el => el.remove());
-
-                    // Remove embedded banner links (often ads)
-                    contentEl.querySelectorAll('a').forEach(a => {
-                        if (a.querySelector('img')) a.remove();
-                    });
-                }
-
-                const fetchedContent = contentEl?.innerHTML || "";
-                const fullContent = fetchedContent.length > 50 ? fetchedContent : article.description;
-
-                setReadingArticle(prev => prev ? { ...prev, content: fullContent } : null);
-            } catch (err) {
-                console.error("Ratopati fetch error:", err);
-            } finally {
-                setContentLoading(false);
-            }
-
+            window.open(article.link, '_blank');
         } else if (source === 'epaper') {
             // ePaper PDF Reader
             e.preventDefault();
