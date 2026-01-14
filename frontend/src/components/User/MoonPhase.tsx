@@ -40,7 +40,7 @@ export const MoonPhase: React.FC = () => {
             {/* 3D Moon Container */}
             <div className="relative w-56 h-56 md:w-64 md:h-64 z-10">
 
-                {/* 1. Base Sphere & Texture */}
+                {/* 1. Base Sphere & Texture (CSS Procedural) */}
                 <motion.div
                     initial={{ rotate: -5 }}
                     animate={{ rotate: 5 }}
@@ -50,7 +50,7 @@ export const MoonPhase: React.FC = () => {
                         repeatType: "reverse",
                         ease: "easeInOut"
                     }}
-                    className="relative w-full h-full rounded-full overflow-hidden shadow-[0_0_50px_rgba(200,200,255,0.15)] bg-black"
+                    className="relative w-full h-full rounded-full overflow-hidden shadow-[0_0_50px_rgba(200,200,255,0.15)] bg-slate-900"
                     style={{
                         // 3D Sphere Effect via Box Shadows
                         boxShadow: `
@@ -60,18 +60,30 @@ export const MoonPhase: React.FC = () => {
                         `
                     }}
                 >
-                    {/* Realistic Texture Map (NASA Clementine or similar high-contrast) */}
-                    <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg"
-                        alt="Moon Surface"
-                        className="absolute inset-0 w-full h-full object-cover scale-[1.05] contrast-[1.1] grayscale-[0.2]"
-                    />
+                    {/* Realistic Texture Map (CSS Gradient Fallback) */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-400 rounded-full">
+                        {/* Craters Pattern */}
+                        <div className="absolute w-[20%] h-[20%] top-[25%] left-[20%] bg-slate-500/10 rounded-full shadow-inner blur-[1px]"></div>
+                        <div className="absolute w-[15%] h-[15%] top-[60%] left-[30%] bg-slate-500/20 rounded-full shadow-inner blur-[1px]"></div>
+                        <div className="absolute w-[30%] h-[30%] top-[40%] right-[15%] bg-slate-400/20 rounded-full shadow-inner blur-[2px]"></div>
+                        <div className="absolute w-[10%] h-[10%] bottom-[20%] right-[35%] bg-slate-600/10 rounded-full shadow-inner"></div>
+
+                        {/* Noise Texture for Realism */}
+                        <div className="absolute inset-0 opacity-40 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+
+                        {/* Try to load real image, but fallback is visible if this fails */}
+                        <img
+                            src="https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg"
+                            alt="Moon Surface"
+                            className="absolute inset-0 w-full h-full object-cover scale-[1.05] contrast-[1.1] grayscale-[0.2] mix-blend-multiply opacity-80"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                        />
+                    </div>
 
                     {/* 2. Dynamic Shadow Mask (The Terminator) */}
                     <MoonShadowOverlay phase={phase} />
-
-                    {/* 3. Surface Detail Enhancer (Crater pops) */}
-                    <div className="absolute inset-0 rounded-full mix-blend-overlay opacity-30 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
 
                 </motion.div>
 
@@ -91,30 +103,16 @@ export const MoonPhase: React.FC = () => {
 };
 
 const MoonShadowOverlay: React.FC<{ phase: number }> = ({ phase }) => {
-    // Advanced Shadow Logic with Soft Edge (Blur)
-
-    // We use SVG filters to create a soft terminator line for realism.
-
-    const r = 50;
-
-    // Logic:
-    // Waxing (0 -> 0.5): Shadow is on Left. Light grows from Right.
-    // Waning (0.5 -> 1.0): Shadow is on Right. Light shrinks to Left.
-
     const angle = phase * 2 * Math.PI;
-    const x = -50 * Math.cos(angle);
-
-    let d = "";
-
-    // Projection of the terminator onto the 2D disk.
-    // The curve is a semi-ellipse with horizontal radius |rx|.
-
     const rx = Math.abs(50 * Math.cos(angle));
+    let d = "";
 
     if (phase <= 0.5) {
         // WAXING (Growing Light)
         const isCrescent = phase < 0.25;
-        const sweep = isCrescent ? 1 : 0;
+        // Crescent: Shadow is Gibbous (Left Semicircle + Right Bulge). Right Bulge = Sweep 0.
+        // Gibbous: Shadow is Crescent (Left Semicircle + Left Bulge). Left Bulge = Sweep 1.
+        const sweep = isCrescent ? 0 : 1;
 
         // Outer Arc: Left Edge.
         d = `M 50 0 A 50 50 0 0 0 50 100 A ${rx} 50 0 0 ${sweep} 50 0`;
@@ -122,13 +120,15 @@ const MoonShadowOverlay: React.FC<{ phase: number }> = ({ phase }) => {
     } else {
         // WANING (Shrinking Light)
         const isGibbous = phase < 0.75;
+        // Gibbous: Shadow is Crescent (Right Semicircle + Right Bulge). Right Bulge = Sweep 0.
+        // Crescent: Shadow is Gibbous (Right Semicircle + Left Bulge). Left Bulge = Sweep 1.
         const sweep = isGibbous ? 0 : 1;
 
         // Outer Arc: Right Edge.
         d = `M 50 0 A 50 50 0 0 1 50 100 A ${rx} 50 0 0 ${sweep} 50 0`;
     }
 
-    // Special 'Full Moon' visibility fix
+    // Special visibility fix for near-full moon to prevent artifacts
     const opacity = (phase > 0.48 && phase < 0.52) ? 0 : 0.85;
 
     return (
