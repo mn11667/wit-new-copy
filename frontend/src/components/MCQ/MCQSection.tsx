@@ -106,7 +106,7 @@ export const MCQSection: React.FC = () => {
             const data = parseCSV(text);
 
             const formattedQuestions: Question[] = data
-                .filter((row: any) => row.question && row['right ans'])
+                .filter((row: any) => row.question && (row['right ans'] || row['answer']))
                 .map((row: any, index: number) => ({
                     id: index,
                     question: row.question,
@@ -116,7 +116,7 @@ export const MCQSection: React.FC = () => {
                         'option c': row['option c'],
                         'option d': row['option d'],
                     },
-                    correctAnswer: row['right ans']?.toLowerCase().trim(),
+                    correctAnswer: (row['right ans'] || row['answer'])?.toLowerCase().trim(),
                     remarks: row.remarks,
                 }));
 
@@ -645,6 +645,18 @@ export const MCQSection: React.FC = () => {
 
     // --- PLAYING VIEW ---
     const currentQ = questions[currentIndex];
+
+    if (!currentQ) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 animate-in fade-in">
+                <div className="text-center space-y-4">
+                    <p className="text-xl text-slate-400">No questions available.</p>
+                    <p className="text-sm text-slate-500">The question bank might be empty or failed to load correctly.</p>
+                    <Button onClick={restartSetup} variant="primary">Return to Menu</Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full max-w-3xl mx-auto space-y-6">
