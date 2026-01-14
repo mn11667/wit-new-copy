@@ -24,9 +24,10 @@ interface UserAnswer {
     remarks: string;
 }
 
-const SHEET_URL = import.meta.env.VITE_MCQ_SHEET_URL || '';
+const DEFAULT_SHEET_URL = import.meta.env.VITE_MCQ_SHEET_URL || '';
+const LICENSE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1OeJqlFSmtccB2KqoQY4W3E2N_qMt4eSvnbFjTIUUDQ4/export?format=csv';
 
-if (!SHEET_URL) {
+if (!DEFAULT_SHEET_URL) {
     console.warn('VITE_MCQ_SHEET_URL is not defined in environment variables');
 }
 
@@ -38,6 +39,7 @@ export const MCQSection: React.FC = () => {
 
     // Phases: loading -> setup -> quiz -> finished
     const [phase, setPhase] = useState<'loading' | 'setup' | 'quiz' | 'finished'>('loading');
+    const [currentSource, setCurrentSource] = useState<'default' | 'license'>('default');
 
     // Setup State
     const [customCount, setCustomCount] = useState(10);
@@ -62,7 +64,7 @@ export const MCQSection: React.FC = () => {
     const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
     useEffect(() => {
-        fetchQuestions();
+        fetchQuestions(DEFAULT_SHEET_URL);
         return () => stopTimer();
     }, []);
 
@@ -93,12 +95,12 @@ export const MCQSection: React.FC = () => {
         }
     };
 
-    const fetchQuestions = async () => {
+    const fetchQuestions = async (url: string = DEFAULT_SHEET_URL, source: 'default' | 'license' = 'default') => {
         setLoading(true);
         const startTime = Date.now(); // Start timer
 
         try {
-            const response = await fetch(SHEET_URL);
+            const response = await fetch(url);
             const text = await response.text();
             const data = parseCSV(text);
 
@@ -118,19 +120,22 @@ export const MCQSection: React.FC = () => {
                 }));
 
             setAllQuestions(formattedQuestions);
+            setCurrentSource(source);
             setPhase('setup');
 
             // Default count adjustment if fewer questions exist
             if (formattedQuestions.length < 10) {
                 setCustomCount(formattedQuestions.length);
+            } else {
+                setCustomCount(10); // Reset to default 10
             }
         } catch (err) {
             setError('Failed to load questions. Please check your connection.');
             console.error(err);
         } finally {
-            // Force minimum 5 seconds load time for the "hacker" effect
+            // Force minimum 2 seconds load time for the "hacker" effect (reduced from 5 for better UX on switch)
             const elapsed = Date.now() - startTime;
-            const remaining = 5000 - elapsed;
+            const remaining = 2000 - elapsed;
             if (remaining > 0) {
                 await new Promise(resolve => setTimeout(resolve, remaining));
             }
@@ -214,6 +219,14 @@ export const MCQSection: React.FC = () => {
         setAiExplanation(null);
     };
 
+    const switchSource = (source: 'default' | 'license') => {
+        if (source === 'license') {
+            fetchQuestions(LICENSE_SHEET_URL, 'license');
+        } else {
+            fetchQuestions(DEFAULT_SHEET_URL, 'default');
+        }
+    };
+
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
@@ -244,7 +257,6 @@ export const MCQSection: React.FC = () => {
         `;
 
         // List of models to try in order of preference/availability
-        // Using "gemini-flash-latest" as an alias often points to the current active flash model
         const availableModels = [
             'gemini-flash-latest',       // Standard Flash
             'gemini-flash-lite-latest',  // Lite Flash (Very fast/cheap)
@@ -275,7 +287,6 @@ export const MCQSection: React.FC = () => {
                 }
 
                 if (!response.ok) {
-                    // If it's another error (like 404 for invalid model name), try next just in case
                     console.warn(`Model ${modelName} failed with status ${response.status}. Switching to next model...`);
                     continue;
                 }
@@ -317,48 +328,48 @@ export const MCQSection: React.FC = () => {
             };
             const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
+            const isLicense = currentSource === 'license';
+
             // Initial Sequence
             const startupLogs = [
                 "INITIALIZING_SEARCH_MODULE...",
                 "CONNECTING_TO_GLOBAL_ARCHIVES...",
-                "SCANNING_INTERNET_FOR_NEW_QUESTIONS...",
-                "DETECTED_SOURCE: LOKSEWA_2080_SET_A",
-                "DETECTED_SOURCE: NEA_PAST_PAPERS_VOL_3"
+                isLicense ? "ACCESSING_DEPARTMENT_OF_MANAGEMENT..." : "SCANNING_INTERNET_FOR_NEW_QUESTIONS...",
+                isLicense ? "DETECTED_SOURCE: VEHICLE_LICENSE_DB" : "DETECTED_SOURCE: LOKSEWA_2080_SET_A",
+                "VERIFYING_SECURE_CONNECTION..."
             ];
 
             for (const log of startupLogs) {
                 if (!isMounted) return;
                 addLog(log);
-                await delay(400);
+                await delay(300);
             }
 
             // Rapid Download Sequence (0% to 100%)
-            for (let i = 0; i <= 100; i += 4) { // Step by 4% to fit time
+            for (let i = 0; i <= 100; i += 5) { // Faster loading
                 if (!isMounted) return;
                 addLog(`DOWNLOADING_QUESTION_PACKETS [${i}%]`);
-                await delay(30); // Very fast
+                await delay(20);
             }
 
             // Final Sequence
             const finalLogs = [
                 "VERIFYING_ANSWER_KEYS...",
                 "OPTIMIZING_DIFFICULTY_CURVE...",
-                "SYNCING_USER_PROFILE...",
-                "GENERATING_UNIQUE_SESSION_ID...",
                 "READY_TO_LAUNCH."
             ];
 
             for (const log of finalLogs) {
                 if (!isMounted) return;
                 addLog(log);
-                await delay(400);
+                await delay(200);
             }
         };
 
         runSequence();
 
         return () => { isMounted = false; };
-    }, [loading]);
+    }, [loading, currentSource]);
 
     if (loading) {
         return (
@@ -401,23 +412,44 @@ export const MCQSection: React.FC = () => {
         return (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6 text-center text-red-200">
                 <p>{error}</p>
-                <Button variant="ghost" onClick={fetchQuestions} className="mt-4">Try Again</Button>
+                <Button variant="ghost" onClick={() => fetchQuestions(DEFAULT_SHEET_URL)} className="mt-4">Try Again</Button>
             </div>
         );
     }
 
     // --- SETUP VIEW ---
     if (phase === 'setup') {
+        const isLicense = currentSource === 'license';
+
         return (
-            <div className="flex flex-col items-center justify-center py-10 space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                <div className="text-center space-y-2">
-                    <h2 className="text-3xl font-bold text-white">Target Practice</h2>
-                    <p className="text-slate-400">Choose your challenge mode</p>
+            <div className="flex flex-col items-center justify-center py-10 space-y-12 animate-in fade-in slide-in-from-bottom-4">
+                <div className="text-center space-y-3">
+                    <div className="flex items-center justify-center gap-2">
+                        {isLicense && (
+                            <Button
+                                variant="ghost"
+                                className="text-xs text-slate-400 hover:text-white absolute left-4 md:left-20 top-24" // positioned absolutely or appropriately
+                                onClick={() => switchSource('default')}
+                            >
+                                ← Back to General
+                            </Button>
+                        )}
+                    </div>
+
+                    <h2 className="text-3xl font-bold text-white">
+                        {isLicense ? 'Vehicle License Prep' : 'Target Practice'}
+                    </h2>
+                    <p className="text-slate-400">
+                        {isLicense
+                            ? 'Specialized question bank for vehicle license examination'
+                            : 'Choose your challenge mode from the general library'
+                        }
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
                     {/* Custom Mode */}
-                    <div className="p-8 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm space-y-8 flex flex-col justify-between">
+                    <div className="p-8 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm space-y-8 flex flex-col justify-between hover:border-emerald-500/30 transition-colors">
                         <div className="space-y-4">
                             <h3 className="text-xl font-semibold text-emerald-400">Custom Practice</h3>
                             <p className="text-sm text-slate-400">Tailor your session with a specific number of questions.</p>
@@ -448,8 +480,8 @@ export const MCQSection: React.FC = () => {
                     </div>
 
                     {/* Exam Mode */}
-                    <div className="p-8 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl backdrop-blur-sm space-y-8 flex flex-col justify-between relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <div className="p-8 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl backdrop-blur-sm space-y-8 flex flex-col justify-between relative overflow-hidden group hover:border-blue-400/40 transition-all">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" /></svg>
                         </div>
                         <div className="space-y-4 relative z-10">
@@ -475,6 +507,32 @@ export const MCQSection: React.FC = () => {
                         </Button>
                     </div>
                 </div>
+
+                {/* Specialized Exams Section - Only show if in Default mode */}
+                {!isLicense && (
+                    <div className="w-full max-w-4xl pt-8 border-t border-white/5">
+                        <h3 className="text-lg font-semibold text-slate-300 mb-6">Specialized Question Banks</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                            <button
+                                onClick={() => switchSource('license')}
+                                className="group relative p-6 rounded-xl border border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10 transition-all text-left flex items-center gap-4 hover:border-yellow-500/50"
+                            >
+                                <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                    🚗
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-yellow-200 group-hover:text-yellow-100">Vehicle License Exam</h4>
+                                    <p className="text-xs text-yellow-500/70 mt-1">Practice for your driving license test</p>
+                                </div>
+                                <div className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity text-yellow-400">
+                                    →
+                                </div>
+                            </button>
+
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -490,6 +548,7 @@ export const MCQSection: React.FC = () => {
                 <div className="text-center space-y-2">
                     <h2 className="text-4xl font-bold text-white">Session Report</h2>
                     <p className="text-slate-400">{isExamMode ? 'Mock Exam' : 'Practice Session'} Completed</p>
+                    {currentSource === 'license' && <p className="text-xs text-yellow-500/80 font-mono">VEHICLE_LICENSE_MODE</p>}
                 </div>
 
                 {/* Stats Cards */}
@@ -576,7 +635,7 @@ export const MCQSection: React.FC = () => {
 
                 <div className="sticky bottom-4 w-full flex justify-center">
                     <Button variant="primary" onClick={restartSetup} className="px-8 py-3 text-lg shadow-xl shadow-black/50">
-                        Start New Practice
+                        Start New {currentSource === 'license' ? 'License Test' : 'Practice'}
                     </Button>
                 </div>
             </div>
