@@ -107,18 +107,26 @@ export const MCQSection: React.FC = () => {
 
             const formattedQuestions: Question[] = data
                 .filter((row: any) => row.question && (row['right ans'] || row['answer']))
-                .map((row: any, index: number) => ({
-                    id: index,
-                    question: row.question,
-                    options: {
-                        'option a': row['option a'],
-                        'option b': row['option b'],
-                        'option c': row['option c'],
-                        'option d': row['option d'],
-                    },
-                    correctAnswer: (row['right ans'] || row['answer'])?.toLowerCase().trim(),
-                    remarks: row.remarks,
-                }));
+                .map((row: any, index: number) => {
+                    let rawAns = (row['right ans'] || row['answer'])?.toLowerCase().trim();
+                    // Normalize single letter answers (e.g. 'a' -> 'option a')
+                    if (rawAns && rawAns.length === 1 && ['a', 'b', 'c', 'd'].includes(rawAns)) {
+                        rawAns = `option ${rawAns}`;
+                    }
+
+                    return {
+                        id: index,
+                        question: row.question,
+                        options: {
+                            'option a': row['option a'],
+                            'option b': row['option b'],
+                            'option c': row['option c'],
+                            'option d': row['option d'],
+                        },
+                        correctAnswer: rawAns,
+                        remarks: row.remarks,
+                    };
+                });
 
             setAllQuestions(formattedQuestions);
             setCurrentSource(source);
