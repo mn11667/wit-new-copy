@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader, Vector3, MathUtils, Mesh } from 'three';
 import { OrbitControls } from '@react-three/drei';
@@ -94,6 +94,7 @@ function MoonSphere({ phase }: { phase: number }) {
 }
 
 // Helper to get phase
+// Helper to get phase
 const getMoonPhaseValue = (date: Date = new Date()) => {
     const synodic = 29.53058867;
     const knownNewMoon = new Date(Date.UTC(2000, 0, 6, 12, 24, 0));
@@ -103,7 +104,7 @@ const getMoonPhaseValue = (date: Date = new Date()) => {
     return phase < 0 ? phase + 1 : phase;
 };
 
-import { Sparkles } from '@react-three/drei';
+import { ShaderMaterial, BufferGeometry, Float32BufferAttribute, AdditiveBlending, Color, Points } from 'three';
 
 export const BackgroundMoon: React.FC = () => {
     const phase = useMemo(() => getMoonPhaseValue(new Date()), []);
@@ -112,23 +113,189 @@ export const BackgroundMoon: React.FC = () => {
         <div className="absolute inset-0 z-0 pointer-events-none" style={{ mixBlendMode: 'screen' }}>
             <Canvas camera={{ position: [0, 0, 7], fov: 45 }} gl={{ alpha: true, antialias: true }}>
                 <ambientLight intensity={0.1} />
-                <Stars />
+                <StarField />
+                <ShootingStarsController />
                 <MoonSphere phase={phase} />
             </Canvas>
         </div>
     );
 };
 
-function Stars() {
+// --- STATIONARY TWINKLING STAR FIELD ---
+function StarField({ count = 1500 }) {
+    const mesh = useRef<Points>(null);
+
+    const [positions, sizes, randoms] = useMemo(() => {
+        const p = new Float32Array(count * 3);
+        const s = new Float32Array(count);
+        const r = new Float32Array(count);
+
+        for (let i = 0; i < count; i++) {
+            // Distribute stars on a large sphere (distant background)
+            const theta = 2 * Math.PI * Math.random();
+            const phi = Math.acos(2 * Math.random() - 1);
+            const radius = 60 + Math.random() * 40; // distant
+
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.sin(phi) * Math.sin(theta);
+            const z = radius * Math.cos(phi);
+
+            p[i * 3] = x;
+            p[i * 3 + 1] = y;
+            p[i * 3 + 2] = z;
+
+            s[i] = 0.5 + Math.random() * 1.5;
+            r[i] = Math.random();
+        }
+        return [p, s, r];
+    }, [count]);
+
+    const materialRef = useRef<ShaderMaterial>(null);
+
+    useFrame((state) => {
+        if (materialRef.current) {
+            materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
+        }
+    });
+
+    const shader = {
+        vertex: `
+        attribute float size;
+        attribute float random;
+        varying float vRandom;
+        void main() {
+            vRandom = random;
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = size * (300.0 / -mvPosition.z);
+            gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+        fragment: `
+        uniform float uTime;
+        varying float vRandom;
+        void main() {
+            // Circle shape for point
+            vec2 xy = gl_PointCoord.xy - vec2(0.5);
+            float ll = length(xy);
+            if(ll > 0.5) discard;
+            
+            // Twinkle logic: varying sine waves based on random attribute
+            float twinkle = sin(uTime * (1.0 + vRandom) + vRandom * 10.0) * 0.5 + 0.5;
+            // Base opacity + twinkle strength
+            float opacity = 0.2 + 0.8 * twinkle;
+            
+            // Center glow
+            float glow = 1.0 - (ll * 2.0);
+            glow = pow(glow, 1.5);
+            
+            gl_FragColor = vec4(1.0, 1.0, 1.0, opacity * glow);
+        }
+      `
+    };
+
     return (
-        <Sparkles
-            count={2000}
-            scale={25}
-            size={2}
-            speed={0.4}
-            opacity={0.8}
-            noise={0.2}
-            color="#ffffff"
-        />
+        <points ref={mesh}>
+            <bufferGeometry>
+                <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
+                <bufferAttribute attach="attributes-size" count={sizes.length} array={sizes} itemSize={1} />
+                <bufferAttribute attach="attributes-random" count={randoms.length} array={randoms} itemSize={1} />
+            </bufferGeometry>
+            <shaderMaterial
+                ref={materialRef}
+                vertexShader={shader.vertex}
+                fragmentShader={shader.fragment}
+                transparent
+                depthWrite={false}
+                blending={AdditiveBlending}
+                uniforms={{ uTime: { value: 0 } }}
+            />
+        </points>
+    );
+}
+
+// --- SHOOTING STARS SYSTEM ---
+function ShootingStarsController() {
+    // We'll manage a single active shooting star for simplicity and realism
+    const mesh = useRef<Mesh>(null);
+    const [active, setActive] = useState(false);
+
+    // Properties strictly for the animation frame
+    const starData = useRef({
+        pos: new Vector3(),
+        vel: new Vector3(),
+        hasTail: false,
+        life: 0,
+        maxLife: 0,
+        color: new Color()
+    });
+
+    const spawn = () => {
+        // Spawn high up
+        const x = (Math.random() - 0.5) * 60;
+        const y = 30 + Math.random() * 20;
+        const z = -20 + (Math.random() - 0.5) * 20;
+
+        // Velocity (downwards and sideways)
+        const vx = (Math.random() - 0.5) * 20;
+        const vy = -(20 + Math.random() * 20); // Fast downward
+        const vz = (Math.random() - 0.5) * 5;
+
+        starData.current.pos.set(x, y, z);
+        starData.current.vel.set(vx, vy, vz);
+        starData.current.hasTail = Math.random() > 0.4; // 60% chance of tail
+        starData.current.life = 0;
+        starData.current.maxLife = 1.0 + Math.random() * 1.0; // 1-2 seconds
+
+        setActive(true);
+
+        if (mesh.current) {
+            mesh.current.position.copy(starData.current.pos);
+
+            const target = starData.current.pos.clone().add(starData.current.vel);
+            mesh.current.lookAt(target);
+            mesh.current.rotateX(Math.PI / 2); // Align cylinder Y (length) with look direction
+        }
+    };
+
+    useFrame((state, delta) => {
+        if (!active) {
+            // Chance to spawn
+            if (Math.random() < 0.003) { // ~ once per 5-6 seconds at 60fps
+                spawn();
+            }
+            return;
+        }
+
+        const data = starData.current;
+        data.life += delta;
+        data.pos.addScaledVector(data.vel, delta);
+
+        if (mesh.current) {
+            mesh.current.position.copy(data.pos);
+        }
+
+        if (data.life > data.maxLife) {
+            setActive(false);
+        }
+    });
+
+    if (!active) return null;
+
+    return (
+        <mesh ref={mesh}>
+            {starData.current.hasTail ? (
+                // Tail: Tapered cylinder
+                <cylinderGeometry args={[0, 0.2, 8, 4]} /> // TopRadius 0 (tip), Bottom 0.2, Height 8
+            ) : (
+                // No Tail: Just a sphere/dot
+                <sphereGeometry args={[0.2, 8, 8]} />
+            )}
+            <meshBasicMaterial
+                color="#ffffff"
+                transparent
+                opacity={Math.max(0, 1 - (starData.current.life / starData.current.maxLife))}
+                blending={AdditiveBlending}
+            />
+        </mesh>
     );
 }
