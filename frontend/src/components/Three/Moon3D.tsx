@@ -134,17 +134,17 @@ function StarField({ count = 2000 }) {
             // Distribute stars on a sphere but closer so they are visible
             const theta = 2 * Math.PI * Math.random();
             const phi = Math.acos(2 * Math.random() - 1);
-            const radius = 30 + Math.random() * 50; // Closer range [30, 80]
+            const radius = 30 + Math.random() * 50;
 
             const x = radius * Math.sin(phi) * Math.cos(theta);
             const y = radius * Math.sin(phi) * Math.sin(theta);
-            const z = -Math.abs(radius * Math.cos(phi)); // Mostly in front hemisphere (Z negative is into screen)
+            const z = -Math.abs(radius * Math.cos(phi));
 
             p[i * 3] = x;
             p[i * 3 + 1] = y;
             p[i * 3 + 2] = z;
 
-            s[i] = 1.0 + Math.random() * 2.5; // Bigger base size
+            s[i] = 1.0 + Math.random() * 2.5;
             r[i] = Math.random();
         }
         return [p, s, r];
@@ -179,9 +179,10 @@ function StarField({ count = 2000 }) {
             float ll = length(xy);
             if(ll > 0.5) discard;
             
-            // Faster, more noticeable twinkle
-            float twinkle = sin(uTime * (3.0 + vRandom * 5.0) + vRandom * 10.0) * 0.5 + 0.5;
-            float opacity = 0.4 + 0.6 * twinkle;
+            // Randomize phase significantly (vRandom * 100.0) so they don't blink together
+            // Randomize speed (1.0 + vRandom * 4.0)
+            float twinkle = sin(uTime * (1.0 + vRandom * 4.0) + vRandom * 100.0) * 0.5 + 0.5;
+            float opacity = 0.3 + 0.7 * twinkle;
             
             float glow = 1.0 - (ll * 2.0);
             glow = pow(glow, 2.0);
@@ -226,24 +227,30 @@ function ShootingStarsController() {
     });
 
     const spawn = () => {
-        console.log('Spawn meteor'); // Debug
-        // Spawn high up and wide
-        const x = (Math.random() - 0.5) * 50;
-        const y = 20 + Math.random() * 10;
-        // Z: Spawn IN FRONT of the moon (Moon at 0, Camera at 7). 
-        // Range 1 to 4 ensures it passes in front but not too close to camera.
-        const z = 1 + Math.random() * 3;
+        // Spawn IN FRUSTUM.
+        // At Z=0 (dist 7), visible Height is ~ +/-3, Width ~ +/-3 (depending on aspect, but assume square-ish safe zone)
+        // At Z=3 (dist 4), visible Height is ~ +/-1.6
 
-        // Velocity: Diagonally down
-        const vx = (Math.random() - 0.5) * 15;
-        const vy = -(15 + Math.random() * 15); // Fast downward
+        const z = Math.random() * 4; // Between moon (0) and camera (7), closer to moon
+        // Calculate safe Y start based on Z to ensure it's just above screen
+        const dist = 7 - z;
+        const visibleHeightAtZ = 2 * dist * Math.tan(Math.PI / 8); // 45deg / 2 = 22.5deg
+        // tan(22.5) = 0.414.
+        const halfH = dist * 0.414;
+
+        const x = (Math.random() - 0.5) * (halfH * 2.5); // Spread logic
+        const y = halfH + 1 + Math.random() * 2; // Pass start Y
+
+        // Velocity
+        const vx = (Math.random() - 0.5) * 5;
+        const vy = -(5 + Math.random() * 8); // 5 to 13 units/sec.
         const vz = (Math.random() - 0.5) * 2;
 
         starData.current.pos.set(x, y, z);
         starData.current.vel.set(vx, vy, vz);
-        starData.current.hasTail = Math.random() > 0.3; // 70% chance of tail
+        starData.current.hasTail = Math.random() > 0.3; // 70% tail
         starData.current.life = 0;
-        starData.current.maxLife = 1.0 + Math.random(); // 1-2s duration
+        starData.current.maxLife = 1.0 + Math.random() * 0.5;
 
         setActive(true);
 
@@ -251,7 +258,7 @@ function ShootingStarsController() {
             mesh.current.position.copy(starData.current.pos);
             const target = starData.current.pos.clone().add(starData.current.vel);
             mesh.current.lookAt(target);
-            mesh.current.rotateX(Math.PI / 2); // Align cylinder
+            mesh.current.rotateX(Math.PI / 2);
         }
     };
 
@@ -282,11 +289,9 @@ function ShootingStarsController() {
     return (
         <mesh ref={mesh}>
             {starData.current.hasTail ? (
-                // Very thick tail for visibility check
-                <cylinderGeometry args={[0, 0.4, 12, 8]} />
+                <cylinderGeometry args={[0, 0.3, 8, 8]} />
             ) : (
-                // Big dot
-                <sphereGeometry args={[0.4, 16, 16]} />
+                <sphereGeometry args={[0.3, 16, 16]} />
             )}
             <meshBasicMaterial
                 color="#ffffff"
