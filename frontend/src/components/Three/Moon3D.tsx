@@ -6,10 +6,20 @@ import { OrbitControls } from '@react-three/drei';
 function MoonSphere({ phase }: { phase: number }) {
     const meshRef = useRef<Mesh>(null);
 
-    // High-res texture for realism
-    const texture = useLoader(TextureLoader, 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
-    // Optional bump map for crater depth (reusing texture works reasonably well for simple bump if contrast is high, but dedicated is better)
-    // For production, we'd use a separate normal map, but this is a solid start.
+    // High-quality moon texture with fallback
+    const textureUrl = useMemo(() => {
+        // Try multiple sources for best quality
+        const urls = [
+            'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/lroc_color_poles_1k.jpg',
+            'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg',
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/1024px-FullMoon2010.jpg'
+        ];
+        return urls[0]; // Primary high-quality source
+    }, []);
+
+    const texture = useLoader(TextureLoader, textureUrl, undefined, (error) => {
+        console.warn('Moon texture failed to load, using fallback');
+    });
 
     useFrame((state, delta) => {
         if (meshRef.current) {
@@ -19,53 +29,9 @@ function MoonSphere({ phase }: { phase: number }) {
     });
 
     // Calculate Sun Position based on Phase
-    // Phase 0 = New Moon (Sun behind Moon) -> Light at Z = -10
-    // Phase 0.5 = Full Moon (Sun behind Camera) -> Light at Z = 10
-    // Phase 0.25 = First Quarter -> Light at X = 10 (Right side illuminated)
-    // Logic: 
-    // We want the light to orbit the moon.
-    // Angle: 
-    // New Moon (0) -> Sun is "behind" moon from Earth perspective.
-    // Full Moon (0.5) -> Sun is "behind" Earth (camera).
-
     const sunPosition = useMemo(() => {
-        // Convert phase (0..1) to angle (0..2*PI)
-        // Phase 0 starts at angle PI (back) if we consider 0 is front? 
-        // Let's model it: 
-        // Camera is at (0, 0, 5). Moon at (0,0,0).
-        // Sun orbit radius.
         const r = 20;
-
-        // We map phase to sun angle.
-        // New Moon (0.00): Sun at (0, 0, -r). Angle = PI.
-        // Waxing Crescent -> Sun moves to right.
-        // First Quarter (0.25): Sun at (r, 0, 0). Angle = PI/2? No, standard trig:
-        // Let angle theta be 0 at Z+ (Full Moon).
-        // Then theta = PI at Z- (New Moon).
-
-        // Phase 0.5 (Full) -> Angle 0
-        // Phase 0.0 (New) -> Angle PI
-        // Phase 0.25 (First Q) -> Angle -PI/2 (Light from Right?) 
-        // Let's refine.
-        // Phase 0 -> Sun behind Moon -> Z negative.
-        // Phase 0.5 -> Sun front -> Z positive.
-        // As phase increases 0 -> 0.5, sun moves from behind to front. 
-        // Usually Waxing is "Right side lit". So Light is at X+. 
-
-        const angle = (phase - 0.5) * 2 * Math.PI;
-        // If phase = 0.5 -> angle = 0. cos(0)=1 (Z+). Correct.
-        // If phase = 0 -> angle = -PI. cos(-PI)=-1 (Z-). Correct.
-        // If phase = 0.25 -> angle = -0.5PI. sin(-0.5PI) = -1. X is -r? That implies Left.
-        // We want Right lit. So maybe `-(phase-0.5)` or flip the axis.
-
-        const x = Math.sin(angle) * r; // Check: Phase 0.25 -> angle -PI/2 -> sin(-PI/2)=-1 -> X negative. (Left).
-        // We want Right side illumination for First Quarter (northern hemisphere).
-        // So let's invert the angle direction.
-
         const theta = (0.5 - phase) * 2 * Math.PI;
-        // Phase 0.5 -> 0. Full.
-        // Phase 0.25 -> 0.25 * 2PI = PI/2. sin(PI/2)=1. X+. Right side lit. Correct.
-
         return new Vector3(Math.sin(theta) * r, 0, Math.cos(theta) * r);
     }, [phase]);
 
@@ -73,20 +39,25 @@ function MoonSphere({ phase }: { phase: number }) {
         <>
             <directionalLight
                 position={sunPosition}
-                intensity={2.5}
-                castShadow={false} // Performance
+                intensity={3.0}
+                castShadow={false}
             />
-            {/* Ambient light for the dark side (Earthshine) - very low */}
-            <ambientLight intensity={0.05} color="#334455" />
+            {/* Ambient light for the dark side (Earthshine) */}
+            <ambientLight intensity={0.08} color="#4a5f8a" />
 
-            <mesh ref={meshRef} rotation={[0.1, 0, 0]}> {/* Slight tilt */}
-                <sphereGeometry args={[2, 64, 64]} />
+            {/* Subtle rim light for depth */}
+            <pointLight position={[-5, 2, 5]} intensity={0.3} color="#ffffff" distance={15} />
+
+            <mesh ref={meshRef} rotation={[0.1, 0, 0]}>
+                <sphereGeometry args={[2, 128, 128]} />
                 <meshStandardMaterial
                     map={texture}
                     bumpMap={texture}
-                    bumpScale={0.05}
-                    roughness={0.8}
-                    metalness={0.1}
+                    bumpScale={0.08}
+                    roughness={0.9}
+                    metalness={0.05}
+                    emissive="#000000"
+                    emissiveIntensity={0}
                 />
             </mesh>
         </>
@@ -122,13 +93,14 @@ export const BackgroundMoon: React.FC = () => {
 };
 
 // --- STATIONARY TWINKLING STAR FIELD ---
-function StarField({ count = 2000 }) {
+function StarField({ count = 2500 }) {
     const mesh = useRef<Points>(null);
 
-    const [positions, sizes, randoms] = useMemo(() => {
+    const [positions, sizes, randoms, brightness] = useMemo(() => {
         const p = new Float32Array(count * 3);
         const s = new Float32Array(count);
         const r = new Float32Array(count);
+        const b = new Float32Array(count); // Base brightness
 
         for (let i = 0; i < count; i++) {
             // Distribute stars on a sphere but closer so they are visible
@@ -144,10 +116,19 @@ function StarField({ count = 2000 }) {
             p[i * 3 + 1] = y;
             p[i * 3 + 2] = z;
 
-            s[i] = 1.0 + Math.random() * 2.5;
+            // Size variation: mostly small, few large
+            const sizeRoll = Math.random();
+            if (sizeRoll > 0.95) s[i] = 2.5 + Math.random() * 1.5; // Bright stars
+            else if (sizeRoll > 0.85) s[i] = 1.8 + Math.random() * 1.0; // Medium
+            else s[i] = 0.8 + Math.random() * 1.2; // Small/dim
+
             r[i] = Math.random();
+
+            // Base brightness variation (0.3 to 1.0)
+            // Power distribution favoring brighter stars but with good dim variety
+            b[i] = 0.3 + Math.pow(Math.random(), 1.5) * 0.7;
         }
-        return [p, s, r];
+        return [p, s, r, b];
     }, [count]);
 
     const materialRef = useRef<ShaderMaterial>(null);
@@ -162,9 +143,12 @@ function StarField({ count = 2000 }) {
         vertex: `
         attribute float size;
         attribute float random;
+        attribute float brightness;
         varying float vRandom;
+        varying float vBrightness;
         void main() {
             vRandom = random;
+            vBrightness = brightness;
             vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
             // Increased scale factor for visibility
             gl_PointSize = size * (400.0 / -mvPosition.z);
@@ -174,20 +158,33 @@ function StarField({ count = 2000 }) {
         fragment: `
         uniform float uTime;
         varying float vRandom;
+        varying float vBrightness;
         void main() {
             vec2 xy = gl_PointCoord.xy - vec2(0.5);
             float ll = length(xy);
             if(ll > 0.5) discard;
             
             // Randomize phase significantly (vRandom * 100.0) so they don't blink together
-            // Randomize speed (1.0 + vRandom * 4.0)
-            float twinkle = sin(uTime * (1.0 + vRandom * 4.0) + vRandom * 100.0) * 0.5 + 0.5;
-            float opacity = 0.3 + 0.7 * twinkle;
+            // Randomize speed (0.8 + vRandom * 3.5)
+            float twinkle = sin(uTime * (0.8 + vRandom * 3.5) + vRandom * 100.0) * 0.5 + 0.5;
+            
+            // Apply base brightness + twinkle
+            float opacity = vBrightness * (0.5 + 0.5 * twinkle);
             
             float glow = 1.0 - (ll * 2.0);
             glow = pow(glow, 2.0);
             
-            gl_FragColor = vec4(1.0, 1.0, 1.0, opacity * glow);
+            // Subtle color tint for visual interest
+            vec3 color = vec3(1.0);
+            if (vBrightness > 0.8) {
+                // Brighter stars have slight blue tint
+                color = vec3(0.95, 0.97, 1.0);
+            } else if (vBrightness < 0.5) {
+                // Dimmer stars have slight warm tint
+                color = vec3(1.0, 0.98, 0.95);
+            }
+            
+            gl_FragColor = vec4(color, opacity * glow);
         }
       `
     };
@@ -198,6 +195,7 @@ function StarField({ count = 2000 }) {
                 <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
                 <bufferAttribute attach="attributes-size" count={sizes.length} array={sizes} itemSize={1} />
                 <bufferAttribute attach="attributes-random" count={randoms.length} array={randoms} itemSize={1} />
+                <bufferAttribute attach="attributes-brightness" count={brightness.length} array={brightness} itemSize={1} />
             </bufferGeometry>
             <shaderMaterial
                 ref={materialRef}
@@ -212,92 +210,111 @@ function StarField({ count = 2000 }) {
     );
 }
 
-// --- SHOOTING STARS SYSTEM ---
+// --- SHOOTING STARS SYSTEM WITH MULTIPLE SIMULTANEOUS STARS ---
+interface ShootingStar {
+    pos: Vector3;
+    vel: Vector3;
+    hasTail: boolean;
+    life: number;
+    maxLife: number;
+    color: Color;
+    size: number;
+    tailLength: number;
+}
+
 function ShootingStarsController() {
-    const mesh = useRef<Mesh>(null);
-    const [active, setActive] = useState(false);
+    const [stars, setStars] = useState<ShootingStar[]>([]);
+    const nextId = useRef(0);
 
-    const starData = useRef({
-        pos: new Vector3(),
-        vel: new Vector3(),
-        hasTail: false,
-        life: 0,
-        maxLife: 0,
-        color: new Color()
-    });
-
-    const spawn = () => {
-        // Spawn IN FRUSTUM.
-        // At Z=0 (dist 7), visible Height is ~ +/-3, Width ~ +/-3 (depending on aspect, but assume square-ish safe zone)
-        // At Z=3 (dist 4), visible Height is ~ +/-1.6
-
-        const z = Math.random() * 4; // Between moon (0) and camera (7), closer to moon
-        // Calculate safe Y start based on Z to ensure it's just above screen
+    const spawnStar = () => {
+        const z = Math.random() * 5; // Increased range
         const dist = 7 - z;
-        const visibleHeightAtZ = 2 * dist * Math.tan(Math.PI / 8); // 45deg / 2 = 22.5deg
-        // tan(22.5) = 0.414.
         const halfH = dist * 0.414;
 
-        const x = (Math.random() - 0.5) * (halfH * 2.5); // Spread logic
-        const y = halfH + 1 + Math.random() * 2; // Pass start Y
+        // More varied spawn positions
+        const x = (Math.random() - 0.5) * (halfH * 3);
+        const y = halfH + 1 + Math.random() * 3;
 
-        // Velocity
-        const vx = (Math.random() - 0.5) * 5;
-        const vy = -(5 + Math.random() * 8); // 5 to 13 units/sec.
-        const vz = (Math.random() - 0.5) * 2;
+        // More varied velocities
+        const vx = (Math.random() - 0.5) * 8;
+        const vy = -(6 + Math.random() * 12); // Faster falling
+        const vz = (Math.random() - 0.5) * 3;
 
-        starData.current.pos.set(x, y, z);
-        starData.current.vel.set(vx, vy, vz);
-        starData.current.hasTail = Math.random() > 0.3; // 70% tail
-        starData.current.life = 0;
-        starData.current.maxLife = 1.0 + Math.random() * 0.5;
+        // Varied colors - mostly white, some blue/gold tints
+        const colorChoice = Math.random();
+        let color = new Color('#ffffff');
+        if (colorChoice > 0.85) color = new Color('#fff4e6'); // Warm
+        else if (colorChoice > 0.7) color = new Color('#e6f3ff'); // Cool
 
-        setActive(true);
+        const newStar: ShootingStar = {
+            pos: new Vector3(x, y, z),
+            vel: new Vector3(vx, vy, vz),
+            hasTail: Math.random() > 0.2, // 80% have tails
+            life: 0,
+            maxLife: 1.2 + Math.random() * 0.8,
+            color,
+            size: 0.15 + Math.random() * 0.25,
+            tailLength: 6 + Math.random() * 8
+        };
 
-        if (mesh.current) {
-            mesh.current.position.copy(starData.current.pos);
-            const target = starData.current.pos.clone().add(starData.current.vel);
-            mesh.current.lookAt(target);
-            mesh.current.rotateX(Math.PI / 2);
-        }
+        setStars(prev => [...prev, newStar]);
     };
 
     useFrame((state, delta) => {
-        if (!active) {
-            // High spawn rate: ~3% chance per frame (approx 2 per second if idle)
-            if (Math.random() < 0.03) {
-                spawn();
-            }
-            return;
+        // METEOR SHOWER STORM MODE: Spawn meteors very frequently
+        // Adjusted spawn rate to quickly fill up to 200 meteors
+        if (Math.random() < 0.35 && stars.length < 200) { // 35% spawn rate, max 200 simultaneous meteors!
+            spawnStar();
         }
 
-        const data = starData.current;
-        data.life += delta;
-        data.pos.addScaledVector(data.vel, delta);
+        // Update existing stars
+        setStars(prev => {
+            return prev
+                .map(star => ({
+                    ...star,
+                    life: star.life + delta,
+                    pos: star.pos.clone().addScaledVector(star.vel, delta)
+                }))
+                .filter(star => star.life < star.maxLife); // Remove expired stars
+        });
+    });
 
-        if (mesh.current) {
-            mesh.current.position.copy(data.pos);
-        }
+    return (
+        <>
+            {stars.map((star, index) => (
+                <ShootingStar key={index} star={star} />
+            ))}
+        </>
+    );
+}
 
-        if (data.life > data.maxLife) {
-            setActive(false);
+function ShootingStar({ star }: { star: ShootingStar }) {
+    const meshRef = useRef<Mesh>(null);
+
+    useFrame(() => {
+        if (meshRef.current) {
+            meshRef.current.position.copy(star.pos);
+            const target = star.pos.clone().add(star.vel);
+            meshRef.current.lookAt(target);
+            meshRef.current.rotateX(Math.PI / 2);
         }
     });
 
-    if (!active) return null;
+    const opacity = Math.max(0, 1 - (star.life / star.maxLife));
+    const fadeIn = Math.min(1, star.life * 5); // Quick fade in
+    const finalOpacity = opacity * fadeIn;
 
     return (
-        <mesh ref={mesh}>
-            {starData.current.hasTail ? (
-                <cylinderGeometry args={[0, 0.3, 8, 8]} />
+        <mesh ref={meshRef}>
+            {star.hasTail ? (
+                <cylinderGeometry args={[0, star.size, star.tailLength, 8]} />
             ) : (
-                <sphereGeometry args={[0.3, 16, 16]} />
+                <sphereGeometry args={[star.size, 16, 16]} />
             )}
             <meshBasicMaterial
-                color="#ffffff"
+                color={star.color}
                 transparent
-                // Fade out at end of life
-                opacity={Math.max(0, 1 - (starData.current.life / starData.current.maxLife))}
+                opacity={finalOpacity}
                 blending={AdditiveBlending}
                 toneMapped={false}
             />
