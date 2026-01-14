@@ -226,21 +226,24 @@ function ShootingStarsController() {
     });
 
     const spawn = () => {
-        // Spawn within view frustum bounds roughly
-        const x = (Math.random() - 0.5) * 40;
-        const y = 20 + Math.random() * 10; // Start hig
-        const z = -10 - Math.random() * 20; // In front of camera (Z negative)
+        console.log('Spawn meteor'); // Debug
+        // Spawn high up and wide
+        const x = (Math.random() - 0.5) * 50;
+        const y = 20 + Math.random() * 10;
+        // Z: Spawn IN FRONT of the moon (Moon at 0, Camera at 7). 
+        // Range 1 to 4 ensures it passes in front but not too close to camera.
+        const z = 1 + Math.random() * 3;
 
         // Velocity: Diagonally down
-        const vx = (Math.random() - 0.5) * 10;
-        const vy = -(15 + Math.random() * 10); // Downward speed
-        const vz = (Math.random() - 0.5) * 5;
+        const vx = (Math.random() - 0.5) * 15;
+        const vy = -(15 + Math.random() * 15); // Fast downward
+        const vz = (Math.random() - 0.5) * 2;
 
         starData.current.pos.set(x, y, z);
         starData.current.vel.set(vx, vy, vz);
-        starData.current.hasTail = Math.random() > 0.4;
+        starData.current.hasTail = Math.random() > 0.3; // 70% chance of tail
         starData.current.life = 0;
-        starData.current.maxLife = 1.5 + Math.random(); // 1.5-2.5s duration
+        starData.current.maxLife = 1.0 + Math.random(); // 1-2s duration
 
         setActive(true);
 
@@ -254,8 +257,8 @@ function ShootingStarsController() {
 
     useFrame((state, delta) => {
         if (!active) {
-            // Increased spawn rate: ~1 per second (assuming 60fps, 0.015 chance)
-            if (Math.random() < 0.015) {
+            // High spawn rate: ~3% chance per frame (approx 2 per second if idle)
+            if (Math.random() < 0.03) {
                 spawn();
             }
             return;
@@ -279,11 +282,11 @@ function ShootingStarsController() {
     return (
         <mesh ref={mesh}>
             {starData.current.hasTail ? (
-                // Thicker tail for visibility
-                <cylinderGeometry args={[0, 0.3, 10, 4]} />
+                // Very thick tail for visibility check
+                <cylinderGeometry args={[0, 0.4, 12, 8]} />
             ) : (
-                // Bright dot
-                <sphereGeometry args={[0.3, 8, 8]} />
+                // Big dot
+                <sphereGeometry args={[0.4, 16, 16]} />
             )}
             <meshBasicMaterial
                 color="#ffffff"
@@ -291,7 +294,7 @@ function ShootingStarsController() {
                 // Fade out at end of life
                 opacity={Math.max(0, 1 - (starData.current.life / starData.current.maxLife))}
                 blending={AdditiveBlending}
-                toneMapped={false} // Maximum brightness
+                toneMapped={false}
             />
         </mesh>
     );
