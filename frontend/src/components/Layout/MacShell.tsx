@@ -30,7 +30,10 @@ export const MacShell: React.FC<MacShellProps> = ({
     const stored = localStorage.getItem('theme-light');
     if (stored === 'true') return true;
     if (stored === 'false') return false;
-    return false; // default to darker theme
+
+    // Default based on time if no preference
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 18; // Light mode during day
   });
   const glowRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>();

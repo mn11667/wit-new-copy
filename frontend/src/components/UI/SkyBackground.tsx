@@ -286,36 +286,35 @@ const SkyBackground: React.FC = () => {
       const totalMinutes = hour * 60 + minute;
 
       // Sun: rises 6:00 (360m), sets 18:00 (1080m)
-      // Range 360 -> 1080 = 720 minutes
-      let sX = 50, sY = 120;
+      let sX = 50, sY = 150; // Default off-screen bottom
 
       if (totalMinutes >= 360 && totalMinutes <= 1080) {
         const progress = (totalMinutes - 360) / 720; // 0 to 1
         sX = 10 + (progress * 80); // 10% to 90%
-        // Parabola for Y: peaks at 0.5. 4 * p * (1-p)
-        // 10% (low) to 80% (high) -> actually top% so 90% (low) to 20% (high)
+        // Parabola: sin(0..PI) -> 0..1..0
         const arc = Math.sin(progress * Math.PI);
-        sY = 90 - (arc * 75); // 90% down -> 15% top
+        sY = 90 - (arc * 70); // 90% (horizon) -> 20% (zenith)
       }
 
-      // Moon: rises 18:00 (1080m), sets 6:00 (360m next day)
-      // Normalize to defined "night day": 18:00 -> 30:00 (6:00 + 24)
+      // Moon: rises 18:00, sets 6:00
       let adjMinutes = totalMinutes;
-      if (adjMinutes < 360) adjMinutes += 1440; // 2AM = 26:00
+      if (adjMinutes < 360) adjMinutes += 1440; // Treat 00:00-06:00 as 24:00-30:00
 
-      let mX = 50, mY = 120;
-      if (adjMinutes >= 1080 && adjMinutes <= 1800) { // 18:00 to 6:00 next day
+      let mX = 50, mY = 150; // Default off-screen bottom
+
+      // Range: 18:00 (1080) to 30:00 (1800)
+      if (adjMinutes >= 1080 && adjMinutes <= 1800) {
         const progress = (adjMinutes - 1080) / 720;
         mX = 10 + (progress * 80);
         const arc = Math.sin(progress * Math.PI);
-        mY = 90 - (arc * 75);
+        mY = 90 - (arc * 70);
       }
 
       setCelestialPos({ sunX: sX, sunY: sY, moonX: mX, moonY: mY });
     };
 
     updateCelestialPosition();
-    const timer = setInterval(updateCelestialPosition, 60000); // every minute
+    const timer = setInterval(updateCelestialPosition, 60000);
     return () => clearInterval(timer);
   }, []);
 
