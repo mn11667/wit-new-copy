@@ -26,7 +26,7 @@ interface UserAnswer {
 
 const DEFAULT_SHEET_URL = import.meta.env.VITE_MCQ_SHEET_URL || '';
 const LICENSE_SHEET_ID = '1OeJqlFSmtccB2KqoQY4W3E2N_qMt4eSvnbFjTIUUDQ4';
-const LICENSE_SHEET_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://docs.google.com/spreadsheets/d/${LICENSE_SHEET_ID}/export?format=csv`)}`;
+const LICENSE_SHEET_URL = `https://corsproxy.io/?${encodeURIComponent(`https://docs.google.com/spreadsheets/d/${LICENSE_SHEET_ID}/export?format=csv`)}`;
 
 if (!DEFAULT_SHEET_URL) {
     console.warn('VITE_MCQ_SHEET_URL is not defined in environment variables');

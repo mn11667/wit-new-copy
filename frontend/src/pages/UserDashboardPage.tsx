@@ -105,19 +105,30 @@ const UserDashboardPage: React.FC = () => {
       }
     };
 
-    if ("geolocation" in navigator) {
+    const fetchWeatherLocation = async () => {
+      const fallback = () => getWeatherData(27.7172, 85.3240, true);
+
+      if (!("geolocation" in navigator)) return fallback();
+
+      try {
+        // Check permission explicitly to avoid "blocked" console warning
+        const permission = await navigator.permissions.query({ name: 'geolocation' });
+        if (permission.state === 'denied') {
+          return fallback();
+        }
+      } catch (e) {
+        // Permissions API might not be supported, ignore
+      }
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
           getWeatherData(position.coords.latitude, position.coords.longitude);
         },
-        () => {
-          // Fallback to Kathmandu
-          getWeatherData(27.7172, 85.3240, true);
-        }
+        () => fallback()
       );
-    } else {
-      getWeatherData(27.7172, 85.3240, true);
-    }
+    };
+
+    fetchWeatherLocation();
   }, []);
 
   // const [now, setNow] = useState<string>(new Date().toLocaleString()); // Moved to Clock component
