@@ -1,9 +1,9 @@
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader, Vector3, MathUtils, Mesh } from 'three';
 import { OrbitControls } from '@react-three/drei';
 
-function MoonSphere({ phase }: { phase: number }) {
+function MoonSphere({ phase, position = [0, 0, 0] }: { phase: number, position?: [number, number, number] }) {
     const meshRef = useRef<Mesh>(null);
 
     // High-quality moon texture with fallback
@@ -24,7 +24,7 @@ function MoonSphere({ phase }: { phase: number }) {
     useFrame((state, delta) => {
         if (meshRef.current) {
             // Very slow axial rotation
-            meshRef.current.rotation.y += delta * 0.05;
+            meshRef.current.rotation.y += delta * 0.03;
         }
     });
 
@@ -36,7 +36,7 @@ function MoonSphere({ phase }: { phase: number }) {
     }, [phase]);
 
     return (
-        <>
+        <group position={position}>
             <directionalLight
                 position={sunPosition}
                 intensity={3.0}
@@ -49,7 +49,7 @@ function MoonSphere({ phase }: { phase: number }) {
             <pointLight position={[-5, 2, 5]} intensity={0.3} color="#ffffff" distance={15} />
 
             <mesh ref={meshRef} rotation={[0.1, 0, 0]}>
-                <sphereGeometry args={[2, 128, 128]} />
+                <sphereGeometry args={[1.2, 128, 128]} />
                 <meshStandardMaterial
                     map={texture}
                     bumpMap={texture}
@@ -60,7 +60,7 @@ function MoonSphere({ phase }: { phase: number }) {
                     emissiveIntensity={0}
                 />
             </mesh>
-        </>
+        </group>
     );
 }
 
@@ -80,13 +80,49 @@ import { ShaderMaterial, BufferGeometry, Float32BufferAttribute, AdditiveBlendin
 export const BackgroundMoon: React.FC = () => {
     const phase = useMemo(() => getMoonPhaseValue(new Date()), []);
 
+    const [moonPosition, setMoonPosition] = useState({ x: 0, y: -20, z: 0, visible: false });
+
+    useEffect(() => {
+        const calculateMoonPosition = () => {
+            const now = new Date();
+            const currentMins = now.getHours() * 60 + now.getMinutes();
+
+            const sunrise = 360;
+            const sunset = 1080;
+            const minsInDay = 1440;
+            const dayLength = sunset - sunrise;
+            const nightLength = minsInDay - dayLength;
+
+            let nightProgress = -1;
+
+            if (currentMins > sunset) {
+                nightProgress = (currentMins - sunset) / nightLength;
+            } else if (currentMins < sunrise) {
+                nightProgress = (currentMins + minsInDay - sunset) / nightLength;
+            }
+
+            if (nightProgress >= 0 && nightProgress <= 1) {
+                const x = -2.5 + (nightProgress * 5);
+                const arc = Math.sin(nightProgress * Math.PI);
+                const y = -1.5 + (arc * 3);
+                setMoonPosition({ x, y, z: 2, visible: true });
+            } else {
+                setMoonPosition({ x: 0, y: -20, z: 0, visible: false });
+            }
+        };
+
+        calculateMoonPosition();
+        const interval = setInterval(calculateMoonPosition, 60000);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
         <div className="absolute inset-0 z-0 pointer-events-none" style={{ mixBlendMode: 'screen' }}>
             <Canvas camera={{ position: [0, 0, 7], fov: 45 }} gl={{ alpha: true, antialias: true }}>
                 <ambientLight intensity={0.1} />
                 <StarField />
                 <ShootingStarsController />
-                <MoonSphere phase={phase} />
+                {moonPosition.visible && <MoonSphere phase={phase} position={[moonPosition.x, moonPosition.y, moonPosition.z]} />}
             </Canvas>
         </div>
     );
@@ -227,43 +263,38 @@ function ShootingStarsController() {
     const nextId = useRef(0);
 
     const spawnStar = () => {
-        const z = Math.random() * 5; // Increased range
-        const dist = 7 - z;
+        const z = -10 - Math.random() * 10; // Z between -10 and -20 (BEHIND moon which is at z=2)
+        const dist = Math.abs(z); // Distance for frustum calculation
         const halfH = dist * 0.414;
 
-        // More varied spawn positions
-        const x = (Math.random() - 0.5) * (halfH * 3);
-        const y = halfH + 1 + Math.random() * 3;
+        // Random spawn positions all around
+        const x = (Math.random() - 0.5) * (halfH * 4);
+        const y = (Math.random() - 0.5) * (halfH * 4);
 
-        // More varied velocities
-        const vx = (Math.random() - 0.5) * 8;
-        const vy = -(6 + Math.random() * 12); // Faster falling
-        const vz = (Math.random() - 0.5) * 3;
+        // Random movement in ALL directions (not just down)
+        const vx = (Math.random() - 0.5) * 4; // Left/Right
+        const vy = (Math.random() - 0.5) * 4; // Up/Down
+        const vz = (Math.random() - 0.5) * 2; // Forward/Back
 
-        // Varied colors - mostly white, some blue/gold tints
-        const colorChoice = Math.random();
-        let color = new Color('#ffffff');
-        if (colorChoice > 0.85) color = new Color('#fff4e6'); // Warm
-        else if (colorChoice > 0.7) color = new Color('#e6f3ff'); // Cool
+        const color = new Color('#ffffff');
 
         const newStar: ShootingStar = {
             pos: new Vector3(x, y, z),
-            vel: new Vector3(vx, vy, vz),
-            hasTail: Math.random() > 0.2, // 80% have tails
+            vel: new Vector3(vx * 0.2, vy * 0.2, vz * 0.2), // Much slower drift
+            hasTail: false, // NO tails, just dots
             life: 0,
-            maxLife: 1.2 + Math.random() * 0.8,
+            maxLife: 3 + Math.random() * 3, // Long life for drifting
             color,
-            size: 0.15 + Math.random() * 0.25,
-            tailLength: 6 + Math.random() * 8
+            size: 0.01 + Math.random() * 0.02, // Tiny tiny dots
+            tailLength: 0
         };
 
         setStars(prev => [...prev, newStar]);
     };
 
     useFrame((state, delta) => {
-        // METEOR SHOWER STORM MODE: Spawn meteors very frequently
-        // Adjusted spawn rate to quickly fill up to 200 meteors
-        if (Math.random() < 0.35 && stars.length < 200) { // 35% spawn rate, max 200 simultaneous meteors!
+        // Continuous gentle spawning of drifting stars - reduced count
+        if (Math.random() < 0.10 && stars.length < 12) {
             spawnStar();
         }
 
@@ -306,11 +337,7 @@ function ShootingStar({ star }: { star: ShootingStar }) {
 
     return (
         <mesh ref={meshRef}>
-            {star.hasTail ? (
-                <cylinderGeometry args={[0, star.size, star.tailLength, 8]} />
-            ) : (
-                <sphereGeometry args={[star.size, 16, 16]} />
-            )}
+            <sphereGeometry args={[star.size, 8, 8]} />
             <meshBasicMaterial
                 color={star.color}
                 transparent

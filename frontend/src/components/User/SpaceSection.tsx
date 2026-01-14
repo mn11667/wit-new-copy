@@ -1,7 +1,4 @@
-import React, { useEffect, useState, Suspense } from 'react';
-
-// Lazy load 3D Moon to avoid main bundle bloat
-const BackgroundMoonHelper = React.lazy(() => import('../Three/Moon3D').then(module => ({ default: module.BackgroundMoon })));
+import React, { useEffect, useState } from 'react';
 
 interface ApodData {
     date: string;
@@ -54,12 +51,7 @@ export const SpaceSection: React.FC = () => {
 
     return (
         <div className="relative min-h-[80vh] w-full overflow-hidden rounded-3xl">
-            {/* 3D Background System */}
-            <div className="absolute inset-0 z-0 pointer-events-none opacity-80 mix-blend-screen">
-                <Suspense fallback={<div className="w-full h-full bg-black/20" />}>
-                    <BackgroundMoonHelper />
-                </Suspense>
-            </div>
+            {/* 3D Background is now GLOBAL - no longer here */}
 
             {/* Foreground Content */}
             <div className="relative z-10 animate-in fade-in zoom-in duration-500 space-y-8 p-4">

@@ -346,13 +346,13 @@ const SkyBackground: React.FC = () => {
         <div className="sun-core" />
       </div>
 
-      {/* Moon */}
+      {/* Moon - HIDDEN (using 3D moon instead) */}
       <div
         className="moon"
         style={{
           left: `${celestialPos.moonX}%`,
           top: `${celestialPos.moonY}%`,
-          display: skyThemes[theme].moon > 0 ? 'block' : 'none'
+          display: 'none' // Hide 2D moon, using 3D instead
         }}
       >
         <div className="moon-craters" />
