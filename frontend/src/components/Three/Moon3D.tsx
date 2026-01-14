@@ -49,7 +49,7 @@ function MoonSphere({ phase, position = [0, 0, 0] }: { phase: number, position?:
             <pointLight position={[-5, 2, 5]} intensity={0.3} color="#ffffff" distance={15} />
 
             <mesh ref={meshRef} rotation={[0.1, 0, 0]}>
-                <sphereGeometry args={[1.2, 128, 128]} />
+                <sphereGeometry args={[0.8, 128, 128]} />
                 <meshStandardMaterial
                     map={texture}
                     bumpMap={texture}
@@ -200,12 +200,19 @@ function StarField({ count = 2500 }) {
             float ll = length(xy);
             if(ll > 0.5) discard;
             
-            // Randomize phase significantly (vRandom * 100.0) so they don't blink together
-            // Randomize speed (0.8 + vRandom * 3.5)
-            float twinkle = sin(uTime * (0.8 + vRandom * 3.5) + vRandom * 100.0) * 0.5 + 0.5;
-            
-            // Apply base brightness + twinkle
-            float opacity = vBrightness * (0.5 + 0.5 * twinkle);
+            // Distinct individual twinkling
+            // Randomize speed significantly (0.5 to 4.5 factor)
+            // Randomize phase (vRandom * 100.0)
+            float twinkleSpeed = 0.5 + vRandom * 4.0;
+            float twinklePhase = vRandom * 100.0;
+            float twinkle = sin(uTime * twinkleSpeed + twinklePhase);
+            twinkle = twinkle * 0.5 + 0.5; // Remap to 0.0 - 1.0
+
+            // Apply "little" twinkle: Base brightness fluctuates by ±30%
+            // Range: 0.7 to 1.3 of base brightness (clamped)
+            float twinkleFactor = 0.7 + 0.6 * twinkle;
+            float opacity = vBrightness * twinkleFactor;
+            opacity = clamp(opacity, 0.0, 1.0);
             
             float glow = 1.0 - (ll * 2.0);
             glow = pow(glow, 2.0);
