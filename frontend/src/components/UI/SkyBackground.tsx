@@ -133,7 +133,7 @@ const skyThemes: Record<ThemeKey, SkyTheme> = {
 };
 
 const WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY || '';
-const WEATHER_CITY = import.meta.env.VITE_WEATHER_CITY || 'London';
+const WEATHER_CITY = import.meta.env.VITE_WEATHER_CITY || 'Kathmandu';
 
 const SkyBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
