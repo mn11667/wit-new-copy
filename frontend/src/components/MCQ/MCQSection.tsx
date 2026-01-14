@@ -437,7 +437,7 @@ export const MCQSection: React.FC = () => {
                         {isLicense && (
                             <Button
                                 variant="ghost"
-                                className="text-xs text-slate-400 hover:text-white absolute left-4 md:left-20 top-24" // positioned absolutely or appropriately
+                                className="text-xs text-slate-400 hover:text-white mb-2"
                                 onClick={() => switchSource('default')}
                             >
                                 ← Back to General
