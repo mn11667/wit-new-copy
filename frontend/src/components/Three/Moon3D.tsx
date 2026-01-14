@@ -122,7 +122,7 @@ export const BackgroundMoon: React.FC = () => {
 };
 
 // --- STATIONARY TWINKLING STAR FIELD ---
-function StarField({ count = 1500 }) {
+function StarField({ count = 2000 }) {
     const mesh = useRef<Points>(null);
 
     const [positions, sizes, randoms] = useMemo(() => {
@@ -131,20 +131,20 @@ function StarField({ count = 1500 }) {
         const r = new Float32Array(count);
 
         for (let i = 0; i < count; i++) {
-            // Distribute stars on a large sphere (distant background)
+            // Distribute stars on a sphere but closer so they are visible
             const theta = 2 * Math.PI * Math.random();
             const phi = Math.acos(2 * Math.random() - 1);
-            const radius = 60 + Math.random() * 40; // distant
+            const radius = 30 + Math.random() * 50; // Closer range [30, 80]
 
             const x = radius * Math.sin(phi) * Math.cos(theta);
             const y = radius * Math.sin(phi) * Math.sin(theta);
-            const z = radius * Math.cos(phi);
+            const z = -Math.abs(radius * Math.cos(phi)); // Mostly in front hemisphere (Z negative is into screen)
 
             p[i * 3] = x;
             p[i * 3 + 1] = y;
             p[i * 3 + 2] = z;
 
-            s[i] = 0.5 + Math.random() * 1.5;
+            s[i] = 1.0 + Math.random() * 2.5; // Bigger base size
             r[i] = Math.random();
         }
         return [p, s, r];
@@ -166,7 +166,8 @@ function StarField({ count = 1500 }) {
         void main() {
             vRandom = random;
             vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-            gl_PointSize = size * (300.0 / -mvPosition.z);
+            // Increased scale factor for visibility
+            gl_PointSize = size * (400.0 / -mvPosition.z);
             gl_Position = projectionMatrix * mvPosition;
         }
       `,
@@ -174,19 +175,16 @@ function StarField({ count = 1500 }) {
         uniform float uTime;
         varying float vRandom;
         void main() {
-            // Circle shape for point
             vec2 xy = gl_PointCoord.xy - vec2(0.5);
             float ll = length(xy);
             if(ll > 0.5) discard;
             
-            // Twinkle logic: varying sine waves based on random attribute
-            float twinkle = sin(uTime * (1.0 + vRandom) + vRandom * 10.0) * 0.5 + 0.5;
-            // Base opacity + twinkle strength
-            float opacity = 0.2 + 0.8 * twinkle;
+            // Faster, more noticeable twinkle
+            float twinkle = sin(uTime * (3.0 + vRandom * 5.0) + vRandom * 10.0) * 0.5 + 0.5;
+            float opacity = 0.4 + 0.6 * twinkle;
             
-            // Center glow
             float glow = 1.0 - (ll * 2.0);
-            glow = pow(glow, 1.5);
+            glow = pow(glow, 2.0);
             
             gl_FragColor = vec4(1.0, 1.0, 1.0, opacity * glow);
         }
@@ -215,11 +213,9 @@ function StarField({ count = 1500 }) {
 
 // --- SHOOTING STARS SYSTEM ---
 function ShootingStarsController() {
-    // We'll manage a single active shooting star for simplicity and realism
     const mesh = useRef<Mesh>(null);
     const [active, setActive] = useState(false);
 
-    // Properties strictly for the animation frame
     const starData = useRef({
         pos: new Vector3(),
         vel: new Vector3(),
@@ -230,37 +226,36 @@ function ShootingStarsController() {
     });
 
     const spawn = () => {
-        // Spawn high up
-        const x = (Math.random() - 0.5) * 60;
-        const y = 30 + Math.random() * 20;
-        const z = -20 + (Math.random() - 0.5) * 20;
+        // Spawn within view frustum bounds roughly
+        const x = (Math.random() - 0.5) * 40;
+        const y = 20 + Math.random() * 10; // Start hig
+        const z = -10 - Math.random() * 20; // In front of camera (Z negative)
 
-        // Velocity (downwards and sideways)
-        const vx = (Math.random() - 0.5) * 20;
-        const vy = -(20 + Math.random() * 20); // Fast downward
+        // Velocity: Diagonally down
+        const vx = (Math.random() - 0.5) * 10;
+        const vy = -(15 + Math.random() * 10); // Downward speed
         const vz = (Math.random() - 0.5) * 5;
 
         starData.current.pos.set(x, y, z);
         starData.current.vel.set(vx, vy, vz);
-        starData.current.hasTail = Math.random() > 0.4; // 60% chance of tail
+        starData.current.hasTail = Math.random() > 0.4;
         starData.current.life = 0;
-        starData.current.maxLife = 1.0 + Math.random() * 1.0; // 1-2 seconds
+        starData.current.maxLife = 1.5 + Math.random(); // 1.5-2.5s duration
 
         setActive(true);
 
         if (mesh.current) {
             mesh.current.position.copy(starData.current.pos);
-
             const target = starData.current.pos.clone().add(starData.current.vel);
             mesh.current.lookAt(target);
-            mesh.current.rotateX(Math.PI / 2); // Align cylinder Y (length) with look direction
+            mesh.current.rotateX(Math.PI / 2); // Align cylinder
         }
     };
 
     useFrame((state, delta) => {
         if (!active) {
-            // Chance to spawn
-            if (Math.random() < 0.003) { // ~ once per 5-6 seconds at 60fps
+            // Increased spawn rate: ~1 per second (assuming 60fps, 0.015 chance)
+            if (Math.random() < 0.015) {
                 spawn();
             }
             return;
@@ -284,17 +279,19 @@ function ShootingStarsController() {
     return (
         <mesh ref={mesh}>
             {starData.current.hasTail ? (
-                // Tail: Tapered cylinder
-                <cylinderGeometry args={[0, 0.2, 8, 4]} /> // TopRadius 0 (tip), Bottom 0.2, Height 8
+                // Thicker tail for visibility
+                <cylinderGeometry args={[0, 0.3, 10, 4]} />
             ) : (
-                // No Tail: Just a sphere/dot
-                <sphereGeometry args={[0.2, 8, 8]} />
+                // Bright dot
+                <sphereGeometry args={[0.3, 8, 8]} />
             )}
             <meshBasicMaterial
                 color="#ffffff"
                 transparent
+                // Fade out at end of life
                 opacity={Math.max(0, 1 - (starData.current.life / starData.current.maxLife))}
                 blending={AdditiveBlending}
+                toneMapped={false} // Maximum brightness
             />
         </mesh>
     );
