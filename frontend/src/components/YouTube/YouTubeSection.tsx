@@ -236,6 +236,8 @@ export const YouTubeSection: React.FC = () => {
                                 </div>
                                 <form onSubmit={handleSearch} className="flex gap-2">
                                     <input
+                                        id="search-video"
+                                        name="query"
                                         type="text"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}

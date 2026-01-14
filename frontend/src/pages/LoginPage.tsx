@@ -27,8 +27,10 @@ const LoginPage: React.FC = () => {
     <AuthLayout title="Welcome back" subtitle="Access your learning hub with one click.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-300">Email</label>
+          <label htmlFor="email" className="text-sm font-semibold text-slate-300">Email</label>
           <input
+            id="email"
+            name="email"
             className="glass w-full rounded-xl border-transparent bg-black/20 px-3 py-2 text-white shadow-inner focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary"
             type="email"
             value={email}
@@ -38,8 +40,10 @@ const LoginPage: React.FC = () => {
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-300">Password</label>
+          <label htmlFor="password" className="text-sm font-semibold text-slate-300">Password</label>
           <input
+            id="password"
+            name="password"
             className="glass w-full rounded-xl border-transparent bg-black/20 px-3 py-2 text-white shadow-inner focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary"
             type="password"
             value={password}

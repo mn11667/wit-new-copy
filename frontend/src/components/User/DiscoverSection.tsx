@@ -172,7 +172,7 @@ export const DiscoverSection: React.FC = () => {
                     const getUrl = (src: string, lang: 'en' | 'np') => {
                         if (src === 'onlinekhabar') return lang === 'en' ? 'https://english.onlinekhabar.com/feed' : 'https://www.onlinekhabar.com/feed';
                         if (src === 'setopati') return lang === 'en' ? 'https://en.setopati.com/feed' : 'https://www.setopati.com/feed';
-                        if (src === 'ratopati') return lang === 'en' ? 'https://english.ratopati.com/feed' : 'https://ratopati.com/feed';
+                        if (src === 'ratopati') return lang === 'en' ? 'https://english.ratopati.com/feed' : 'https://www.ratopati.com/feed';
                         return '';
                     };
 
@@ -650,7 +650,7 @@ export const DiscoverSection: React.FC = () => {
                             <p className="text-[10px] text-center font-mono text-slate-400 uppercase tracking-widest mb-2">Advertisement</p>
                             <GoogleAd
                                 client="ca-pub-4314993549867732"
-                                slot="8976543210" // REPLACE THIS with your actual Ad Slot ID from Google AdSense
+                                slot="5597784481" // REPLACE THIS with your actual Ad Slot ID from Google AdSense
                                 format="auto"
                                 responsive={true}
                             />
