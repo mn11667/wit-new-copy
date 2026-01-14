@@ -38,7 +38,7 @@ const AuthRedirect: React.FC<{ children: React.ReactElement }> = ({ children }) 
 };
 
 const AppRouter: React.FC = () => (
-  <BrowserRouter>
+  <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <Suspense fallback={<LoadingScreen message="SYSTEM LOADING..." />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />

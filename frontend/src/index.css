@@ -126,8 +126,7 @@ body::after {
 #sky-background .stars,
 #sky-background .cloud-layer,
 #sky-background .rain,
-#sky-background .snow,
-#sky-background .fog {
+#sky-background .snow {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -145,6 +144,7 @@ body::after {
       rgba(255, 240, 150, 0.1) 40%,
       transparent 70%);
   filter: blur(4px);
+  border-radius: 50%;
   opacity: var(--sky-sun-opacity, 0);
   transform: translate(-50%, -50%);
   animation: sunPulse 20s ease-in-out infinite;
@@ -248,7 +248,7 @@ body::after {
     radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.6) 0%, transparent 1.5px);
   background-size: 600px 600px, 500px 500px, 400px 400px, 300px 300px;
   animation: snowDrift 15s linear infinite;
-  opacity: 1;
+  opacity: var(--sky-snow-opacity, 0);
 }
 
 @keyframes moonDrift {
