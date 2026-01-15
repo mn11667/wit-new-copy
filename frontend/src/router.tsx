@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { LoadingScreen } from './components/UI/LoadingScreen';
+import { DashboardSkeleton } from './components/UI/Skeleton';
 
 // Eager load public pages (Non-lazy for instant initial interaction)
 import LandingPage from './pages/LandingPage';
@@ -10,6 +11,7 @@ import FeatureLandingPage from './pages/FeatureLandingPage';
 
 // Lazy load Dashboard (Loads only after login)
 const UserDashboardPage = React.lazy(() => import('./pages/UserDashboardPage'));
+
 
 const RequireAuth: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const { user, isAuthenticated, initialized, loading } = useAuth();
@@ -39,33 +41,33 @@ const AuthRedirect: React.FC<{ children: React.ReactElement }> = ({ children }) 
 
 const AppRouter: React.FC = () => (
   <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-    <Suspense fallback={<LoadingScreen message="SYSTEM LOADING..." />}>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route
-          path="/login"
-          element={
-            <AuthRedirect>
-              <LoginPage />
-            </AuthRedirect>
-          }
-        />
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route
+        path="/login"
+        element={
+          <AuthRedirect>
+            <LoginPage />
+          </AuthRedirect>
+        }
+      />
 
-        <Route
-          path="/dashboard"
-          element={
-            <RequireAuth>
+      <Route
+        path="/dashboard"
+        element={
+          <RequireAuth>
+            <Suspense fallback={<div className="min-h-screen bg-black"><DashboardSkeleton /></div>}>
               <UserDashboardPage />
-            </RequireAuth>
-          }
-        />
+            </Suspense>
+          </RequireAuth>
+        }
+      />
 
-        {/* Admin route removed as per request for static site */}
+      {/* Admin route removed as per request for static site */}
 
-        <Route path="/landing/:feature" element={<FeatureLandingPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+      <Route path="/landing/:feature" element={<FeatureLandingPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   </BrowserRouter>
 );
 

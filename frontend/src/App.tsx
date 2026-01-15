@@ -1,9 +1,10 @@
 import React, { useEffect, Suspense } from 'react';
 import AppRouter from './router';
-import SkyBackground from './components/UI/SkyBackground';
 
-// Lazy load the 3D moon background
+// Lazy load background components for better performance
+const SkyBackground = React.lazy(() => import('./components/UI/SkyBackground'));
 const BackgroundMoon = React.lazy(() => import('./components/Three/Moon3D').then(module => ({ default: module.BackgroundMoon })));
+
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -29,7 +30,9 @@ const App: React.FC = () => {
   return (
     <>
       {/* Weather-based 2D sky background */}
-      <SkyBackground />
+      <Suspense fallback={<div className="fixed inset-0 z-[-1] bg-black" />}>
+        <SkyBackground />
+      </Suspense>
 
       {/* 3D Moon with meteor storm - Global background */}
       <div className="fixed inset-0 z-0 pointer-events-none">

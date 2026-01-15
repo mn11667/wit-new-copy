@@ -25,6 +25,8 @@ import { extractDriveId } from '../utils/fileHelpers';
 import { Clock } from '../components/UI/Clock';
 import { MCQSection } from '../components/MCQ/MCQSection';
 import { getRandomQuote } from '../data/quotes';
+import { PomodoroTimer } from '../components/UI/PomodoroTimer';
+
 // Lazy load heavy sections
 const YouTubeSection = React.lazy(() => import('../components/YouTube/YouTubeSection').then(module => ({ default: module.YouTubeSection })));
 
@@ -33,6 +35,7 @@ import { DefinitionPopup } from '../components/UI/DefinitionPopup';
 const DiscoverSection = React.lazy(() => import('../components/User/DiscoverSection').then(module => ({ default: module.DiscoverSection })));
 const SpaceSection = React.lazy(() => import('../components/User/SpaceSection').then(module => ({ default: module.SpaceSection })));
 const BrainGymSection = React.lazy(() => import('../components/User/BrainGymSection').then(module => ({ default: module.BrainGymSection })));
+
 
 const UserDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -137,8 +140,17 @@ const UserDashboardPage: React.FC = () => {
   const [playerFile, setPlayerFile] = useState<{ id: string; name: string; src: string } | null>(null);
   const [playerLoading, setPlayerLoading] = useState(false);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
+  const [showPomodoro, setShowPomodoro] = useState(() => {
+    // Check if user had pomodoro open before
+    return localStorage.getItem('loksewa-pomodoro-visible') === 'true';
+  });
 
   const [mounted, setMounted] = useState(false);
+
+  // Persist pomodoro visibility
+  useEffect(() => {
+    localStorage.setItem('loksewa-pomodoro-visible', showPomodoro.toString());
+  }, [showPomodoro]);
 
 
   const load = useCallback(async (showSpinner = true) => {
@@ -388,6 +400,17 @@ const UserDashboardPage: React.FC = () => {
               Brain Gym 🧠
             </Button>
 
+            {/* Pomodoro Timer Toggle */}
+            <Button
+              variant={showPomodoro ? 'primary' : 'ghost'}
+              onClick={() => setShowPomodoro(!showPomodoro)}
+              className="ml-auto"
+            >
+              <svg className="w-4 h-4 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Timer
+            </Button>
 
           </div>
 
@@ -474,6 +497,9 @@ const UserDashboardPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Pomodoro Timer */}
+        {showPomodoro && <PomodoroTimer onClose={() => setShowPomodoro(false)} />}
 
       </div>
     </DashboardLayout >

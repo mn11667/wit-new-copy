@@ -264,7 +264,8 @@ const SkyBackground: React.FC = () => {
     };
 
     fetchWeather();
-    const timer = setInterval(fetchWeather, 15 * 60 * 1000);
+    // Update weather every 30 minutes
+    const timer = setInterval(fetchWeather, 30 * 60 * 1000);
     return () => {
       mounted = false;
       clearInterval(timer);

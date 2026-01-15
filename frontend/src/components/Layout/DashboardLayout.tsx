@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../UI/Button';
-
+import { ThemeToggle } from '../UI/ThemeToggle';
 import { Badge } from '../UI/Badge';
 import { MacShell } from './MacShell';
+
 
 type Props = {
   title: string;
@@ -91,6 +92,9 @@ export const DashboardLayout: React.FC<Props> = ({ title, children, statusExtra 
             </div>
           </div>
           <div className="space-y-2">
+            <ThemeToggle className="w-full justify-start" />
+
+            <div className="border-t border-white/10 my-2"></div>
 
             <Button variant="ghost" className="w-full justify-start text-sm text-red-400 hover:text-red-300" onClick={logout}>
               Logout

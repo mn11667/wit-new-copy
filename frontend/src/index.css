@@ -41,20 +41,41 @@
 
 .theme-light {
   color: #1e293b;
-  background-color: #f1f5f9;
-  --bg-1: #f8fafc;
-  --bg-2: #f1f5f9;
-  --bg-3: #e2e8f0;
+  background-color: #f8fafc;
+  --bg-1: #ffffff;
+  --bg-2: #f8fafc;
+  --bg-3: #f1f5f9;
   --grid-line: rgba(0, 0, 0, 0.05);
-  --glass-bg-1: rgba(255, 255, 255, 0.6);
-  --glass-bg-2: rgba(255, 255, 255, 0.4);
-  --glass-bg-3: rgba(255, 255, 255, 0.2);
+
+  /* Enhanced glass effects for light mode */
+  --glass-bg-1: rgba(255, 255, 255, 0.85);
+  --glass-bg-2: rgba(255, 255, 255, 0.7);
+  --glass-bg-3: rgba(255, 255, 255, 0.5);
   --glass-border-1: rgba(0, 0, 0, 0.1);
   --glass-border-2: rgba(0, 0, 0, 0.08);
   --glass-border-3: rgba(0, 0, 0, 0.05);
 
-  /* Adjust menu text for light mode */
+  /* Updated glass variables */
+  --glass-start: rgba(255, 255, 255, 0.95);
+  --glass-mid: rgba(255, 255, 255, 0.85);
+  --glass-end: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(0, 0, 0, 0.15);
+  --glass-border-soft: rgba(0, 0, 0, 0.08);
+
+  /* Light mode shadows */
+  --glass-shadow-1: 0 20px 40px rgba(0, 0, 0, 0.08);
+  --glass-shadow-2: 0 12px 24px rgba(0, 0, 0, 0.06);
+  --glass-shadow-3: 0 8px 16px rgba(0, 0, 0, 0.04);
+
+  /* Inset highlights for light mode */
+  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --glass-inset-soft: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  /* Text colors for light mode */
   --mac-menu-text: #334155;
+
+  /* Sky gradient for light mode */
+  --sky-gradient: linear-gradient(135deg, #e0f2fe, #bae6fd 45%, #dbeafe);
 }
 
 body {
@@ -69,7 +90,13 @@ body {
   color: #e9f5ff;
   position: relative;
   isolation: isolate;
+  transition: background-color 300ms ease, color 300ms ease;
 }
+
+.theme-light body {
+  color: #1e293b;
+}
+
 
 body::before {
   content: '';
