@@ -10,6 +10,7 @@ type Props = {
   title: string;
   children: React.ReactNode;
   statusExtra?: React.ReactNode;
+  timerComponent?: React.ReactNode;
 };
 
 const formatDate = (dateString: string | Date | undefined | null) => {
@@ -21,7 +22,7 @@ const formatDate = (dateString: string | Date | undefined | null) => {
   });
 };
 
-export const DashboardLayout: React.FC<Props> = ({ title, children, statusExtra }) => {
+export const DashboardLayout: React.FC<Props> = ({ title, children, statusExtra, timerComponent }) => {
   const { user, logout, showCookieMessage, dismissCookieMessage } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -107,7 +108,13 @@ export const DashboardLayout: React.FC<Props> = ({ title, children, statusExtra 
 
   return (
     <div className="min-h-screen">
-      <MacShell title={title} subtitle="Education Hub" headerActions={accountMenu} statusExtra={statusExtra}>
+      <MacShell
+        title={title}
+        subtitle="Education Hub"
+        headerActions={accountMenu}
+        statusExtra={statusExtra}
+        timerComponent={timerComponent}
+      >
         <div className="container mx-auto max-w-7xl md:p-6 p-4">
           {showCookieMessage && (
             <div className="mac-banner">

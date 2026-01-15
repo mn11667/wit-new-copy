@@ -10,6 +10,7 @@ type MacShellProps = {
   children: React.ReactNode;
   headerActions?: React.ReactNode;
   statusExtra?: React.ReactNode;
+  timerComponent?: React.ReactNode; // Timer for status bar
 };
 
 
@@ -22,6 +23,7 @@ export const MacShell: React.FC<MacShellProps> = ({
   headerActions,
   children,
   statusExtra,
+  timerComponent,
 }) => {
   // const [now, setNow] = useState(() => new Date()); // Moved to Clock component
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => (typeof window !== 'undefined' ? window.innerWidth > 900 : true));
@@ -135,6 +137,10 @@ export const MacShell: React.FC<MacShellProps> = ({
         <div className="mac-menu-right">
           <div className="mac-status-dot" title="Online" />
           <span className="mac-menu-item">Wi‑Fi</span>
+
+          {/* Pomodoro Timer in status bar */}
+          {timerComponent && <span className="mac-menu-item">{timerComponent}</span>}
+
           <span className="mac-menu-item">
             🔋{' '}
             {batteryLevel !== null ? `${Math.round(batteryLevel * 100)}%${batteryCharging ? ' ⚡' : ''}` : '—'}

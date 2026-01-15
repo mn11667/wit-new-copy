@@ -346,7 +346,14 @@ const UserDashboardPage: React.FC = () => {
   const canOpenFiles = true;
 
   return (
-    <DashboardLayout title="Dashboard">
+    <DashboardLayout
+      title="Dashboard"
+      timerComponent={
+        showPomodoro ? (
+          <PomodoroTimer isCompact={true} onClose={() => setShowPomodoro(false)} />
+        ) : null
+      }
+    >
       <DefinitionPopup />
       <div className="space-y-4">
         {user?.status === 'PENDING' && (
@@ -378,33 +385,64 @@ const UserDashboardPage: React.FC = () => {
             <Button variant={activeTab === 'library' ? 'primary' : 'ghost'} onClick={() => setActiveTab('library')}>
               Library
             </Button>
-            <Button variant={activeTab === 'bookmarks' ? 'primary' : 'ghost'} onClick={() => setActiveTab('bookmarks')}>
+            <Button variant={activeTab === 'bookmarks' ? 'primary' : 'ghost'} onClick={() => setActiveTab('bookmarks')} className="hidden sm:inline-flex">
               Bookmarks
             </Button>
-            <Button variant={activeTab === 'completed' ? 'primary' : 'ghost'} onClick={() => setActiveTab('completed')}>
+            <Button variant={activeTab === 'completed' ? 'primary' : 'ghost'} onClick={() => setActiveTab('completed')} className="hidden sm:inline-flex">
               Completed
             </Button>
-            <Button variant={activeTab === 'practice' ? 'primary' : 'ghost'} onClick={() => setActiveTab('practice')}>
+            <Button variant={activeTab === 'practice' ? 'primary' : 'ghost'} onClick={() => setActiveTab('practice')} className="hidden sm:inline-flex">
               Practice
             </Button>
-            <Button variant={activeTab === 'youtube' ? 'primary' : 'ghost'} onClick={() => setActiveTab('youtube')}>
-              YouTube
+            <Button
+              variant={activeTab === 'youtube' ? 'primary' : 'ghost'}
+              onClick={() => setActiveTab('youtube')}
+              className={`hidden sm:inline-flex items-center gap-2 group relative ${youtubeVisited && activeTab !== 'youtube' ? 'border-red-500/30 pr-10 overflow-visible' : 'overflow-hidden'}`}
+            >
+              <span>YouTube</span>
+
+              {/* Playing Indicator & Stop Button (Only when playing in background) */}
+              {youtubeVisited && activeTab !== 'youtube' && (
+                <>
+                  {/* Playing Animation (Equalizer) - Highly Visible */}
+                  <div className="flex items-end gap-1 h-3 mx-2">
+                    <div className="w-1 bg-red-500 animate-[pulse_0.6s_ease-in-out_infinite] h-full shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                    <div className="w-1 bg-red-500 animate-[pulse_0.8s_ease-in-out_infinite_0.1s] h-2/3 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                    <div className="w-1 bg-red-500 animate-[pulse_1s_ease-in-out_infinite_0.2s] h-3/4 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                    <div className="w-1 bg-red-500 animate-[pulse_0.7s_ease-in-out_infinite_0.3s] h-1/2 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                  </div>
+
+                  {/* Stop Button - More Prominent */}
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setYoutubeVisited(false);
+                    }}
+                    className="absolute -right-1 -top-1 w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center cursor-pointer transition-all z-20 shadow-lg border-2 border-slate-900 hover:scale-110"
+                    title="Stop Video"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 6h12v12H6z" />
+                    </svg>
+                  </div>
+                </>
+              )}
             </Button>
-            <Button variant={activeTab === 'discover' ? 'primary' : 'ghost'} onClick={() => setActiveTab('discover')}>
+            <Button variant={activeTab === 'discover' ? 'primary' : 'ghost'} onClick={() => setActiveTab('discover')} className="hidden sm:inline-flex">
               Discover 🚀
             </Button>
-            <Button variant={activeTab === 'space' ? 'primary' : 'ghost'} onClick={() => setActiveTab('space')}>
+            <Button variant={activeTab === 'space' ? 'primary' : 'ghost'} onClick={() => setActiveTab('space')} className="hidden sm:inline-flex">
               Space 🌌
             </Button>
-            <Button variant={activeTab === 'braingym' ? 'primary' : 'ghost'} onClick={() => setActiveTab('braingym')}>
+            <Button variant={activeTab === 'braingym' ? 'primary' : 'ghost'} onClick={() => setActiveTab('braingym')} className="hidden sm:inline-flex">
               Brain Gym 🧠
             </Button>
 
-            {/* Pomodoro Timer Toggle */}
+            {/* Pomodoro Timer Toggle - Hidden on mobile */}
             <Button
               variant={showPomodoro ? 'primary' : 'ghost'}
               onClick={() => setShowPomodoro(!showPomodoro)}
-              className="ml-auto"
+              className="ml-auto hidden sm:inline-flex"
             >
               <svg className="w-4 h-4 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -497,9 +535,6 @@ const UserDashboardPage: React.FC = () => {
             </div>
           </div>
         )}
-
-        {/* Pomodoro Timer */}
-        {showPomodoro && <PomodoroTimer onClose={() => setShowPomodoro(false)} />}
 
       </div>
     </DashboardLayout >

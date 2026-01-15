@@ -12,6 +12,7 @@ interface PomodoroState {
 
 interface PomodoroTimerProps {
     onClose?: () => void;
+    isCompact?: boolean; // Compact mode for header display
 }
 
 const MODE_DURATIONS = {
@@ -35,7 +36,7 @@ const MODE_COLORS = {
 const STORAGE_KEY = 'loksewa-pomodoro-state';
 const STATS_KEY = 'loksewa-pomodoro-stats';
 
-export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose }) => {
+export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose, isCompact = false }) => {
     const [state, setState] = useState<PomodoroState>(() => {
         // Load from localStorage
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -202,6 +203,71 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose }) => {
 
     const progress = ((MODE_DURATIONS[state.mode] - state.timeLeft) / MODE_DURATIONS[state.mode]) * 100;
 
+    // Compact mode for status bar - 8-segment LED display style
+    if (isCompact) {
+        return (
+            <div className="flex items-center gap-2">
+                {/* 7-segment LED display */}
+                <div className="flex items-center px-4 py-1 rounded-md bg-black/90 border border-white/20">
+                    <span
+                        className="text-2xl tracking-widest tabular-nums"
+                        style={{
+                            fontFamily: '"DSEG7 Classic", monospace',
+                            fontWeight: 700,
+                            color: state.mode === 'work' ? '#00ff00' : state.mode === 'shortBreak' ? '#ffaa00' : '#ff00ff',
+                            textShadow: `0 0 10px ${state.mode === 'work' ? '#00ff00' : state.mode === 'shortBreak' ? '#ffaa00' : '#ff00ff'}`,
+                            letterSpacing: '0.1em',
+                            filter: 'brightness(1.5)'
+                        }}
+                    >
+                        {formatTime(state.timeLeft)}
+                    </span>
+                </div>
+
+                {/* Play/Pause button */}
+                <button
+                    onClick={toggleTimer}
+                    className="p-1.5 hover:bg-white/10 rounded text-white/80 hover:text-white transition"
+                    title={state.isActive ? 'Pause' : 'Start'}
+                >
+                    {state.isActive ? (
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                        </svg>
+                    ) : (
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                    )}
+                </button>
+
+                {/* Stop/Reset button */}
+                <button
+                    onClick={resetTimer}
+                    className="p-1.5 hover:bg-white/10 rounded text-white/80 hover:text-white transition"
+                    title="Reset"
+                >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 6h12v12H6z" />
+                    </svg>
+                </button>
+
+                {/* Close button */}
+                {onClose && (
+                    <button
+                        onClick={onClose}
+                        className="p-1.5 hover:bg-white/10 rounded text-white/70 hover:text-white transition"
+                        title="Close Timer"
+                    >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                )}
+            </div>
+        );
+    }
+
     if (isMinimized) {
         return (
             <div className="fixed bottom-4 right-4 z-50">
@@ -220,10 +286,10 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose }) => {
     }
 
     return (
-        <div className="fixed bottom-4 right-4 z-50 w-80">
+        <div className="fixed bottom-4 right-4 left-4 sm:left-auto z-50 sm:w-80">
             <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
                 {/* Header */}
-                <div className={`bg-gradient-to-r ${MODE_COLORS[state.mode]} p-4`}>
+                <div className={`bg-gradient-to-r ${MODE_COLORS[state.mode]} p-3 sm:p-4`}>
                     <div className="flex items-center justify-between text-white">
                         <div className="flex items-center gap-2">
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -290,7 +356,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose }) => {
                     /* Timer View */
                     <>
                         {/* Circular Progress */}
-                        <div className="p-6 flex flex-col items-center">
+                        <div className="p-4 sm:p-6 flex flex-col items-center">
                             <div className="relative w-40 h-40">
                                 {/* Background circle */}
                                 <svg className="w-full h-full transform -rotate-90">
@@ -341,8 +407,8 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose }) => {
                                 <button
                                     onClick={toggleTimer}
                                     className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all ${state.isActive
-                                            ? 'bg-red-500 hover:bg-red-600 text-white'
-                                            : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
+                                        ? 'bg-red-500 hover:bg-red-600 text-white'
+                                        : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
                                         }`}
                                 >
                                     {state.isActive ? 'Pause' : 'Start'}

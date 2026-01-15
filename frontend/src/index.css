@@ -93,6 +93,7 @@ body {
   transition: background-color 300ms ease, color 300ms ease;
 }
 
+
 .theme-light body {
   color: #1e293b;
 }
@@ -927,6 +928,92 @@ body::after {
     padding-top: 18px;
   }
 }
+
+/* Mobile phones - portrait */
+@media (max-width: 640px) {
+
+  /* Fix tab overflow - allow wrapping */
+  .mac-cta-row {
+    padding: 12px;
+  }
+
+  .mac-cta-row>div:first-child {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Card grid - single column on mobile */
+  .mac-card-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Adjust text sizes for readability */
+  .mac-window-title {
+    font-size: 12px;
+  }
+
+  .mac-pill {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+
+  /* Better spacing on mobile */
+  .mac-content {
+    padding: 14px 12px;
+  }
+
+  /* Navigation items - better touch targets */
+  .mac-nav-item {
+    min-height: 48px;
+    padding: 14px 16px;
+  }
+}
+
+/* Small phones (iPhone SE, etc) */
+@media (max-width: 375px) {
+
+  /* Even more compact */
+  .mac-card {
+    padding: 12px;
+  }
+
+  .mac-cta-row {
+    padding: 10px;
+  }
+
+  .mac-content {
+    padding: 12px 10px;
+  }
+}
+
+/* Touch devices - larger tap targets */
+@media (hover: none) and (pointer: coarse) {
+
+  /* Ensure minimum 44px touch targets */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .mac-nav-item {
+    min-height: 48px;
+  }
+
+  /* Larger close buttons in modals */
+  .video-modal button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Tablets - optimize for medium screens */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .mac-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 
 .glass-nested {
   background: var(--glass-bg-3);
