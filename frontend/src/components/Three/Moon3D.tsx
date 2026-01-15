@@ -80,20 +80,26 @@ import { ShaderMaterial, BufferGeometry, Float32BufferAttribute, AdditiveBlendin
 export const BackgroundMoon: React.FC = () => {
     const phase = useMemo(() => getMoonPhaseValue(new Date()), []);
 
-    const [moonPosition, setMoonPosition] = useState({ x: 0, y: -20, z: 0, visible: false });
+    // Tracks position and visibility for BOTH celestial bodies
+    const [celestialState, setCelestialState] = useState({
+        moon: { x: 0, y: -20, z: 0, visible: false },
+        earth: { x: 0, y: -20, z: 0, visible: false }
+    });
 
     useEffect(() => {
-        const calculateMoonPosition = () => {
+        const calculatePositions = () => {
             const now = new Date();
             const currentMins = now.getHours() * 60 + now.getMinutes();
 
-            const sunrise = 360;
-            const sunset = 1080;
+            const sunrise = 360; // 06:00
+            const sunset = 1080; // 18:00
             const minsInDay = 1440;
             const dayLength = sunset - sunrise;
             const nightLength = minsInDay - dayLength;
 
+            // --- MOON LOGIC (Night) ---
             let nightProgress = -1;
+            let moonUpdate = { x: 0, y: -20, z: 0, visible: false };
 
             if (currentMins > sunset) {
                 nightProgress = (currentMins - sunset) / nightLength;
@@ -105,24 +111,51 @@ export const BackgroundMoon: React.FC = () => {
                 const x = -2.5 + (nightProgress * 5);
                 const arc = Math.sin(nightProgress * Math.PI);
                 const y = -1.5 + (arc * 3);
-                setMoonPosition({ x, y, z: 2, visible: true });
-            } else {
-                setMoonPosition({ x: 0, y: -20, z: 0, visible: false });
+                moonUpdate = { x, y, z: 2, visible: true };
             }
+
+            // --- EARTH LOGIC (Day) ---
+            // Replaces Sun position
+            let dayProgress = -1;
+            let earthUpdate = { x: 0, y: -20, z: 0, visible: false };
+
+            if (currentMins >= sunrise && currentMins <= sunset) {
+                dayProgress = (currentMins - sunrise) / dayLength;
+                // Earth moves from Left to Right (East to West visually, or creating the arc)
+                // Similar path to moon but maybe higher/brighter
+                const x = -2.5 + (dayProgress * 5);
+                const arc = Math.sin(dayProgress * Math.PI);
+                const y = -1.0 + (arc * 3.5); // Slightly higher arc
+                earthUpdate = { x, y, z: 1, visible: true };
+            }
+
+            setCelestialState({ moon: moonUpdate, earth: earthUpdate });
         };
 
-        calculateMoonPosition();
-        const interval = setInterval(calculateMoonPosition, 60000);
+        calculatePositions();
+        const interval = setInterval(calculatePositions, 60000);
         return () => clearInterval(interval);
     }, []);
 
     return (
         <div className="absolute inset-0 z-0 pointer-events-none" style={{ mixBlendMode: 'screen' }}>
-            <Canvas camera={{ position: [0, 0, 7], fov: 45 }} gl={{ alpha: true, antialias: true }}>
+            <Canvas frameloop="always" camera={{ position: [0, 0, 7], fov: 45 }} gl={{ alpha: true, antialias: true }}>
                 <ambientLight intensity={0.1} />
                 <StarField />
                 <ShootingStarsController />
-                {moonPosition.visible && <MoonSphere phase={phase} position={[moonPosition.x, moonPosition.y, moonPosition.z]} />}
+
+                {celestialState.moon.visible && (
+                    <MoonSphere
+                        phase={phase}
+                        position={[celestialState.moon.x, celestialState.moon.y, celestialState.moon.z]}
+                    />
+                )}
+
+                {celestialState.earth.visible && (
+                    <EarthSphere
+                        position={[celestialState.earth.x, celestialState.earth.y, celestialState.earth.z]}
+                    />
+                )}
             </Canvas>
         </div>
     );
@@ -353,5 +386,138 @@ function ShootingStar({ star }: { star: ShootingStar }) {
                 toneMapped={false}
             />
         </mesh>
+    );
+}
+
+// --- EARTH COMPONENT ---
+function EarthSphere({ position = [0, 0, 0] }: { position?: [number, number, number] }) {
+    const meshRef = useRef<Mesh>(null);
+    const cloudsRef = useRef<Mesh>(null);
+    const materialRef = useRef<ShaderMaterial>(null);
+
+    // Earth Textures
+    const [specularMap, normalMap, cloudsMap, nightMap] = useLoader(TextureLoader, [
+        'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg',
+        'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg',
+        'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png',
+        'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_lights_2048.png'
+    ]);
+
+    const dayMap = useLoader(TextureLoader, 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
+
+    useFrame((state, delta) => {
+        if (meshRef.current) {
+            meshRef.current.rotation.y += delta * 0.05; // Earth rotation
+        }
+        if (cloudsRef.current) {
+            cloudsRef.current.rotation.y += delta * 0.07; // Clouds rotate slightly faster
+        }
+    });
+
+    // Custom Earth Shader for Day/Night Cycle
+    const earthShader = useMemo(() => {
+        return {
+            uniforms: {
+                dayTexture: { value: dayMap },
+                nightTexture: { value: nightMap },
+                specularMap: { value: specularMap },
+                normalMap: { value: normalMap },
+                sunDirection: { value: new Vector3(-5, 3, 5).normalize() } // Matches pointLight position
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                varying vec3 vNormal;
+                varying vec3 vViewPosition;
+                
+                void main() {
+                    vUv = uv;
+                    // World normal
+                    vNormal = normalize(normalMatrix * normal);
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    vViewPosition = -mvPosition.xyz;
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D dayTexture;
+                uniform sampler2D nightTexture;
+                uniform sampler2D specularMap;
+                uniform sampler2D normalMap;
+                uniform vec3 sunDirection;
+
+                varying vec2 vUv;
+                varying vec3 vNormal;
+                varying vec3 vViewPosition;
+
+                void main() {
+                    vec3 normal = normalize(vNormal);
+                    vec3 viewDir = normalize(vViewPosition);
+                    vec3 sunDir = normalize(sunDirection);  // Fixed light direction in view space? 
+                    // Actually sunDirection passed is static world/local space? 
+                    // To keep it simple, we'll assume the light rotates with the scene or is fixed relative to Earth 
+                    // if Earth rotates, normal rotates.
+                    
+                    // Simple Lambertian intesity
+                    float intensity = dot(normal, sunDir);
+                    
+                    vec3 dayColor = texture2D(dayTexture, vUv).rgb;
+                    vec3 nightColor = texture2D(nightTexture, vUv).rgb;
+                    
+                    // Smooth transition
+                    // intensity > 0.1 : Day
+                    // intensity < -0.1 : Night
+                    // Mix in between
+                    
+                    float mixVal = smoothstep(-0.2, 0.2, intensity);
+                    
+                    // Specular (only on day side)
+                    float specularStrength = texture2D(specularMap, vUv).r;
+                    vec3 halfVector = normalize(sunDir + viewDir);
+                    float NdotH = max(0.0, dot(normal, halfVector));
+                    float specular = pow(NdotH, 32.0) * specularStrength * mixVal; // Masked by day
+                    
+                    vec3 finalColor = mix(nightColor, dayColor, mixVal);
+                    
+                    // Add specular to day side
+                    finalColor += vec3(0.5) * specular;
+
+                    gl_FragColor = vec4(finalColor, 1.0);
+                }
+            `
+        };
+    }, [dayMap, nightMap, specularMap, normalMap]);
+
+    return (
+        <group position={position}>
+            {/* Main Earth Sphere with Custom Shader */}
+            <mesh ref={meshRef} rotation={[0.4, 0, 0]}>
+                <sphereGeometry args={[1.2, 64, 64]} />
+                <shaderMaterial
+                    ref={materialRef}
+                    args={[earthShader]}
+                    uniforms-dayTexture-value={dayMap}
+                    uniforms-nightTexture-value={nightMap}
+                    uniforms-specularMap-value={specularMap}
+                    uniforms-normalMap-value={normalMap}
+                />
+            </mesh>
+
+            {/* Cloud Layer remains simple MeshPhong/Standard or could be improved */}
+            <mesh ref={cloudsRef} rotation={[0.4, 0, 0]}>
+                <sphereGeometry args={[1.22, 64, 64]} />
+                <meshPhongMaterial
+                    map={cloudsMap}
+                    transparent={true}
+                    opacity={0.8}
+                    blending={AdditiveBlending}
+                    side={2}
+                    depthWrite={false}
+                />
+            </mesh>
+
+            {/* Light source for Clouds and other objects */}
+            <pointLight position={[-5, 3, 5]} intensity={1.5} color="#ffffff" distance={20} />
+            <ambientLight intensity={0.1} />
+        </group>
     );
 }

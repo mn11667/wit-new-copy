@@ -340,7 +340,7 @@ const SkyBackground: React.FC = () => {
         style={{
           left: `${celestialPos.sunX}%`,
           top: `${celestialPos.sunY}%`,
-          display: skyThemes[theme].sun > 0 ? 'block' : 'none'
+          display: 'none' // Sun hidden, using 3D Earth instead
         }}
       >
         <div className="sun-core" />

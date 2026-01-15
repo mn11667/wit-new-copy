@@ -8,6 +8,22 @@ const BackgroundMoon = React.lazy(() => import('./components/Three/Moon3D').then
 const App: React.FC = () => {
   useEffect(() => {
     // Backend keep-alive removed for static site
+
+    // Limit scroll speed by 25%
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      window.scrollBy({
+        top: e.deltaY * 0.75,
+        left: e.deltaX * 0.75,
+        behavior: 'auto'
+      });
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+    };
   }, []);
 
   return (
@@ -16,7 +32,7 @@ const App: React.FC = () => {
       <SkyBackground />
 
       {/* 3D Moon with meteor storm - Global background */}
-      <div className="fixed inset-0 z-0 pointer-events-none" style={{ mixBlendMode: 'screen' }}>
+      <div className="fixed inset-0 z-0 pointer-events-none">
         <Suspense fallback={<div className="w-full h-full bg-transparent" />}>
           <BackgroundMoon />
         </Suspense>
