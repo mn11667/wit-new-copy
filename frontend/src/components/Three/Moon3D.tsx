@@ -3,23 +3,20 @@ import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader, Vector3, MathUtils, Mesh } from 'three';
 import { OrbitControls } from '@react-three/drei';
 
+const MOON_TEXTURE_URLS = [
+    'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/lroc_color_poles_1k.jpg',
+    'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/1024px-FullMoon2010.jpg'
+];
+
+function useMoonTexture() {
+    const textureUrl = useMemo(() => MOON_TEXTURE_URLS[0], []);
+    return useLoader(TextureLoader, textureUrl);
+}
+
 function MoonSphere({ phase, position = [0, 0, 0] }: { phase: number, position?: [number, number, number] }) {
     const meshRef = useRef<Mesh>(null);
-
-    // High-quality moon texture with fallback
-    const textureUrl = useMemo(() => {
-        // Try multiple sources for best quality
-        const urls = [
-            'https://s3-us-west-2.amazonaws.com/s.cdpn.io/17271/lroc_color_poles_1k.jpg',
-            'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg',
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/1024px-FullMoon2010.jpg'
-        ];
-        return urls[0]; // Primary high-quality source
-    }, []);
-
-    const texture = useLoader(TextureLoader, textureUrl, undefined, (error) => {
-        console.warn('Moon texture failed to load, using fallback');
-    });
+    const texture = useMoonTexture();
 
     useFrame((state, delta) => {
         if (meshRef.current) {
@@ -27,6 +24,8 @@ function MoonSphere({ phase, position = [0, 0, 0] }: { phase: number, position?:
             meshRef.current.rotation.y += delta * 0.03;
         }
     });
+
+    // ... mapping remains same
 
     // Calculate Sun Position based on Phase
     const sunPosition = useMemo(() => {
@@ -58,6 +57,59 @@ function MoonSphere({ phase, position = [0, 0, 0] }: { phase: number, position?:
                     metalness={0.05}
                     emissive="#000000"
                     emissiveIntensity={0}
+                />
+            </mesh>
+        </group>
+    );
+}
+
+// ... MoonPhase helper ...
+
+// ... BackgroundMoon ...
+
+// ... StarField ...
+
+// ... ShootingStars ...
+
+// ... EarthSphere ... 
+
+function OrbitingMoon() {
+    const meshRef = useRef<Mesh>(null);
+    const texture = useMoonTexture(); // Unified Texture
+
+    useFrame((state, delta) => {
+        if (meshRef.current) {
+            // Self-rotation
+            meshRef.current.rotation.y += delta * 0.5;
+
+            // Revolution around Earth
+            // Using system time to create a continuous orbit
+            const t = state.clock.getElapsedTime() * 0.1; // Slow speed
+            const radius = 2.5; // Distance from Earth center
+
+            meshRef.current.position.x = Math.cos(t) * radius;
+            meshRef.current.position.z = Math.sin(t) * radius;
+            // Slight inclination
+            meshRef.current.position.y = Math.sin(t * 0.5) * 0.5;
+        }
+    });
+
+    return (
+        <group>
+            {/* Mesh moves, and light follows it */}
+            <mesh ref={meshRef} castShadow receiveShadow>
+                {/* Moon Light Source - attached to the moon itself */}
+                <pointLight position={[0, 0, 0]} intensity={0.5} distance={5} color="#f0f8ff" />
+
+                <sphereGeometry args={[0.25, 32, 32]} />
+                <meshStandardMaterial
+                    map={texture}
+                    bumpMap={texture}
+                    bumpScale={0.02}
+                    roughness={0.9}
+                    color="#e0e0e0"
+                    emissive="#ffffff"
+                    emissiveIntensity={0.02} // Very low to allow shadows
                 />
             </mesh>
         </group>
@@ -139,7 +191,7 @@ export const BackgroundMoon: React.FC = () => {
 
     return (
         <div className="absolute inset-0 z-0 pointer-events-none" style={{ mixBlendMode: 'screen' }}>
-            <Canvas frameloop="always" camera={{ position: [0, 0, 7], fov: 45 }} gl={{ alpha: true, antialias: true }}>
+            <Canvas shadows frameloop="always" camera={{ position: [0, 0, 7], fov: 45 }} gl={{ alpha: true, antialias: true }}>
                 <ambientLight intensity={0.1} />
                 <StarField />
                 <ShootingStarsController />
@@ -414,93 +466,23 @@ function EarthSphere({ position = [0, 0, 0] }: { position?: [number, number, num
         }
     });
 
-    // Custom Earth Shader for Day/Night Cycle
-    const earthShader = useMemo(() => {
-        return {
-            uniforms: {
-                dayTexture: { value: dayMap },
-                nightTexture: { value: nightMap },
-                specularMap: { value: specularMap },
-                normalMap: { value: normalMap },
-                sunDirection: { value: new Vector3(-5, 3, 5).normalize() } // Matches pointLight position
-            },
-            vertexShader: `
-                varying vec2 vUv;
-                varying vec3 vNormal;
-                varying vec3 vViewPosition;
-                
-                void main() {
-                    vUv = uv;
-                    // World normal
-                    vNormal = normalize(normalMatrix * normal);
-                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                    vViewPosition = -mvPosition.xyz;
-                    gl_Position = projectionMatrix * mvPosition;
-                }
-            `,
-            fragmentShader: `
-                uniform sampler2D dayTexture;
-                uniform sampler2D nightTexture;
-                uniform sampler2D specularMap;
-                uniform sampler2D normalMap;
-                uniform vec3 sunDirection;
-
-                varying vec2 vUv;
-                varying vec3 vNormal;
-                varying vec3 vViewPosition;
-
-                void main() {
-                    vec3 normal = normalize(vNormal);
-                    vec3 viewDir = normalize(vViewPosition);
-                    vec3 sunDir = normalize(sunDirection);  // Fixed light direction in view space? 
-                    // Actually sunDirection passed is static world/local space? 
-                    // To keep it simple, we'll assume the light rotates with the scene or is fixed relative to Earth 
-                    // if Earth rotates, normal rotates.
-                    
-                    // Simple Lambertian intesity
-                    float intensity = dot(normal, sunDir);
-                    
-                    vec3 dayColor = texture2D(dayTexture, vUv).rgb;
-                    vec3 nightColor = texture2D(nightTexture, vUv).rgb;
-                    
-                    // Smooth transition
-                    // intensity > 0.1 : Day
-                    // intensity < -0.1 : Night
-                    // Mix in between
-                    
-                    float mixVal = smoothstep(-0.2, 0.2, intensity);
-                    
-                    // Specular (only on day side)
-                    float specularStrength = texture2D(specularMap, vUv).r;
-                    vec3 halfVector = normalize(sunDir + viewDir);
-                    float NdotH = max(0.0, dot(normal, halfVector));
-                    float specular = pow(NdotH, 32.0) * specularStrength * mixVal; // Masked by day
-                    
-                    vec3 finalColor = mix(nightColor, dayColor, mixVal);
-                    
-                    // Add specular to day side
-                    finalColor += vec3(0.5) * specular;
-
-                    gl_FragColor = vec4(finalColor, 1.0);
-                }
-            `
-        };
-    }, [dayMap, nightMap, specularMap, normalMap]);
-
     return (
         <group position={position}>
-            {/* Main Earth Sphere with Custom Shader */}
-            <mesh ref={meshRef} rotation={[0.4, 0, 0]}>
+            {/* Main Earth Sphere - Standard Material for Shadows */}
+            <mesh ref={meshRef} rotation={[0.4, 0, 0]} receiveShadow castShadow>
                 <sphereGeometry args={[1.2, 64, 64]} />
-                <shaderMaterial
-                    ref={materialRef}
-                    args={[earthShader]}
-                    uniforms-dayTexture-value={dayMap}
-                    uniforms-nightTexture-value={nightMap}
-                    uniforms-specularMap-value={specularMap}
-                    uniforms-normalMap-value={normalMap}
+                <meshStandardMaterial
+                    map={dayMap}
+                    normalMap={normalMap}
+                    roughnessMap={specularMap}
+                    roughness={0.5}
+                    metalness={0.1}
+                    emissiveMap={nightMap}
+                    emissive={new Color(0x444444)} // Low emissive intensity to not wash out day side
+                    emissiveIntensity={0.5}
                 />
             </mesh>
+
 
             {/* Cloud Layer remains simple MeshPhong/Standard or could be improved */}
             <mesh ref={cloudsRef} rotation={[0.4, 0, 0]}>
@@ -515,9 +497,24 @@ function EarthSphere({ position = [0, 0, 0] }: { position?: [number, number, num
                 />
             </mesh>
 
-            {/* Light source for Clouds and other objects */}
-            <pointLight position={[-5, 3, 5]} intensity={1.5} color="#ffffff" distance={20} />
+            {/* Light source for Clouds and other objects - Directional for better sun simulation */}
+            <directionalLight
+                position={[-5, 3, 5]}
+                intensity={2.0}
+                color="#ffffff"
+                castShadow
+                shadow-mapSize={[2048, 2048]}
+                shadow-camera-left={-5}
+                shadow-camera-right={5}
+                shadow-camera-top={5}
+                shadow-camera-bottom={-5}
+                shadow-bias={-0.0005}
+            />
             <ambientLight intensity={0.1} />
+
+            {/* Small Orbiting Moon */}
+            <OrbitingMoon />
         </group>
     );
 }
+
