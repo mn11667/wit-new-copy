@@ -58,6 +58,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose, isCompact
 
     const [isMinimized, setIsMinimized] = useState(false);
     const [showStats, setShowStats] = useState(false);
+    const [isEditing, setIsEditing] = useState(!state.isActive); // Default to editing if not running
     const intervalRef = useRef<number | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -65,6 +66,13 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose, isCompact
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }, [state]);
+
+    // Force editing mode on mount (dedicated effect)
+    useEffect(() => {
+        if (!isCompact) {
+            setIsEditing(true);
+        }
+    }, [isCompact]);
 
     // Timer logic
     useEffect(() => {
@@ -208,20 +216,51 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose, isCompact
         return (
             <div className="flex items-center gap-2">
                 {/* 7-segment LED display */}
-                <div className="flex items-center px-4 py-1 rounded-md bg-black/90 border border-white/20">
-                    <span
-                        className="text-2xl tracking-widest tabular-nums"
-                        style={{
-                            fontFamily: '"DSEG7 Classic", monospace',
-                            fontWeight: 700,
-                            color: state.mode === 'work' ? '#00ff00' : state.mode === 'shortBreak' ? '#ffaa00' : '#ff00ff',
-                            textShadow: `0 0 10px ${state.mode === 'work' ? '#00ff00' : state.mode === 'shortBreak' ? '#ffaa00' : '#ff00ff'}`,
-                            letterSpacing: '0.1em',
-                            filter: 'brightness(1.5)'
-                        }}
-                    >
-                        {formatTime(state.timeLeft)}
-                    </span>
+                {/* 7-segment LED display / Slider */}
+                <div className="flex items-center px-4 py-1 rounded-md bg-black/90 border border-white/20 min-w-[130px] justify-center relative group">
+                    {isEditing ? (
+                        <input
+                            type="range"
+                            min="1"
+                            max="60"
+                            step="1"
+                            value={Math.ceil(state.timeLeft / 60)}
+                            onChange={(e) => {
+                                const newMinutes = parseInt(e.target.value);
+                                setState(prev => ({
+                                    ...prev,
+                                    timeLeft: newMinutes * 60,
+                                    isActive: false
+                                }));
+                            }}
+                            onBlur={() => setIsEditing(false)}
+                            className="w-24 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-green-500"
+                            autoFocus
+                        />
+                    ) : (
+                        <span
+                            onClick={() => !state.isActive && setIsEditing(true)}
+                            className={`text-2xl tracking-widest tabular-nums ${!state.isActive ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                            title={!state.isActive ? "Click to set time" : undefined}
+                            style={{
+                                fontFamily: '"DSEG7 Classic", monospace',
+                                fontWeight: 700,
+                                color: state.mode === 'work' ? '#00ff00' : state.mode === 'shortBreak' ? '#ffaa00' : '#ff00ff',
+                                textShadow: `0 0 10px ${state.mode === 'work' ? '#00ff00' : state.mode === 'shortBreak' ? '#ffaa00' : '#ff00ff'}`,
+                                letterSpacing: '0.1em',
+                                filter: 'brightness(1.5)'
+                            }}
+                        >
+                            {formatTime(state.timeLeft)}
+                        </span>
+                    )}
+
+                    {/* Tooltip hint on hover (only when paused and not editing) */}
+                    {!state.isActive && !isEditing && (
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap border border-white/10 z-50">
+                            Click to edit
+                        </div>
+                    )}
                 </div>
 
                 {/* Play/Pause button */}
@@ -390,13 +429,45 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onClose, isCompact
                                 </svg>
 
                                 {/* Time display */}
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <div className="text-4xl font-bold text-white tabular-nums">
-                                        {formatTime(state.timeLeft)}
-                                    </div>
-                                    <div className="text-xs text-slate-400 mt-1">
-                                        Session {state.sessions + 1}
-                                    </div>
+                                {/* Time display / Slider */}
+                                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-4">
+                                    {isEditing ? (
+                                        <div className="flex flex-col items-center animate-in fade-in zoom-in duration-200">
+                                            <input
+                                                type="range"
+                                                min="1"
+                                                max="60"
+                                                step="1"
+                                                value={Math.ceil(state.timeLeft / 60)}
+                                                onChange={(e) => {
+                                                    const newMinutes = parseInt(e.target.value);
+                                                    setState(prev => ({
+                                                        ...prev,
+                                                        timeLeft: newMinutes * 60,
+                                                        isActive: false
+                                                    }));
+                                                }}
+                                                className="w-full h-2 bg-slate-700/50 rounded-lg appearance-none cursor-pointer accent-blue-500 mb-2"
+                                                autoFocus
+                                            />
+                                            <div className="text-2xl font-bold text-white">
+                                                {Math.ceil(state.timeLeft / 60)}m
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div
+                                                className="text-4xl font-bold text-white tabular-nums cursor-pointer hover:scale-110 transition-transform"
+                                                onClick={() => setIsEditing(true)}
+                                                title="Click to edit time"
+                                            >
+                                                {formatTime(state.timeLeft)}
+                                            </div>
+                                            <div className="text-xs text-slate-400 mt-1">
+                                                Session {state.sessions + 1}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>

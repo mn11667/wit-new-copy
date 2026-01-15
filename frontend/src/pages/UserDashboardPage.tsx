@@ -144,6 +144,20 @@ const UserDashboardPage: React.FC = () => {
     // Check if user had pomodoro open before
     return localStorage.getItem('loksewa-pomodoro-visible') === 'true';
   });
+  const [timerMinutes, setTimerMinutes] = useState(25); // Timer duration in minutes
+  const [timerActive, setTimerActive] = useState(() => {
+    // Check if timer was running
+    const saved = localStorage.getItem('loksewa-pomodoro-state');
+    if (saved) {
+      try {
+        return JSON.parse(saved).isActive;
+      } catch (e) {
+        return false;
+      }
+    }
+    return false;
+  });
+  const [timerKey, setTimerKey] = useState(0); // Key to force remount
 
   const [mounted, setMounted] = useState(false);
 
@@ -349,8 +363,8 @@ const UserDashboardPage: React.FC = () => {
     <DashboardLayout
       title="Dashboard"
       timerComponent={
-        showPomodoro ? (
-          <PomodoroTimer isCompact={true} onClose={() => setShowPomodoro(false)} />
+        timerActive ? (
+          <PomodoroTimer key={timerKey} isCompact={true} onClose={() => setTimerActive(false)} />
         ) : null
       }
     >
@@ -380,7 +394,7 @@ const UserDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="mac-cta-row">
+        <div className={`mac-cta-row ${showPomodoro ? '!overflow-visible z-50 relative' : ''}`}>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant={activeTab === 'library' ? 'primary' : 'ghost'} onClick={() => setActiveTab('library')}>
               Library
@@ -439,16 +453,62 @@ const UserDashboardPage: React.FC = () => {
             </Button>
 
             {/* Pomodoro Timer Toggle - Hidden on mobile */}
-            <Button
-              variant={showPomodoro ? 'primary' : 'ghost'}
-              onClick={() => setShowPomodoro(!showPomodoro)}
-              className="ml-auto hidden sm:inline-flex"
-            >
-              <svg className="w-4 h-4 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Timer
-            </Button>
+            <div className="relative ml-auto hidden sm:block">
+              <Button
+                variant={showPomodoro ? 'primary' : 'ghost'}
+                onClick={() => setShowPomodoro(!showPomodoro)}
+              >
+                <svg className="w-4 h-4 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Timer
+              </Button>
+
+              {/* Simple Timer Slider Dropdown */}
+              {showPomodoro && (
+                <div className="absolute top-full right-0 mt-2 w-56 p-4 bg-slate-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="text-xs text-slate-400 mb-3 text-center">Set Timer Duration</div>
+
+                  {/* Slider */}
+                  {/* Slider */}
+                  <input
+                    type="range"
+                    min="1"
+                    max="60"
+                    step="1"
+                    value={timerMinutes}
+                    onChange={(e) => setTimerMinutes(parseInt(e.target.value))}
+                    className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 mb-3"
+                  />
+
+                  {/* Minutes Display */}
+                  {/* Minutes Display */}
+                  <div className="text-center mb-3">
+                    <span className="text-3xl font-bold text-white">{timerMinutes}</span>
+                    <span className="text-slate-400 ml-1">min</span>
+                  </div>
+
+                  {/* Start Button */}
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('loksewa-pomodoro-state', JSON.stringify({
+                        mode: 'work',
+                        timeLeft: timerMinutes * 60,
+                        isActive: true,
+                        sessions: 0,
+                        totalStudyTime: 0
+                      }));
+                      setTimerKey(k => k + 1); // Force remount
+                      setTimerActive(true);
+                      setShowPomodoro(false);
+                    }}
+                    className="w-full py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition-all"
+                  >
+                    Start Timer
+                  </button>
+                </div>
+              )}
+            </div>
 
           </div>
 

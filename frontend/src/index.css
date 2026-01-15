@@ -78,6 +78,31 @@
   --sky-gradient: linear-gradient(135deg, #e0f2fe, #bae6fd 45%, #dbeafe);
 }
 
+/* Light mode text contrast fixes */
+.theme-light .text-slate-200,
+.theme-light .text-slate-300,
+.theme-light .text-slate-400,
+.theme-light .text-white,
+.theme-light .mac-lead,
+.theme-light .mac-window-title,
+.theme-light .mac-window-subtitle,
+.theme-light .mac-menu-left,
+.theme-light .mac-menu-right,
+.theme-light .mac-sidebar-text,
+.theme-light .mac-pill {
+  color: #1e293b !important;
+  /* Forces dark text in light mode */
+}
+
+.theme-light .text-slate-500 {
+  color: #475569 !important;
+}
+
+.theme-light .mac-pill {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
 body {
   margin: 0;
   font-family: var(--mac-font-text);
@@ -739,10 +764,32 @@ body::after {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 60%),
-    radial-gradient(120% 120% at var(--glare-x) var(--glare-y), rgba(255, 255, 255, 0.06), transparent 60%);
-  opacity: 0.08;
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(120% 120% at var(--glare-x) var(--glare-y), rgba(255, 255, 255, 0.03), transparent 60%);
+  opacity: 0.05;
   pointer-events: none;
+}
+
+/* Light theme specific adjustments */
+/* Light theme specific adjustments */
+.theme-light .mac-card::before,
+.theme-light .mac-cta-row::before,
+.theme-light .mac-window::before,
+.theme-light .mac-sidebar::before {
+  opacity: 0.05;
+  /* Significantly reduced from 0.1 */
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.02) 45%,
+      rgba(255, 255, 255, 0) 100%);
+}
+
+.theme-light .mac-card::after,
+.theme-light .mac-cta-row::after,
+.theme-light .mac-window::after,
+.theme-light .mac-sidebar::after {
+  opacity: 0.03;
+  /* Almost invisible glare for light mode */
 }
 
 .mac-card:hover {
