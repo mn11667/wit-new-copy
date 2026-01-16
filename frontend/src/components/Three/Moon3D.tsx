@@ -468,10 +468,12 @@ function EarthSphere({ position = [0, 0, 0] }: { position?: [number, number, num
 
     return (
         <group position={position}>
-            {/* Strong sunlight to illuminate Earth properly */}
+            {/* Multiple strong light sources for vibrant Earth appearance */}
+
+            {/* Main sunlight - very bright */}
             <directionalLight
                 position={[-5, 3, 5]}
-                intensity={3.5}
+                intensity={5.0}
                 color="#ffffff"
                 castShadow
                 shadow-mapSize={[2048, 2048]}
@@ -481,8 +483,19 @@ function EarthSphere({ position = [0, 0, 0] }: { position?: [number, number, num
                 shadow-camera-bottom={-5}
                 shadow-bias={-0.0005}
             />
-            {/* Increased ambient light to see all features */}
-            <ambientLight intensity={0.3} />
+
+            {/* Secondary front light to illuminate the visible side */}
+            <pointLight position={[0, 0, 8]} intensity={4.0} color="#ffffff" distance={20} />
+
+            {/* Hemisphere light for natural ambient lighting */}
+            <hemisphereLight
+                skyColor="#87CEEB"
+                groundColor="#1a1a2e"
+                intensity={1.5}
+            />
+
+            {/* Strong ambient light to ensure everything is visible */}
+            <ambientLight intensity={0.6} />
 
             {/* Main Earth Sphere - Enhanced for vibrant blue oceans */}
             <mesh ref={meshRef} rotation={[0.4, 0, 0]} receiveShadow castShadow>
@@ -491,11 +504,11 @@ function EarthSphere({ position = [0, 0, 0] }: { position?: [number, number, num
                     map={dayMap}
                     normalMap={normalMap}
                     roughnessMap={specularMap}
-                    roughness={0.3}
-                    metalness={0.05}
+                    roughness={0.2}
+                    metalness={0.0}
                     emissiveMap={nightMap}
-                    emissive={new Color(0x222244)}
-                    emissiveIntensity={0.2}
+                    emissive={new Color(0x111122)}
+                    emissiveIntensity={0.15}
                 />
             </mesh>
 
@@ -505,7 +518,7 @@ function EarthSphere({ position = [0, 0, 0] }: { position?: [number, number, num
                 <meshPhongMaterial
                     map={cloudsMap}
                     transparent={true}
-                    opacity={0.6}
+                    opacity={0.5}
                     blending={AdditiveBlending}
                     side={2}
                     depthWrite={false}

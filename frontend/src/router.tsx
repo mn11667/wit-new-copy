@@ -11,6 +11,7 @@ import FeatureLandingPage from './pages/FeatureLandingPage';
 
 // Lazy load Dashboard (Loads only after login)
 const UserDashboardPage = React.lazy(() => import('./pages/UserDashboardPage'));
+const PreviewDashboardPage = React.lazy(() => import('./pages/PreviewDashboardPage'));
 
 
 const RequireAuth: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -60,6 +61,16 @@ const AppRouter: React.FC = () => (
               <UserDashboardPage />
             </Suspense>
           </RequireAuth>
+        }
+      />
+
+      {/* Preview Mode - Public access to limited features */}
+      <Route
+        path="/preview"
+        element={
+          <Suspense fallback={<div className="min-h-screen bg-black"><DashboardSkeleton /></div>}>
+            <PreviewDashboardPage />
+          </Suspense>
         }
       />
 

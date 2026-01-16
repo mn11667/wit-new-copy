@@ -44,12 +44,9 @@ const LandingPage: React.FC = () => {
           <span className="text-lg font-semibold tracking-tight text-white/90">Loksewa</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link to="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
-            Log in
-          </Link>
-          <Link to="/register">
+          <Link to="/login">
             <Button variant="primary" className="rounded-full px-6 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300">
-              Get Started
+              Log in
             </Button>
           </Link>
         </div>
@@ -75,7 +72,7 @@ const LandingPage: React.FC = () => {
         </p>
 
         <div className="mt-10 flex w-full flex-col justify-center gap-4 sm:flex-row">
-          <Link to="/register">
+          <Link to="/preview">
             <Button variant="primary" className="h-12 w-full rounded-full px-8 text-lg font-semibold shadow-xl shadow-blue-500/20 hover:scale-105 hover:shadow-blue-500/30 transition-all duration-300 sm:w-auto">
               Start Learning Free
             </Button>
