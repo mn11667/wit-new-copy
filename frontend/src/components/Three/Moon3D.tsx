@@ -468,39 +468,10 @@ function EarthSphere({ position = [0, 0, 0] }: { position?: [number, number, num
 
     return (
         <group position={position}>
-            {/* Main Earth Sphere - Standard Material for Shadows */}
-            <mesh ref={meshRef} rotation={[0.4, 0, 0]} receiveShadow castShadow>
-                <sphereGeometry args={[1.2, 64, 64]} />
-                <meshStandardMaterial
-                    map={dayMap}
-                    normalMap={normalMap}
-                    roughnessMap={specularMap}
-                    roughness={0.5}
-                    metalness={0.1}
-                    emissiveMap={nightMap}
-                    emissive={new Color(0x444444)} // Low emissive intensity to not wash out day side
-                    emissiveIntensity={0.5}
-                />
-            </mesh>
-
-
-            {/* Cloud Layer remains simple MeshPhong/Standard or could be improved */}
-            <mesh ref={cloudsRef} rotation={[0.4, 0, 0]}>
-                <sphereGeometry args={[1.22, 64, 64]} />
-                <meshPhongMaterial
-                    map={cloudsMap}
-                    transparent={true}
-                    opacity={0.8}
-                    blending={AdditiveBlending}
-                    side={2}
-                    depthWrite={false}
-                />
-            </mesh>
-
-            {/* Light source for Clouds and other objects - Directional for better sun simulation */}
+            {/* Strong sunlight to illuminate Earth properly */}
             <directionalLight
                 position={[-5, 3, 5]}
-                intensity={2.0}
+                intensity={3.5}
                 color="#ffffff"
                 castShadow
                 shadow-mapSize={[2048, 2048]}
@@ -510,7 +481,36 @@ function EarthSphere({ position = [0, 0, 0] }: { position?: [number, number, num
                 shadow-camera-bottom={-5}
                 shadow-bias={-0.0005}
             />
-            <ambientLight intensity={0.1} />
+            {/* Increased ambient light to see all features */}
+            <ambientLight intensity={0.3} />
+
+            {/* Main Earth Sphere - Enhanced for vibrant blue oceans */}
+            <mesh ref={meshRef} rotation={[0.4, 0, 0]} receiveShadow castShadow>
+                <sphereGeometry args={[1.2, 64, 64]} />
+                <meshStandardMaterial
+                    map={dayMap}
+                    normalMap={normalMap}
+                    roughnessMap={specularMap}
+                    roughness={0.3}
+                    metalness={0.05}
+                    emissiveMap={nightMap}
+                    emissive={new Color(0x222244)}
+                    emissiveIntensity={0.2}
+                />
+            </mesh>
+
+            {/* Cloud Layer with better visibility */}
+            <mesh ref={cloudsRef} rotation={[0.4, 0, 0]}>
+                <sphereGeometry args={[1.22, 64, 64]} />
+                <meshPhongMaterial
+                    map={cloudsMap}
+                    transparent={true}
+                    opacity={0.6}
+                    blending={AdditiveBlending}
+                    side={2}
+                    depthWrite={false}
+                />
+            </mesh>
 
             {/* Small Orbiting Moon */}
             <OrbitingMoon />
