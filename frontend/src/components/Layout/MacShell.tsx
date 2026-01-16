@@ -27,16 +27,6 @@ export const MacShell: React.FC<MacShellProps> = ({
 }) => {
   // const [now, setNow] = useState(() => new Date()); // Moved to Clock component
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => (typeof window !== 'undefined' ? window.innerWidth > 900 : true));
-  const [lightMode, setLightMode] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    const stored = localStorage.getItem('theme-light');
-    if (stored === 'true') return true;
-    if (stored === 'false') return false;
-
-    // Default based on time if no preference
-    const hour = new Date().getHours();
-    return hour >= 6 && hour < 18; // Light mode during day
-  });
   const glowRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>();
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
@@ -98,32 +88,7 @@ export const MacShell: React.FC<MacShellProps> = ({
     };
   }, []);
 
-  const applyTheme = (next: boolean) => {
-    const root = document.documentElement;
-    setLightMode(next);
-    if (next) {
-      root.classList.add('theme-light');
-    } else {
-      root.classList.remove('theme-light');
-    }
-    try {
-      localStorage.setItem('theme-light', String(next));
-    } catch {
-      // ignore
-    }
-  };
 
-  const toggleTheme = () => applyTheme(!lightMode);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('theme-light');
-      const shouldLight = stored === null ? false : stored === 'true';
-      applyTheme(shouldLight);
-    } catch {
-      // ignore
-    }
-  }, []);
 
   return (
     <div className="mac-wrapper">
@@ -149,13 +114,6 @@ export const MacShell: React.FC<MacShellProps> = ({
           <span className="mac-menu-time">
             <Clock options={{ hour: '2-digit', minute: '2-digit' }} refreshInterval={30000} />
           </span>
-          <label className="theme-toggle mac-menu-item">
-            <input type="checkbox" checked={lightMode} onChange={(e) => applyTheme(e.target.checked)} />
-            <span className="theme-toggle-track">
-              <span className="theme-toggle-thumb" />
-            </span>
-            <span className="ml-2">{lightMode ? 'Light' : 'Dark'}</span>
-          </label>
         </div>
       </header>
 

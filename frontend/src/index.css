@@ -170,6 +170,8 @@ body::after {
   overflow: hidden;
   background: black;
   /* Base background */
+  opacity: 0;
+  animation: skyFadeIn 1500ms ease-out forwards;
 }
 
 #sky-background .sky-gradient {
@@ -177,7 +179,7 @@ body::after {
   inset: 0;
   background: var(--sky-gradient, linear-gradient(135deg, #0f172a, #0b1220 45%, #0e1528));
   filter: saturate(1.1);
-  transition: background 900ms ease, opacity 900ms ease;
+  transition: background 1500ms ease, opacity 1500ms ease;
   opacity: 0.96;
 }
 
@@ -309,6 +311,26 @@ body::after {
   background-size: 600px 600px, 500px 500px, 400px 400px, 300px 300px;
   animation: snowDrift 15s linear infinite;
   opacity: var(--sky-snow-opacity, 0);
+}
+
+@keyframes skyFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cosmicFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes starTwinkle {

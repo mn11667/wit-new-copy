@@ -56,7 +56,7 @@ const App: React.FC = () => {
 
       {/* 3D Moon with meteor storm - Only render on desktop for performance */}
       {!isMobile && (
-        <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="fixed inset-0 z-0 pointer-events-none" style={{ opacity: 0, animation: 'cosmicFadeIn 1500ms ease-out forwards' }}>
           <Suspense fallback={<div className="w-full h-full bg-transparent" />}>
             <BackgroundMoon />
           </Suspense>

@@ -138,6 +138,7 @@ const WEATHER_CITY = import.meta.env.VITE_WEATHER_CITY || 'Kathmandu';
 const SkyBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [theme, setTheme] = useState<ThemeKey>('day-clear');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // State for sunrise/sunset (minutes from midnight)
   // Defaults: Sunrise 06:00 (360), Sunset 18:00 (1080)
@@ -254,12 +255,35 @@ const SkyBackground: React.FC = () => {
         // but our calculated bucket is more granular (dawn/dusk).
         // Check if API says it's night but we think it's day (unlikely).
 
-        setTheme(resolveTheme(timeBucket, condition));
+        const newTheme = resolveTheme(timeBucket, condition);
+
+        // On initial load, delay theme application for smooth transition
+        if (isInitialLoad) {
+          setTimeout(() => {
+            if (mounted) {
+              setTheme(newTheme);
+              setIsInitialLoad(false);
+            }
+          }, 800);
+        } else {
+          setTheme(newTheme);
+        }
 
       } catch (e) {
         console.warn('Weather fetch failed, utilizing fallback logic', e);
         // Fallback
-        setTheme(resolveTheme(getFallbackTimeBucket(), 'clear'));
+        const fallbackTheme = resolveTheme(getFallbackTimeBucket(), 'clear');
+
+        if (isInitialLoad) {
+          setTimeout(() => {
+            if (mounted) {
+              setTheme(fallbackTheme);
+              setIsInitialLoad(false);
+            }
+          }, 800);
+        } else {
+          setTheme(fallbackTheme);
+        }
       }
     };
 
@@ -270,7 +294,7 @@ const SkyBackground: React.FC = () => {
       mounted = false;
       clearInterval(timer);
     };
-  }, []);
+  }, [isInitialLoad]);
 
   // Update Celestial Positions (Sun/Moon)
   useEffect(() => {
