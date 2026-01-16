@@ -16,10 +16,24 @@ interface BookDetails extends Book {
     description?: string | { value: string };
 }
 
+interface WikipediaData {
+    title: string;
+    extract?: string;
+    thumbnail?: {
+        source: string;
+    };
+    content_urls?: {
+        desktop: {
+            page: string;
+        };
+    };
+}
+
 export const BookSearch: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<Book[]>([]);
     const [selectedBook, setSelectedBook] = useState<BookDetails | null>(null);
+    const [wikipediaData, setWikipediaData] = useState<WikipediaData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -60,11 +74,43 @@ export const BookSearch: React.FC = () => {
         searchBooks(searchQuery);
     };
 
+    const fetchWikipedia = async (title: string, author?: string[]) => {
+        try {
+            // Create search query with title and author
+            const searchQuery = author ? `${title} ${author[0]}` : title;
+            const searchUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(searchQuery)}`;
+
+            const res = await fetch(searchUrl);
+            if (res.ok) {
+                const data = await res.json();
+                setWikipediaData(data);
+            } else {
+                // Try with just the title if the combined search fails
+                const titleRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+                if (titleRes.ok) {
+                    const data = await titleRes.json();
+                    setWikipediaData(data);
+                } else {
+                    setWikipediaData(null);
+                }
+            }
+        } catch (err) {
+            console.error('Wikipedia fetch error:', err);
+            setWikipediaData(null);
+        }
+    };
+
     const loadBookDetails = async (book: Book) => {
         setLoading(true);
+        setWikipediaData(null);
         try {
-            const res = await fetch(`https://openlibrary.org${book.key}.json`);
-            const details = await res.json();
+            // Fetch both book details and Wikipedia data in parallel
+            const [bookRes] = await Promise.all([
+                fetch(`https://openlibrary.org${book.key}.json`),
+                fetchWikipedia(book.title, book.author_name)
+            ]);
+
+            const details = await bookRes.json();
             setSelectedBook({ ...book, ...details });
         } catch (err) {
             console.error(err);
@@ -80,6 +126,7 @@ export const BookSearch: React.FC = () => {
 
     const handleBack = () => {
         setSelectedBook(null);
+        setWikipediaData(null);
     };
 
     const getCoverUrl = (coverId?: number, size: 'S' | 'M' | 'L' = 'M') => {
@@ -162,17 +209,61 @@ export const BookSearch: React.FC = () => {
                         </div>
                     )}
 
-                    <a
-                        href={`https://openlibrary.org${selectedBook.key}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-500/30 text-purple-200 hover:bg-purple-500/30 transition-colors mt-4"
-                    >
-                        View on Open Library
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                    </a>
+                    {wikipediaData && wikipediaData.extract && (
+                        <div className="mt-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                            <div className="flex items-center gap-2 mb-2">
+                                <svg className="w-5 h-5 text-blue-300" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm0 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10-4.5 10-10 10z" />
+                                    <path d="M11 11h2v6h-2zm0-4h2v2h-2z" />
+                                </svg>
+                                <h3 className="text-lg font-semibold text-blue-200">Wikipedia Summary</h3>
+                            </div>
+                            <p className="text-slate-300 leading-relaxed text-sm">
+                                {wikipediaData.extract}
+                            </p>
+                            {wikipediaData.content_urls?.desktop?.page && (
+                                <a
+                                    href={wikipediaData.content_urls.desktop.page}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-blue-200 hover:bg-blue-500/30 transition-colors mt-3 text-sm"
+                                >
+                                    View on Wikipedia
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-3 mt-6">
+                        {selectedBook.isbn && selectedBook.isbn[0] && (
+                            <a
+                                href={`https://archive.org/details/isbn_${selectedBook.isbn[0]}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                            >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                                Read Book on Internet Archive
+                            </a>
+                        )}
+
+                        <a
+                            href={`https://openlibrary.org${selectedBook.key}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-500/30 text-purple-200 hover:bg-purple-500/30 transition-colors"
+                        >
+                            View on Open Library
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                        </a>
+                    </div>
                 </div>
             </div>
         );

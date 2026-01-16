@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  background: #000000;
+  /* Ensure root element has black background */
+  overscroll-behavior: none;
+  /* Prevent overscroll bounce that can show white */
+}
+
 :root {
   color: #e9f5ff;
   background-color: #000000;
@@ -109,8 +116,8 @@ body {
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: transparent;
-  /* Changed from black to transparent to reveal sky */
+  background: #000000;
+  /* Solid black background to prevent white flash during scrolling */
   min-height: 100vh;
   color: #e9f5ff;
   position: relative;
