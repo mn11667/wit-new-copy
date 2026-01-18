@@ -30,20 +30,24 @@ const GoogleAd = ({
     className = ''
 }: GoogleAdProps) => {
     const adRef = useRef<HTMLDivElement>(null);
+    const adInitialized = useRef(false);
 
     useEffect(() => {
-        // Only execute if not already populated to avoid duplicate push errors in React strict mode
-        if (adRef.current && adRef.current.innerHTML.trim() === '') {
-            // This logic is tricky with the <ins> tag being managed by AdSense.
-            // Usually, we just push to adsbygoogle.
+        // Prevent duplicate initialization
+        if (adInitialized.current) {
+            return;
         }
 
         try {
+            // Mark as initialized before pushing to prevent race conditions
+            adInitialized.current = true;
             (window.adsbygoogle = window.adsbygoogle || []).push({});
         } catch (e) {
             console.error('AdSense error:', e);
+            // Reset on error so it can retry
+            adInitialized.current = false;
         }
-    }, []);
+    }, []); // Empty dependency array - only run once on mount
 
     return (
         <div className={`w-full flex justify-center my-4 ${className}`} style={style}>

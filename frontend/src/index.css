@@ -46,6 +46,14 @@ html {
   /* Richer purple/blue gradient */
 }
 
+/* Ensure root React div also has dark background */
+#root {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  background: #000000;
+  position: relative;
+}
+
 .theme-light {
   color: #1e293b;
   background-color: #f8fafc;
@@ -119,10 +127,17 @@ body {
   background: #000000;
   /* Solid black background to prevent white flash during scrolling */
   min-height: 100vh;
+  min-height: -webkit-fill-available;
+  /* iOS Safari fix */
   color: #e9f5ff;
   position: relative;
   isolation: isolate;
   transition: background-color 300ms ease, color 300ms ease;
+
+  /* Prevent overscroll bounce and white background flash on mobile */
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 

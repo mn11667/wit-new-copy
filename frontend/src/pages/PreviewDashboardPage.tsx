@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { DashboardLayout } from '../components/Layout/DashboardLayout';
 import { Button } from '../components/UI/Button';
@@ -6,26 +6,49 @@ import { LockedTabButton } from '../components/UI/LockedTabButton';
 import { LoginPromptModal } from '../components/UI/LoginPromptModal';
 import { getRandomQuote } from '../data/quotes';
 import { Clock } from '../components/UI/Clock';
+import { Library } from '../components/User/Library';
+import { fetchUserTree, FolderNode, FileItem } from '../services/contentApi';
 
 // Lazy load sections
 const DiscoverSection = React.lazy(() => import('../components/User/DiscoverSection').then(module => ({ default: module.DiscoverSection })));
 const BrainGymSection = React.lazy(() => import('../components/User/BrainGymSection').then(module => ({ default: module.BrainGymSection })));
 
 const PreviewDashboardPage: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'discover' | 'braingym'>('discover');
+    const [activeTab, setActiveTab] = useState<'library' | 'discover' | 'braingym'>('library');
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [quote, setQuote] = useState('');
-    const [discoverVisited, setDiscoverVisited] = useState(true); // Start with true since it's default
+    const [discoverVisited, setDiscoverVisited] = useState(false);
     const [brainGymVisited, setBrainGymVisited] = useState(false);
+    const [libraryVisited, setLibraryVisited] = useState(true); // Start with true since it's default
+
+    // Library state
+    const [tree, setTree] = useState<FolderNode[]>([]);
+    const [rootFiles, setRootFiles] = useState<FileItem[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         setQuote(getRandomQuote());
+        loadLibrary();
     }, []);
 
     useEffect(() => {
+        if (activeTab === 'library') setLibraryVisited(true);
         if (activeTab === 'discover') setDiscoverVisited(true);
         if (activeTab === 'braingym') setBrainGymVisited(true);
     }, [activeTab]);
+
+    const loadLibrary = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await fetchUserTree(); // No user ID for preview
+            setTree(data.tree);
+            setRootFiles(data.rootFiles);
+        } catch (err) {
+            console.error('Failed to load library:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     const handleLockedTabClick = () => {
         setShowLoginModal(true);
@@ -79,12 +102,16 @@ const PreviewDashboardPage: React.FC = () => {
                 {/* Tab Navigation */}
                 <div className="mac-cta-row">
                     <div className="flex flex-wrap items-center gap-2">
-                        {/* Locked Tabs */}
-                        <LockedTabButton
-                            label="Library"
-                            onClick={handleLockedTabClick}
+                        {/* Library Tab - Now Active */}
+                        <Button
+                            variant={activeTab === 'library' ? 'primary' : 'ghost'}
+                            onClick={() => setActiveTab('library')}
                             className="hidden sm:inline-flex"
-                        />
+                        >
+                            Library 📚
+                        </Button>
+
+                        {/* Locked Tabs */}
                         <LockedTabButton
                             label="Bookmarks"
                             onClick={handleLockedTabClick}
@@ -149,10 +176,10 @@ const PreviewDashboardPage: React.FC = () => {
                             </svg>
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-white mb-2">Limited Preview Access</h3>
+                            <h3 className="text-lg font-semibold text-white mb-2">Preview Access</h3>
                             <p className="text-slate-300 text-sm leading-relaxed mb-3">
-                                In preview mode, you can explore <strong className="text-white">Discover</strong> and <strong className="text-white">Brain Gym</strong> features.
-                                To unlock all features including:
+                                In preview mode, you can <strong className="text-white">browse our Library</strong> to see all available content, plus explore <strong className="text-white">Discover</strong> and <strong className="text-white">Brain Gym</strong> features.
+                                To unlock full access including:
                             </p>
                             <ul className="text-slate-400 text-sm space-y-1.5 mb-4">
                                 <li className="flex items-center gap-2">
@@ -189,6 +216,16 @@ const PreviewDashboardPage: React.FC = () => {
 
                 {/* Content Area */}
                 <div className="mac-card-grid">
+                    {libraryVisited && activeTab === 'library' && (
+                        <Library
+                            tree={tree}
+                            rootFiles={rootFiles}
+                            setPlayerFile={() => { }} // No player in preview
+                            canOpenFiles={false} // All files locked in preview
+                            onFileChange={loadLibrary}
+                        />
+                    )}
+
                     {discoverVisited && (
                         <div style={{ display: activeTab === 'discover' ? 'contents' : 'none' }}>
                             <React.Suspense fallback={<div className="flex justify-center p-20"><div className="w-10 h-10 border-4 border-slate-300 border-t-blue-600 rounded-full animate-spin"></div></div>}>
