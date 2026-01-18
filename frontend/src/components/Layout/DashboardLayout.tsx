@@ -90,6 +90,10 @@ export const DashboardLayout: React.FC<Props> = ({ title, children, statusExtra,
               <span>Expires:</span>
               <span className="font-medium">{formatDate(user?.subscription?.endDate)}</span>
             </div>
+            <div className="mac-account-row">
+              <span>Version:</span>
+              <span className="font-mono text-xs text-slate-400">v2.5.0-Madhav</span>
+            </div>
           </div>
           <div className="space-y-2">
             <Button variant="ghost" className="w-full justify-start text-sm text-red-400 hover:text-red-300" onClick={logout}>
