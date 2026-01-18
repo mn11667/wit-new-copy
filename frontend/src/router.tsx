@@ -57,7 +57,7 @@ const AppRouter: React.FC = () => (
         path="/dashboard"
         element={
           <RequireAuth>
-            <Suspense fallback={<div className="min-h-screen bg-black"><DashboardSkeleton /></div>}>
+            <Suspense fallback={<LoadingScreen message="ACCESSING MAINFRAME..." />}>
               <UserDashboardPage />
             </Suspense>
           </RequireAuth>
@@ -68,7 +68,7 @@ const AppRouter: React.FC = () => (
       <Route
         path="/preview"
         element={
-          <Suspense fallback={<div className="min-h-screen bg-black"><DashboardSkeleton /></div>}>
+          <Suspense fallback={<LoadingScreen message="INITIALIZING PREVIEW..." />}>
             <PreviewDashboardPage />
           </Suspense>
         }
