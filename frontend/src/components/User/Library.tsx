@@ -249,7 +249,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
                       key={file.id}
                       variants={item}
                       layout // Smooth reordering
-                      className="glass glass-nested flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-0 justify-between rounded-2xl p-4 transition-all hover:bg-white/6"
+                      className="glass glass-nested flex flex-row items-center gap-4 justify-between rounded-2xl p-4 transition-all hover:bg-white/6"
                     >
                       <div className="min-w-0 flex-1 w-full sm:mr-4">
                         <h4 className="text-base sm:text-lg font-semibold text-white break-words">{file.name}</h4>

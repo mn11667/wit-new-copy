@@ -688,110 +688,115 @@ export const MCQSection: React.FC = () => {
             </div>
 
             {/* Question Card */}
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl relative overflow-hidden flex flex-col h-[65vh] md:h-[70vh]">
 
                 {/* Timer Progress Bar (Subtle background) */}
-                <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-emerald-500 via-yellow-500 to-red-500 opacity-50 transition-all duration-1000 ease-linear"
+                <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-emerald-500 via-yellow-500 to-red-500 opacity-50 transition-all duration-1000 ease-linear z-10"
                     style={{ width: `${(timeLeft / initialTime) * 100}%` }}
                 />
 
-                <h2 className="text-xl md:text-2xl font-semibold text-white mb-8 leading-relaxed">
-                    {currentQ.question}
-                </h2>
+                {/* Scrollable Content Area */}
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+                    <h2 className="text-xl md:text-2xl font-semibold text-white mb-8 leading-relaxed">
+                        {currentQ.question}
+                    </h2>
 
-                <div className="grid gap-3">
-                    {Object.entries(currentQ.options).filter(([_, val]) => val).map(([key, value]) => {
-                        const isSelected = selectedOption === key;
-                        const isRightAnswer = key.toLowerCase() === currentQ.correctAnswer;
+                    <div className="grid gap-3">
+                        {Object.entries(currentQ.options).filter(([_, val]) => val).map(([key, value]) => {
+                            const isSelected = selectedOption === key;
+                            const isRightAnswer = key.toLowerCase() === currentQ.correctAnswer;
 
-                        let buttonStyle = "hover:bg-white/10 border-white/10 text-slate-200";
+                            let buttonStyle = "hover:bg-white/10 border-white/10 text-slate-200";
 
-                        if (isAnswered) {
-                            if (isRightAnswer) {
-                                buttonStyle = "bg-emerald-500/20 border-emerald-500/50 text-emerald-100 ring-1 ring-emerald-500/50";
-                            } else if (isSelected) {
-                                buttonStyle = "bg-red-500/20 border-red-500/50 text-red-100 ring-1 ring-red-500/50";
-                            } else {
-                                buttonStyle = "opacity-50 border-white/5 text-slate-500";
+                            if (isAnswered) {
+                                if (isRightAnswer) {
+                                    buttonStyle = "bg-emerald-500/20 border-emerald-500/50 text-emerald-100 ring-1 ring-emerald-500/50";
+                                } else if (isSelected) {
+                                    buttonStyle = "bg-red-500/20 border-red-500/50 text-red-100 ring-1 ring-red-500/50";
+                                } else {
+                                    buttonStyle = "opacity-50 border-white/5 text-slate-500";
+                                }
                             }
-                        }
 
-                        return (
-                            <button
-                                key={key}
-                                disabled={isAnswered}
-                                onClick={() => handleOptionSelect(key)}
-                                className={`
-                  w-full text-left p-4 rounded-xl border transition-all duration-200
-                  flex items-center gap-4 group
-                  ${buttonStyle}
-                  ${!isAnswered && "hover:scale-[1.01] active:scale-[0.99]"}
-                `}
-                            >
-                                <div className={`
-                  w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border
-                  ${isAnswered && isRightAnswer ? 'bg-emerald-500 border-emerald-500 text-white' :
-                                        isAnswered && isSelected ? 'bg-red-500 border-red-500 text-white' :
-                                            'bg-white/5 border-white/20 text-slate-400 group-hover:border-white/40'}
-                `}>
-                                    {key.replace('option ', '').toUpperCase()}
-                                </div>
-                                <span className="flex-1">{value}</span>
-                            </button>
-                        );
-                    })}
+                            return (
+                                <button
+                                    key={key}
+                                    disabled={isAnswered}
+                                    onClick={() => handleOptionSelect(key)}
+                                    className={`
+                      w-full text-left p-4 rounded-xl border transition-all duration-200
+                      flex items-center gap-4 group
+                      ${buttonStyle}
+                      ${!isAnswered && "hover:scale-[1.01] active:scale-[0.99]"}
+                    `}
+                                >
+                                    <div className={`
+                      w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border
+                      ${isAnswered && isRightAnswer ? 'bg-emerald-500 border-emerald-500 text-white' :
+                                            isAnswered && isSelected ? 'bg-red-500 border-red-500 text-white' :
+                                                'bg-white/5 border-white/20 text-slate-400 group-hover:border-white/40'}
+                    `}>
+                                        {key.replace('option ', '').toUpperCase()}
+                                    </div>
+                                    <span className="flex-1">{value}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
-                {/* Feedback / Next */}
+                {/* Fixed Footer for Feedback & Actions */}
                 {isAnswered && (
-                    <div className="space-y-4">
-                        <div className={`mt-6 p-4 rounded-xl animate-in fade-in slide-in-from-top-2 ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
-                            <div className="flex items-start gap-3">
-                                <div className={`text-2xl ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
-                                    {userAnswers[userAnswers.length - 1]?.isCorrect ? '✓' : '✕'}
-                                </div>
-                                <div className="flex-1">
-                                    <p className={`font-semibold ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'text-emerald-200' : 'text-red-200'}`}>
-                                        {userAnswers[userAnswers.length - 1]?.isCorrect ? 'Correct!' : 'Incorrect'}
-                                    </p>
-                                    {currentQ.remarks && (
-                                        <p className="text-slate-300 mt-1 text-sm bg-black/20 p-2 rounded-lg inline-block">
-                                            💡 {currentQ.remarks}
+                    <div className="border-t border-white/10 bg-black/20 backdrop-blur-md shrink-0 p-4 md:p-6 animate-in slide-in-from-bottom-5 z-20">
+                        <div className="space-y-4">
+                            <div className={`p-4 rounded-xl ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
+                                <div className="flex items-center gap-3">
+                                    <div className={`text-2xl ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
+                                        {userAnswers[userAnswers.length - 1]?.isCorrect ? '✓' : '✕'}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`font-semibold ${userAnswers[userAnswers.length - 1]?.isCorrect ? 'text-emerald-200' : 'text-red-200'}`}>
+                                            {userAnswers[userAnswers.length - 1]?.isCorrect ? 'Correct!' : 'Incorrect'}
                                         </p>
+                                        {currentQ.remarks && (
+                                            <p className="text-slate-300 mt-1 text-sm bg-black/20 p-2 rounded-lg inline-block truncate max-w-full">
+                                                💡 {currentQ.remarks}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <Button onClick={nextQuestion} size="sm" className="whitespace-nowrap shrink-0">
+                                        {currentIndex === questions.length - 1 ? 'Finish' : 'Next'}
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* AI Explanation Section */}
+                            {!aiExplanation && (
+                                <Button
+                                    variant="ghost"
+                                    onClick={fetchGeminiExplanation}
+                                    disabled={isAiLoading}
+                                    className="w-full border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-200 flex items-center justify-center gap-2"
+                                >
+                                    {isAiLoading ? (
+                                        <>Processing...</>
+                                    ) : (
+                                        <>✨ Ask AI Explanation</>
                                     )}
-                                </div>
-                                <Button onClick={nextQuestion}>
-                                    {currentIndex === questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
                                 </Button>
-                            </div>
-                        </div>
+                            )}
 
-                        {/* AI Explanation Section */}
-                        {!aiExplanation && (
-                            <Button
-                                variant="ghost"
-                                onClick={fetchGeminiExplanation}
-                                disabled={isAiLoading}
-                                className="w-full border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-200 flex items-center justify-center gap-2"
-                            >
-                                {isAiLoading ? (
-                                    <>Processing with AI...</>
-                                ) : (
-                                    <>✨ Ask AI for Detailed Explanation</>
-                                )}
-                            </Button>
-                        )}
-
-                        {aiExplanation && (
-                            <div className="bg-purple-900/20 border border-purple-500/20 p-6 rounded-2xl animate-in fade-in zoom-in-95">
-                                <h4 className="text-purple-300 font-semibold mb-2 flex items-center gap-2">
-                                    <span>✨</span> AI Analysis
-                                </h4>
-                                <div className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">
-                                    {aiExplanation}
+                            {aiExplanation && (
+                                <div className="bg-purple-900/20 border border-purple-500/20 p-4 rounded-xl animate-in fade-in zoom-in-95 max-h-[200px] overflow-y-auto custom-scrollbar">
+                                    <h4 className="text-purple-300 font-semibold mb-2 flex items-center gap-2 text-sm">
+                                        <span>✨</span> AI Analysis
+                                    </h4>
+                                    <div className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">
+                                        {aiExplanation}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
