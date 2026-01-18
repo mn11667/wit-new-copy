@@ -135,6 +135,26 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
     }
   };
 
+  // Animation variants
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 10 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { ease: [0.25, 0.1, 0.25, 1.0], duration: 0.3 }
+    }
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-[320px,1fr]">
       <Card className="hidden lg:block glass-muted">
@@ -173,20 +193,29 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
               </div>
             )}
             <p className="text-xs uppercase tracking-[0.22em] text-secondary">Sub-folders</p>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2 pb-8">
+            <motion.div
+              className="mt-3 grid gap-4 sm:grid-cols-2 pb-8"
+              variants={container}
+              initial="hidden"
+              animate="show"
+              key={selectedFolder || 'root'} // Trigger re-animation on folder change
+            >
               {folderChildren.length === 0 && <p className="text-sm text-slate-400">No folders here.</p>}
               {folderChildren.map((f) => (
-                <div
+                <motion.div
                   key={f.id}
+                  variants={item}
                   className="glass glass-nested rounded-2xl p-4 transition-all hover:bg-white/8 cursor-pointer"
                   onClick={() => setSelectedFolder(f.id)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <h4 className="text-lg font-semibold text-white">{f.name}</h4>
                   {f.description && <p className="text-sm text-slate-300">{f.description}</p>}
                   <p className="text-xs text-slate-400 mt-1">{f.files.length} files · {f.children.length} sub-folders</p>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -207,16 +236,24 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
                 </div>
               )}
 
-              <div className="mt-3 space-y-3 pb-8">
+              <motion.div
+                className="mt-3 space-y-3 pb-8"
+                variants={container}
+                initial="hidden"
+                animate="show"
+                key={`files-${selectedFolder || 'root'}`}
+              >
                 {filesToShow && filesToShow.length > 0 ? (
                   filesToShow.map((file) => (
-                    <div
+                    <motion.div
                       key={file.id}
-                      className="glass glass-nested flex items-center justify-between rounded-2xl p-4 transition-all hover:bg-white/6"
+                      variants={item}
+                      layout // Smooth reordering
+                      className="glass glass-nested flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-0 justify-between rounded-2xl p-4 transition-all hover:bg-white/6"
                     >
-                      <div>
-                        <h4 className="text-lg font-semibold text-white">{file.name}</h4>
-                        {file.description && <p className="text-sm text-slate-300">{file.description}</p>}
+                      <div className="min-w-0 flex-1 w-full sm:mr-4">
+                        <h4 className="text-base sm:text-lg font-semibold text-white break-words">{file.name}</h4>
+                        {file.description && <p className="text-xs sm:text-sm text-slate-300 break-words">{file.description}</p>}
                         <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
                           <Badge status={file.fileType === 'VIDEO' ? 'blue' : 'slate'}>
                             {file.fileType === 'VIDEO' ? 'Video' : 'PDF'}
@@ -225,11 +262,12 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
                           {file.lastOpenedAt && <span>Last opened: {new Date(file.lastOpenedAt).toLocaleString()}</span>}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 shrink-0">
                         <Button
                           variant="ghost"
                           onClick={() => toggleBookmark(file)}
                           disabled={!canInteract}
+                          className="hidden sm:inline-flex"
                           title={file.bookmarked ? 'Remove bookmark' : 'Add to bookmarks'}
                         >
                           {file.bookmarked ? '★' : '☆'}
@@ -240,7 +278,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
                           onClick={() => toggleCompleted(file)}
                           disabled={!canInteract}
                           title={file.completed ? 'Mark as not done' : 'Mark as done'}
-                          className={file.completed ? 'text-emerald-400' : ''}
+                          className={`${file.completed ? 'text-emerald-400' : ''} hidden sm:inline-flex`}
                         >
                           {file.completed ? '✓' : '○'}
                         </Button>
@@ -254,7 +292,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
                           {downloadingFileId === file.id ? <Spinner size="sm" /> : canAccessFiles ? 'Open' : (isInSubfolder && !isPremiumUser ? '🔒 Premium' : 'Pay to access')}
                         </Button>
                       </div>
-                    </div>
+                    </motion.div>
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-slate-400">
@@ -264,7 +302,7 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
                     <p className="text-sm">No files in this folder yet.</p>
                   </div>
                 )}
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>

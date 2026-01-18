@@ -1023,35 +1023,65 @@ body::after {
 /* Mobile phones - portrait */
 @media (max-width: 640px) {
 
+  /* Full screen glass layout */
+  .mac-shell {
+    padding: 0 !important;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .mac-window {
+    width: 100% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    display: flex;
+    flex-direction: column;
+  }
+
   /* Fix tab overflow - allow wrapping */
   .mac-cta-row {
-    padding: 12px;
+    padding: 12px 16px;
+    margin-top: 12px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 
   .mac-cta-row>div:first-child {
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
+    gap: 8px;
   }
 
   /* Card grid - single column on mobile */
   .mac-card-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 16px;
   }
 
   /* Adjust text sizes for readability */
+  h1 {
+    font-size: 1.25rem !important;
+    /* 20px */
+    line-height: 1.4 !important;
+  }
+
   .mac-window-title {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .mac-pill {
-    font-size: 10px;
+    font-size: 11px;
     padding: 6px 10px;
   }
 
   /* Better spacing on mobile */
   .mac-content {
-    padding: 14px 12px;
+    padding: 16px;
+    flex: 1;
+    overflow-y: auto;
   }
 
   /* Navigation items - better touch targets */

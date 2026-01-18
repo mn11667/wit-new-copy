@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardLayout } from '../components/Layout/DashboardLayout';
 import { Button } from '../components/UI/Button';
 import { Card } from '../components/UI/Card';
@@ -396,61 +397,66 @@ const UserDashboardPage: React.FC = () => {
 
         <div className={`mac-cta-row ${showPomodoro ? '!overflow-visible z-50 relative' : ''}`}>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant={activeTab === 'library' ? 'primary' : 'ghost'} onClick={() => setActiveTab('library')}>
-              Library
-            </Button>
-            <Button variant={activeTab === 'bookmarks' ? 'primary' : 'ghost'} onClick={() => setActiveTab('bookmarks')} className="hidden sm:inline-flex">
-              Bookmarks
-            </Button>
-            <Button variant={activeTab === 'completed' ? 'primary' : 'ghost'} onClick={() => setActiveTab('completed')} className="hidden sm:inline-flex">
-              Completed
-            </Button>
-            <Button variant={activeTab === 'practice' ? 'primary' : 'ghost'} onClick={() => setActiveTab('practice')} className="hidden sm:inline-flex">
-              Practice
-            </Button>
-            <Button
-              variant={activeTab === 'youtube' ? 'primary' : 'ghost'}
-              onClick={() => setActiveTab('youtube')}
-              className={`hidden sm:inline-flex items-center gap-2 group relative ${youtubeVisited && activeTab !== 'youtube' ? 'border-red-500/30 pr-10 overflow-visible' : 'overflow-hidden'}`}
-            >
-              <span>YouTube</span>
+            {[
+              { id: 'library', label: 'Library' },
+              { id: 'bookmarks', label: 'Bookmarks', className: 'hidden sm:inline-flex' },
+              { id: 'completed', label: 'Completed', className: 'hidden sm:inline-flex' },
+              { id: 'practice', label: 'Practice', className: 'hidden sm:inline-flex' },
+              { id: 'youtube', label: 'YouTube', className: 'hidden sm:inline-flex group relative', special: true },
+              { id: 'discover', label: 'Discover 🚀', className: 'hidden sm:inline-flex' },
+              { id: 'space', label: 'Space 🌌', className: 'hidden sm:inline-flex' },
+              { id: 'braingym', label: 'Brain Gym 🧠', className: 'hidden sm:inline-flex' },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              const isYoutube = tab.id === 'youtube';
+              // Check if playing in background (visited but not active)
+              const showEqualizer = isYoutube && youtubeVisited && !isActive;
 
-              {/* Playing Indicator & Stop Button (Only when playing in background) */}
-              {youtubeVisited && activeTab !== 'youtube' && (
-                <>
-                  {/* Playing Animation (Equalizer) - Highly Visible */}
-                  <div className="flex items-end gap-1 h-3 mx-2">
-                    <div className="w-1 bg-red-500 animate-[pulse_0.6s_ease-in-out_infinite] h-full shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
-                    <div className="w-1 bg-red-500 animate-[pulse_0.8s_ease-in-out_infinite_0.1s] h-2/3 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
-                    <div className="w-1 bg-red-500 animate-[pulse_1s_ease-in-out_infinite_0.2s] h-3/4 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
-                    <div className="w-1 bg-red-500 animate-[pulse_0.7s_ease-in-out_infinite_0.3s] h-1/2 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
-                  </div>
-
-                  {/* Stop Button - More Prominent */}
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setYoutubeVisited(false);
-                    }}
-                    className="absolute -right-1 -top-1 w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center cursor-pointer transition-all z-20 shadow-lg border-2 border-slate-900 hover:scale-110"
-                    title="Stop Video"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M6 6h12v12H6z" />
-                    </svg>
-                  </div>
-                </>
-              )}
-            </Button>
-            <Button variant={activeTab === 'discover' ? 'primary' : 'ghost'} onClick={() => setActiveTab('discover')} className="hidden sm:inline-flex">
-              Discover 🚀
-            </Button>
-            <Button variant={activeTab === 'space' ? 'primary' : 'ghost'} onClick={() => setActiveTab('space')} className="hidden sm:inline-flex">
-              Space 🌌
-            </Button>
-            <Button variant={activeTab === 'braingym' ? 'primary' : 'ghost'} onClick={() => setActiveTab('braingym')} className="hidden sm:inline-flex">
-              Brain Gym 🧠
-            </Button>
+              return (
+                <Button
+                  key={tab.id}
+                  variant="ghost"
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`${tab.className || ''} ${isActive ? '!border-transparent' : ''} ${showEqualizer ? 'border-red-500/30 pr-10 !overflow-visible' : ''}`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-white/5 border border-white/10 rounded-xl backdrop-blur-md"
+                      initial={false}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2">
+                    {tab.label}
+                    {showEqualizer && (
+                      <>
+                        {/* Playing Animation */}
+                        <div className="flex items-end gap-1 h-3 mx-2">
+                          <div className="w-1 bg-red-500 animate-[pulse_0.6s_ease-in-out_infinite] h-full shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                          <div className="w-1 bg-red-500 animate-[pulse_0.8s_ease-in-out_infinite_0.1s] h-2/3 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                          <div className="w-1 bg-red-500 animate-[pulse_1s_ease-in-out_infinite_0.2s] h-3/4 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                          <div className="w-1 bg-red-500 animate-[pulse_0.7s_ease-in-out_infinite_0.3s] h-1/2 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                        </div>
+                        {/* Stop Button */}
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setYoutubeVisited(false);
+                          }}
+                          className="absolute -right-1 -top-1 w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center cursor-pointer transition-all z-20 shadow-lg border-2 border-slate-900 hover:scale-110"
+                          title="Stop Video"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 6h12v12H6z" />
+                          </svg>
+                        </div>
+                      </>
+                    )}
+                  </span>
+                </Button>
+              );
+            })}
 
             {/* Pomodoro Timer Toggle - Hidden on mobile */}
             <div className="relative ml-auto hidden sm:block">
@@ -558,7 +564,20 @@ const UserDashboardPage: React.FC = () => {
                 </React.Suspense>
               </div>
             )}
-            {renderView()}
+            {renderView() && (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, x: 20, scale: 0.98 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -20, scale: 0.98 }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1.0] }}
+                  className="w-full"
+                >
+                  {renderView()}
+                </motion.div>
+              </AnimatePresence>
+            )}
           </>
         </div>
 
