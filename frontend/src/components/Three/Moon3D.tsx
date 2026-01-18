@@ -488,11 +488,8 @@ function EarthSphere({ position = [0, 0, 0] }: { position?: [number, number, num
             <pointLight position={[0, 0, 8]} intensity={4.0} color="#ffffff" distance={20} />
 
             {/* Hemisphere light for natural ambient lighting */}
-            <hemisphereLight
-                skyColor="#87CEEB"
-                groundColor="#1a1a2e"
-                intensity={1.5}
-            />
+            <hemisphereLight args={['#87CEEB', '#1a1a2e', 1.5]} />
+
 
             {/* Strong ambient light to ensure everything is visible */}
             <ambientLight intensity={0.6} />

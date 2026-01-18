@@ -26,6 +26,17 @@ const findFolder = (tree: FolderNode[], id: string | null): FolderNode | null =>
   return null;
 };
 
+// Helper to calculate folder depth (0 = root folders like "1st papper", "2nd papper")
+const getFolderDepth = (tree: FolderNode[], folderId: string | null, depth = 0): number => {
+  if (!folderId) return 0;
+  for (const node of tree) {
+    if (node.id === folderId) return depth;
+    const found = getFolderDepth(node.children, folderId, depth + 1);
+    if (found > 0 || (found === 0 && node.children.some(c => c.id === folderId))) return found;
+  }
+  return depth;
+};
+
 import { extractDriveId } from '../../utils/fileHelpers';
 
 interface LibraryProps {
@@ -43,6 +54,14 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
   const [error, setError] = useState<string | null>(null);
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
   const canInteract = user?.status === 'ACTIVE';
+
+  // Calculate if we're in a subfolder (depth > 0 means we're beyond root folders)
+  const folderDepth = useMemo(() => getFolderDepth(tree, selectedFolder), [tree, selectedFolder]);
+  const isInSubfolder = folderDepth > 0;
+
+  // Determine if user can access files in current folder
+  const isPremiumUser = user?.subscription?.plan?.tier === 'PREMIUM' || user?.subscription?.status === 'ACTIVE';
+  const canAccessFiles = canOpenFiles && (isPremiumUser || !isInSubfolder);
 
   const currentFolder = useMemo(() => findFolder(tree, selectedFolder), [tree, selectedFolder]);
   const filesToShow = selectedFolder ? currentFolder?.files || [] : rootFiles;
@@ -81,8 +100,12 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
   };
 
   const handleOpen = async (file: FileItem) => {
-    if (!canOpenFiles) {
-      alert('Pay your dues to get access to collection point databases.');
+    if (!canAccessFiles) {
+      if (isInSubfolder && !isPremiumUser) {
+        alert('This content is only available for premium users. Upgrade your subscription to access files in subfolders.');
+      } else {
+        alert('Pay your dues to get access to collection point databases.');
+      }
       return;
     }
 
@@ -208,11 +231,11 @@ export const Library: React.FC<LibraryProps> = ({ tree, rootFiles, setPlayerFile
 
                         <Button
                           onClick={() => handleOpen(file)}
-                          disabled={!canOpenFiles || downloadingFileId === file.id}
-                          title={!canOpenFiles ? 'Pay your dues to get access to collection point databases.' : undefined}
+                          disabled={!canAccessFiles || downloadingFileId === file.id}
+                          title={!canAccessFiles ? (isInSubfolder && !isPremiumUser ? 'Upgrade to premium to access files in subfolders' : 'Pay your dues to get access to collection point databases.') : undefined}
                           className="min-w-[80px]"
                         >
-                          {downloadingFileId === file.id ? <Spinner size="sm" /> : canOpenFiles ? 'Open' : 'Pay to access'}
+                          {downloadingFileId === file.id ? <Spinner size="sm" /> : canAccessFiles ? 'Open' : (isInSubfolder && !isPremiumUser ? '🔒 Premium' : 'Pay to access')}
                         </Button>
                       </div>
                     </div>
