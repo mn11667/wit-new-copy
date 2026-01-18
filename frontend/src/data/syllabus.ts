@@ -338,6 +338,9 @@ export const FOLDER_SYLLABUS_MAP: Record<string, string[]> = {
     "5a393e23-ce06-463d-85ed-97f1c71444c6": ["transmission-distribution"], // 4. T&D (Videos)
     "f7ddc6e7-ffa6-46bc-89b6-9ceca67a2058": ["system-analysis"], // 5. Power System Analysis (Videos)
     "fe06efbf-8a5d-4967-84a6-623195a7321b": ["safety"], // 10. Safety Engineering (Videos)
+
+    // Missing mappings added
+    "63505dc8-883d-4714-844a-20cb0022ef37": ["power-electronics"], // 6. Power Electronics (Notes)
 };
 
 // Helper to find path to a folder
