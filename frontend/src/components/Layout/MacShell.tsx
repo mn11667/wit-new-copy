@@ -27,7 +27,6 @@ export const MacShell: React.FC<MacShellProps> = ({
 }) => {
   // const [now, setNow] = useState(() => new Date()); // Moved to Clock component
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => (typeof window !== 'undefined' ? window.innerWidth > 900 : true));
-  const glowRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>();
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
   const [batteryCharging, setBatteryCharging] = useState<boolean>(false);
@@ -41,24 +40,7 @@ export const MacShell: React.FC<MacShellProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, [sidebar]);
 
-  // Reactive glow
-  useEffect(() => {
-    const handleMove = (event: MouseEvent) => {
-      const { clientX, clientY } = event;
-      if (rafRef.current) return;
-      rafRef.current = requestAnimationFrame(() => {
-        if (glowRef.current) {
-          glowRef.current.style.transform = `translate(${clientX}px, ${clientY}px)`;
-        }
-        rafRef.current = undefined;
-      });
-    };
-    window.addEventListener('mousemove', handleMove);
-    return () => {
-      window.removeEventListener('mousemove', handleMove);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
+
 
   // Battery info (best effort)
   useEffect(() => {
@@ -92,7 +74,7 @@ export const MacShell: React.FC<MacShellProps> = ({
 
   return (
     <div className="mac-wrapper">
-      <div className="mac-glow" ref={glowRef} />
+
 
       <header className="mac-menu">
         <div className="mac-menu-left">
