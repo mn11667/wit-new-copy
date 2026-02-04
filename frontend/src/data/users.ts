@@ -38,5 +38,10 @@ export const SEEDED_USERS = [
         email: import.meta.env.VITE_USER_RUPESH_EMAIL,
         password: import.meta.env.VITE_USER_RUPESH_PASSWORD,
         name: import.meta.env.VITE_USER_RUPESH_NAME
+    },
+    {
+        email: import.meta.env.VITE_USER_ARUN_EMAIL,
+        password: import.meta.env.VITE_USER_ARUN_PASSWORD,
+        name: import.meta.env.VITE_USER_ARUN_NAME
     }
 ];
