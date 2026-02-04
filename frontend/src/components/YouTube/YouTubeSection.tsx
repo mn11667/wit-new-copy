@@ -112,11 +112,11 @@ export const YouTubeSection: React.FC = () => {
     // If Search Tab: Use specific video embed by ID
     const getEmbedUrl = () => {
         if (subTab === 'playlist') {
-            return `https://www.youtube.com/embed?listType=playlist&list=${PLAYLIST_ID}&index=${currentIndex}&autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`;
+            return `https://www.youtube.com/embed?listType=playlist&list=${PLAYLIST_ID}&index=${currentIndex}&autoplay=0&rel=0&modestbranding=1&iv_load_policy=3`;
         } else {
             // If a searched video is selected, play it. Otherwise, show nothing or placeholder.
             return playingSearchVideoId
-                ? `https://www.youtube.com/embed/${playingSearchVideoId}?autoplay=1&rel=0`
+                ? `https://www.youtube.com/embed/${playingSearchVideoId}?autoplay=0&rel=0`
                 : '';
         }
     };

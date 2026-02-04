@@ -42,7 +42,7 @@ html {
   --mac-font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro Rounded", "SF Mono", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --mac-font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro Rounded", "SF Mono", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-  --sky-gradient: linear-gradient(135deg, #0f172a, #2e1065 45%, #0f172a);
+  --sky-gradient: linear-gradient(135deg, #000000, #0a0a0a 45%, #000000);
   /* Richer purple/blue gradient */
 }
 
@@ -192,8 +192,8 @@ body::after {
 #sky-background .sky-gradient {
   position: absolute;
   inset: 0;
-  background: var(--sky-gradient, linear-gradient(135deg, #0f172a, #0b1220 45%, #0e1528));
-  filter: saturate(1.1);
+  background: var(--sky-gradient, linear-gradient(135deg, #000000, #050505 45%, #000000));
+  filter: saturate(0);
   transition: background 1500ms ease, opacity 1500ms ease;
   opacity: 0.96;
 }
